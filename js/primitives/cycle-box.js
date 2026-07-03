@@ -1,9 +1,10 @@
-// 牛市/熊市半透明区间 + 角标签。projected（预测）段用虚线边框 + 减半填充。
-import { Primitive, clamp } from './base.js';
-import { FONT } from '../config.js';
+// 牛市/熊市半透明区间 + 类型标签胶囊。projected（预测）段用虚线边框 + 减半填充。
+// 区间底色画在 K 线下层，标签胶囊画在上层保持可读。
+import { Primitive, clamp, drawTag } from './base.js';
+import { COLORS } from '../config.js';
 
 export class CycleBox extends Primitive {
-  // labelPos: 'top' 标签画在框内左上角，'bottom' 画在框内左下角
+  // labelPos: 'top' 标签在框内左上角，'bottom' 在框内左下角
   constructor({ from, to, priceLow, priceHigh, fill, borderColor, label, labelColor, labelPos = 'top', dashed = false }) {
     super('bottom');
     this._from = from;
@@ -16,48 +17,55 @@ export class CycleBox extends Primitive {
     this._labelColor = labelColor;
     this._labelPos = labelPos;
     this._dashed = dashed;
+    if (label) {
+      this._views.push(this._makeView('top', (ctx, media) => this._drawLabel(ctx, media)));
+    }
   }
 
   _range() {
     return { fromTime: this._from, toTime: this._to, minPrice: this._priceLow, maxPrice: this._priceHigh };
   }
 
-  _draw(ctx, media) {
+  // 返回钳制后的屏幕坐标；不可见时返回 null
+  _rect(media) {
     const x1 = this.timeToX(this._from);
     const x2 = this.timeToX(this._to);
     const y1 = this.priceToY(this._priceHigh);
     const y2 = this.priceToY(this._priceLow);
-    if (x1 === null || x2 === null || y1 === null || y2 === null) return;
-    if (x2 < 0 || x1 > media.width) return;
-    if (y2 < 0 || y1 > media.height) return; // 整个框在视口上方/下方时不画（含标签）
+    if (x1 === null || x2 === null || y1 === null || y2 === null) return null;
+    if (x2 < 0 || x1 > media.width) return null;
+    if (y2 < 0 || y1 > media.height) return null;
+    return {
+      cx1: clamp(x1, media.width),
+      cx2: clamp(x2, media.width),
+      cy1: clamp(y1, media.height),
+      cy2: clamp(y2, media.height),
+    };
+  }
 
-    const cx1 = clamp(x1, media.width);
-    const cx2 = clamp(x2, media.width);
-    const cy1 = clamp(y1, media.height);
-    const cy2 = clamp(y2, media.height);
-
+  _draw(ctx, media) {
+    const r = this._rect(media);
+    if (!r) return;
     ctx.fillStyle = this._fill;
-    ctx.fillRect(cx1, cy1, cx2 - cx1, cy2 - cy1);
-
+    ctx.fillRect(r.cx1, r.cy1, r.cx2 - r.cx1, r.cy2 - r.cy1);
     ctx.strokeStyle = this._borderColor;
     ctx.lineWidth = 1;
     ctx.setLineDash(this._dashed ? [5, 4] : []);
-    ctx.strokeRect(cx1, cy1, cx2 - cx1, cy2 - cy1);
+    ctx.strokeRect(r.cx1, r.cy1, r.cx2 - r.cx1, r.cy2 - r.cy1);
     ctx.setLineDash([]);
+  }
 
-    if (!this._label) return;
-    // 框缘滚出屏幕时标签贴住视口边缘，保持可见（上缘避开顶部读数区）
-    const lx = Math.max(cx1, 0) + 8;
-    if (cx2 - lx < 48) return; // 框太窄/基本滚出视口时不画标签
-    ctx.font = `600 13px ${FONT}`;
-    ctx.fillStyle = this._labelColor;
-    ctx.textAlign = 'left';
+  _drawLabel(ctx, media) {
+    const r = this._rect(media);
+    if (!r) return;
+    // 框缘滚出屏幕时标签贴住视口边缘，保持可见（上缘避开置顶的竖线标签带）
+    const lx = Math.max(r.cx1, 0) + 8;
+    if (r.cx2 - lx < 64) return; // 框太窄/基本滚出视口时不画标签
+    const opts = { bg: COLORS.tagBg, color: this._labelColor };
     if (this._labelPos === 'top') {
-      ctx.textBaseline = 'top';
-      ctx.fillText(this._label, lx, cy1 < 0 ? 30 : cy1 + 8);
+      drawTag(ctx, lx, r.cy1 < 0 ? 62 : r.cy1 + 8, this._label, { ...opts, anchor: 'tl' });
     } else {
-      ctx.textBaseline = 'bottom';
-      ctx.fillText(this._label, lx, Math.min(cy2, media.height) - 8);
+      drawTag(ctx, lx, Math.min(r.cy2, media.height) - 8, this._label, { ...opts, anchor: 'bl' });
     }
   }
 }

@@ -49,7 +49,7 @@ export function createChartAndSeries(container) {
       // 默认 minBarSpacing 0.5 会让 ~5300 根 K 线无法一屏放下，必须调小
       minBarSpacing: 0.05,
     },
-    localization: { locale: 'zh-CN', priceFormatter },
+    localization: { locale: 'zh-CN', priceFormatter, dateFormat: 'dd/MM/yyyy' },
   });
 
   const series = chart.addSeries(LWC.CandlestickSeries, seriesThemeOptions());

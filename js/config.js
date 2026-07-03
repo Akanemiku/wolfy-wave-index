@@ -60,15 +60,15 @@ export const THEMES = {
     bearLabel: '#ef5350',
 
     halving: '#4a7dec',
-    halvingBadgeBg: 'rgba(41, 98, 255, 0.22)',
-    halvingBadgeText: '#82a7ff',
+    halvingLabel: '#82a7ff',
 
     today: '#787b86',
-    todayBadgeBg: 'rgba(59, 63, 74, 0.92)',
-    todayBadgeText: '#d1d4dc',
+    todayLabel: '#b2b5be',
 
     arrowBull: '#26a69a',
     arrowBear: '#ef5350',
+
+    tagBg: 'rgba(19, 23, 34, 0.88)', // 标签胶囊统一底色
 
     watermark: 'rgba(209, 212, 220, 0.05)',
   },
@@ -88,15 +88,15 @@ export const THEMES = {
     bearLabel: '#e13d3d',
 
     halving: '#2962ff',
-    halvingBadgeBg: 'rgba(41, 98, 255, 0.12)',
-    halvingBadgeText: '#2962ff',
+    halvingLabel: '#2962ff',
 
     today: '#787b86',
-    todayBadgeBg: 'rgba(120, 123, 134, 0.92)',
-    todayBadgeText: '#ffffff',
+    todayLabel: '#6a6d78',
 
     arrowBull: '#089981',
     arrowBear: '#f23645',
+
+    tagBg: 'rgba(255, 255, 255, 0.92)', // 标签胶囊统一底色
 
     watermark: 'rgba(19, 23, 34, 0.05)',
   },

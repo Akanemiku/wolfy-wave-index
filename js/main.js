@@ -11,6 +11,12 @@ import { setSeriesData } from './primitives/base.js';
 
 const $ = (id) => document.getElementById(id);
 const fmtDate = (t) => new Date(t * 1000).toISOString().slice(0, 10);
+// 全站统一的日期显示格式：DD/MM/YYYY
+const fmtDMY = (t) => {
+  const d = new Date(t * 1000);
+  const p = (n) => String(n).padStart(2, '0');
+  return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}/${d.getUTCFullYear()}`;
+};
 const fmtPrice = (p) => (p >= 100 ? Math.round(p).toLocaleString('en-US') : p.toFixed(2));
 const fmtPct = (v) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(2)}%`;
 
@@ -107,7 +113,7 @@ async function init() {
         ? `熊市 第 <b>${bearDay}</b> / ${BEAR_DAYS} 天`
         : '—';
       $('stat-bottom').innerHTML = remain >= 0
-        ? `距预测见底 <b>${remain}</b> 天（${fmtDate(lastTop.time + BEAR_DAYS * DAY).replaceAll('-', '/')}）`
+        ? `距预测见底 <b>${remain}</b> 天（${fmtDMY(lastTop.time + BEAR_DAYS * DAY)}）`
         : `已超过预测见底日 <b>${-remain}</b> 天`;
     }
   }
@@ -133,7 +139,7 @@ async function init() {
     const chg = prevClose ? (c.close - prevClose) / prevClose : null;
     const dir = chg !== null && chg < 0 ? 'down' : 'up';
     $('legend').innerHTML =
-      `${fmtDate(c.time).replaceAll('-', '/')}　`
+      `${fmtDMY(c.time)}　`
       + `开 <b>${fmtPrice(c.open)}</b>　高 <b>${fmtPrice(c.high)}</b>　`
       + `低 <b>${fmtPrice(c.low)}</b>　收 <b>${fmtPrice(c.close)}</b>`
       + (chg !== null ? `　<span class="${dir}">${fmtPct(chg)}</span>` : '');
@@ -227,7 +233,7 @@ async function init() {
   if (live && live.length) {
     render(mergeCandles(snapshot, live));
   } else {
-    showNotice(`实时数据加载失败，当前显示截至 ${fmtDate(sinceTs)} 的历史数据。`);
+    showNotice(`实时数据加载失败，当前显示截至 ${fmtDMY(sinceTs)} 的历史数据。`);
   }
   console.table(currentPivots.map((p) => ({ 类型: p.type === 'top' ? '牛顶' : '熊底', 日期: fmtDate(p.time), 价格: p.price })));
 }

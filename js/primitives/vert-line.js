@@ -1,22 +1,21 @@
-// 全高竖线 + 可选徽标：减半日（蓝实线）、今日分隔（灰虚线）。
-// 线画在 K 线下层（'bottom'），徽标画在上层（'top'）——否则常见缩放级别下
-// 徽标会被 K 线盖住。徽标统一置顶在竖线最上方的专用空带里
+// 全高竖线 + 置顶标签：减半日（蓝实线）、今日分隔（灰虚线）。
+// 线画在 K 线下层（'bottom'），标签画在上层（'top'）——否则常见缩放级别下
+// 标签会被 K 线盖住。标签统一置顶在竖线最上方的专用空带里
 // （OHLC 读数行之下，K 线区域之上，见 chart.js 的 scaleMargins.top）。
-import { Primitive, roundedRectPath } from './base.js';
-import { FONT } from '../config.js';
+import { Primitive, drawTag } from './base.js';
+import { COLORS } from '../config.js';
 
-const BADGE_TOP = 34; // 徽标顶边距（px），避开图表左上角的 OHLC 读数行
+const BADGE_TOP = 34; // 标签顶边距（px），避开图表左上角的 OHLC 读数行
 
 export class VertLine extends Primitive {
-  constructor({ time, color, width = 2, dashed = false, label, badgeBg, badgeText }) {
+  constructor({ time, color, width = 2, dashed = false, label, labelColor }) {
     super('bottom');
     this._time = time;
     this._color = color;
     this._width = width;
     this._dashed = dashed;
     this._label = label;
-    this._badgeBg = badgeBg;
-    this._badgeText = badgeText;
+    this._labelColor = labelColor;
     if (label) {
       this._views.push(this._makeView('top', (ctx, media) => this._drawBadge(ctx, media)));
     }
@@ -44,18 +43,10 @@ export class VertLine extends Primitive {
   _drawBadge(ctx, media) {
     const x = this._x(media);
     if (x === null) return;
-    ctx.font = `600 12px ${FONT}`;
-    const w = ctx.measureText(this._label).width + 14;
-    const h = 22;
-    const bx = x - w / 2;
-    const by = BADGE_TOP;
-    ctx.fillStyle = this._badgeBg;
-    ctx.beginPath();
-    roundedRectPath(ctx, bx, by, w, h, 4);
-    ctx.fill();
-    ctx.fillStyle = this._badgeText;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(this._label, x, by + h / 2 + 1);
+    drawTag(ctx, x, BADGE_TOP, this._label, {
+      bg: COLORS.tagBg,
+      color: this._labelColor,
+      anchor: 'tc',
+    });
   }
 }
