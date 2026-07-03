@@ -27,6 +27,7 @@ export class CycleBox extends Primitive {
     const y2 = this.priceToY(this._priceLow);
     if (x1 === null || x2 === null || y1 === null || y2 === null) return;
     if (x2 < 0 || x1 > media.width) return;
+    if (y2 < 0 || y1 > media.height) return; // 整个框在视口上方/下方时不画（含标签）
 
     const cx1 = clamp(x1, media.width);
     const cx2 = clamp(x2, media.width);

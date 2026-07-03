@@ -22,18 +22,37 @@ export function timeToLogical(t) {
 // 坐标钳制：远超屏幕的坐标收拢到视口 ±100px，避免画出巨型矩形
 export const clamp = (v, max) => Math.max(-100, Math.min(max + 100, v));
 
+// 圆角矩形路径：旧版 Safari(<16)/Firefox(<112) 没有 ctx.roundRect，
+// 直接调用会抛 TypeError 中断整个 primitive 绘制过程
+export function roundedRectPath(ctx, x, y, w, h, r) {
+  if (ctx.roundRect) {
+    ctx.roundRect(x, y, w, h, r);
+    return;
+  }
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
 export class Primitive {
   constructor(zOrder = 'normal') {
     this._chart = null;
     this._series = null;
+    this._views = [this._makeView(zOrder, (ctx, media) => this._draw(ctx, media))];
+  }
+
+  _makeView(zOrder, drawFn) {
     const self = this;
-    this._view = {
+    return {
       update() {},
       zOrder: () => zOrder,
       renderer: () => ({
         draw: (target) => {
           if (!self._chart || !self._series) return;
-          target.useMediaCoordinateSpace((scope) => self._draw(scope.context, scope.mediaSize));
+          target.useMediaCoordinateSpace((scope) => drawFn(scope.context, scope.mediaSize));
         },
       }),
     };
@@ -52,7 +71,7 @@ export class Primitive {
   updateAllViews() {}
 
   paneViews() {
-    return [this._view];
+    return this._views;
   }
 
   // 让自动缩放把标注也纳入价格范围（否则悬于框外的箭头/气泡会被裁出视口）。

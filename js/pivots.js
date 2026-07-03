@@ -70,23 +70,29 @@ export function buildAnnotations(pivots, candles) {
     const label = isBull ? '牛市' : '熊市';
     const labelPos = isBull ? 'top' : 'bottom';
 
-    if (seg.projected && lastReal.time > seg.from.time && lastReal.time < seg.to.time) {
-      // 在「今日」处拆成 实线段 + 虚线预测段
-      primitives.push(new CycleBox({
-        from: seg.from.time, to: lastReal.time, priceLow, priceHigh, fill, label, labelPos,
-      }));
-      primitives.push(new CycleBox({
-        from: lastReal.time, to: seg.to.time, priceLow, priceHigh,
-        fill: fill.replace(/[\d.]+\)$/, (a) => `${parseFloat(a) / 2})`),
-        label: '熊市（预测）', labelPos: 'top', dashed: true,
-      }));
+    if (seg.projected) {
+      // 在「今日」处拆成 实线段 + 虚线预测段。边界情况自然退化为只画一段：
+      // 今日即牛顶（当日创周期新高）→ 全部为预测段；预测期已走完 → 全部为实线段
+      const splitAt = Math.min(Math.max(lastReal.time, seg.from.time), seg.to.time);
+      if (splitAt > seg.from.time) {
+        primitives.push(new CycleBox({
+          from: seg.from.time, to: splitAt, priceLow, priceHigh, fill, label, labelPos,
+        }));
+      }
+      if (seg.to.time > splitAt) {
+        primitives.push(new CycleBox({
+          from: splitAt, to: seg.to.time, priceLow, priceHigh,
+          fill: fill.replace(/[\d.]+\)$/, (a) => `${parseFloat(a) / 2})`),
+          label: '熊市（预测）', labelPos: 'top', dashed: true,
+        }));
+      }
       primitives.push(new VertLine({
         time: lastReal.time, color: COLORS.today, width: 1.5, dashed: true,
         label: '今日', badgeBg: 'rgba(120,123,134,0.9)', badgeText: '#ffffff', labelY: 0.08,
       }));
     } else {
       primitives.push(new CycleBox({
-        from: seg.from.time, to: seg.to.time, priceLow, priceHigh, fill, label, labelPos, dashed: !!seg.projected,
+        from: seg.from.time, to: seg.to.time, priceLow, priceHigh, fill, label, labelPos,
       }));
     }
 
@@ -105,10 +111,11 @@ export function buildAnnotations(pivots, candles) {
   });
 
   // 减半日竖线
-  for (const t of HALVINGS) {
+  for (const h of HALVINGS) {
     primitives.push(new VertLine({
-      time: t, color: COLORS.halving, label: '减半日',
+      time: h.date, color: COLORS.halving, label: '减半日',
       badgeBg: COLORS.halvingBadgeBg, badgeText: COLORS.halvingBadgeText,
+      labelY: h.labelY,
     }));
   }
 
@@ -119,5 +126,6 @@ export function buildAnnotations(pivots, candles) {
     lines: [`牛顶：${fmtDate(lastTop.time)}`, `比特币价格：${fmtPrice(lastTop.price)}`],
   }));
 
-  return { primitives, extendTo: predictedEnd + EXTEND_MARGIN_DAYS * DAY };
+  // 预测见底日已过时仍保留右侧留白（以最新 K 线为准）
+  return { primitives, extendTo: Math.max(predictedEnd, lastReal.time) + EXTEND_MARGIN_DAYS * DAY };
 }

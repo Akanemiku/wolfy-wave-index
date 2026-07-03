@@ -24,6 +24,15 @@
     <div id="loading-text">加载行情数据中…</div>
   </div>
 
+  <script>
+    // 必须放在模块脚本之外：file:// 下浏览器根本不会加载 ES module，
+    // 模块内的检测代码是死代码
+    if (location.protocol === 'file:') {
+      document.getElementById('loading-text').textContent =
+        '不能直接双击打开本页面，请在项目目录运行 python3 -m http.server 8080 后访问 http://localhost:8080';
+      document.querySelector('.loading-spinner').style.display = 'none';
+    }
+  </script>
   <script src="vendor/lightweight-charts.standalone.production.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>

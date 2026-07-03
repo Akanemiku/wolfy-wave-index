@@ -1,5 +1,5 @@
 // 牛顶气泡标注：锚定在数据点上，指引线 + 圆角白底文字框。
-import { Primitive } from './base.js';
+import { Primitive, roundedRectPath } from './base.js';
 import { COLORS, FONT } from '../config.js';
 
 export class Callout extends Primitive {
@@ -19,6 +19,7 @@ export class Callout extends Primitive {
     const y = this.priceToY(this._price);
     if (x === null || y === null) return;
     if (x < -50 || x > media.width + 50) return;
+    if (y < -50 || y > media.height + 50) return;
 
     ctx.font = `bold italic 13px ${FONT}`;
     const lineH = 20;
@@ -45,7 +46,7 @@ export class Callout extends Primitive {
 
     ctx.fillStyle = COLORS.calloutBg;
     ctx.beginPath();
-    ctx.roundRect(bx, by, w, h, 7);
+    roundedRectPath(ctx, bx, by, w, h, 7);
     ctx.fill();
     ctx.stroke();
 

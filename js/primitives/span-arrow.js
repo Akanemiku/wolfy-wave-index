@@ -46,7 +46,11 @@ export class SpanArrow extends Primitive {
     }
 
     if (!this._label) return;
-    const mid = Math.max(Math.min((cx1 + cx2) / 2, media.width - 40), 40);
+    // 只在箭头可见跨度足够时画文字，且文字锚定在可见跨度的中点，避免与箭头脱节
+    const vx1 = Math.max(cx1, 0);
+    const vx2 = Math.min(cx2, media.width);
+    if (vx2 - vx1 < 48) return;
+    const mid = Math.max(Math.min((vx1 + vx2) / 2, media.width - 40), 40);
     ctx.font = `bold italic 15px ${FONT}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';

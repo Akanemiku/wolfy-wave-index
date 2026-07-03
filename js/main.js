@@ -1,4 +1,4 @@
-// 入口编排：加载数据 → 建图 → 算枢轴 → 刻标注
+// 入口编排：内置快照立即上屏 → 后台拉实时尾部 → 原地升级
 import { createChartAndSeries } from './chart.js';
 import {
   loadSnapshot, fetchBitstampLive, fetchCoinbaseFallback,
@@ -17,58 +17,64 @@ function showNotice(text) {
 $('notice-close').addEventListener('click', () => { $('notice').hidden = true; });
 
 async function init() {
-  if (location.protocol === 'file:') {
-    $('loading-text').textContent =
-      '不能直接双击打开本页面，请在项目目录运行 python3 -m http.server 8080 后访问 http://localhost:8080';
-    return;
-  }
-
-  // 先建图（让 autoSize 的 ResizeObserver 有时间上报真实尺寸），再等数据
   const { chart, series } = createChartAndSeries($('chart'));
+  let attached = [];
 
-  const [snapRes, liveRes] = await Promise.allSettled([loadSnapshot(), fetchBitstampLive()]);
-  if (snapRes.status === 'rejected') {
-    console.error(snapRes.reason);
-    $('loading-text').textContent = `历史数据加载失败：${snapRes.reason.message}`;
-    return;
+  function render(rawCandles, { fit = false } = {}) {
+    const candles = fillGaps(rawCandles);
+    const pivots = computePivots(candles);
+    const { primitives, extendTo } = buildAnnotations(pivots, candles);
+    const extended = extendWithWhitespace(candles, extendTo);
+    series.setData(extended);
+    setSeriesData(extended);
+    for (const p of attached) series.detachPrimitive(p);
+    attached = primitives;
+    for (const p of primitives) series.attachPrimitive(p);
+    if (fit) {
+      // 等一帧，确保 autoSize 已应用真实容器尺寸。不用 fitContent()：
+      // 它锚定最后一根真实 K 线，会把 whitespace 预测区间挤出屏幕
+      requestAnimationFrame(() => {
+        chart.timeScale().setVisibleLogicalRange({ from: -5, to: extended.length + 5 });
+      });
+    }
+    window.wolfy = { chart, series, pivots, candles }; // 调试用
+    return pivots;
   }
 
-  let candles = snapRes.value;
-  let liveFailed = false;
-  if (liveRes.status === 'fulfilled') {
-    candles = mergeCandles(candles, liveRes.value);
-  } else {
-    console.warn('Bitstamp 实时数据失败，尝试 Coinbase：', liveRes.reason);
+  // 1) 内置快照立即渲染，不被实时请求拖慢首屏
+  let snapshot;
+  try {
+    snapshot = await loadSnapshot();
+  } catch (e) {
+    console.error(e);
+    $('loading-text').textContent = `历史数据加载失败：${e.message}`;
+    return;
+  }
+  render(snapshot, { fit: true });
+  $('loading').hidden = true;
+
+  // 2) 后台拉实时尾部（从快照末尾接续），成功后原地升级
+  const sinceTs = snapshot.at(-1).time;
+  let live = null;
+  try {
+    live = await fetchBitstampLive(sinceTs);
+  } catch (e1) {
+    console.warn('Bitstamp 实时数据失败，尝试 Coinbase：', e1);
     try {
-      candles = mergeCandles(candles, await fetchCoinbaseFallback());
-    } catch (e) {
-      console.warn('Coinbase 备用源也失败：', e);
-      liveFailed = true;
+      live = await fetchCoinbaseFallback(sinceTs);
+    } catch (e2) {
+      console.warn('Coinbase 备用源也失败：', e2);
     }
   }
-  candles = fillGaps(candles);
 
-  const pivots = computePivots(candles);
-  console.table(pivots.map((p) => ({ 类型: p.type === 'top' ? '牛顶' : '熊底', 日期: fmtDate(p.time), 价格: p.price })));
-
-  const { primitives, extendTo } = buildAnnotations(pivots, candles);
-  const extended = extendWithWhitespace(candles, extendTo);
-
-  series.setData(extended);
-  setSeriesData(extended);
-  for (const p of primitives) series.attachPrimitive(p);
-  // 等一帧再设置可见范围，确保 autoSize 已应用真实容器尺寸。
-  // 不用 fitContent()：rightOffset 锚定在最后一根真实 K 线上，会把 whitespace
-  // 预测区间挤出屏幕；显式给全范围 + 两侧少量留白。
-  requestAnimationFrame(() => {
-    chart.timeScale().setVisibleLogicalRange({ from: -5, to: extended.length + 5 });
-  });
-
-  window.wolfy = { chart, series, pivots, candles }; // 调试用
-  $('loading').hidden = true;
-  if (liveFailed) {
-    showNotice(`实时数据加载失败，当前显示截至 ${fmtDate(candles.at(-1).time)} 的历史数据。`);
+  let pivots;
+  if (live && live.length) {
+    pivots = render(mergeCandles(snapshot, live));
+  } else {
+    pivots = window.wolfy.pivots;
+    showNotice(`实时数据加载失败，当前显示截至 ${fmtDate(sinceTs)} 的历史数据。`);
   }
+  console.table(pivots.map((p) => ({ 类型: p.type === 'top' ? '牛顶' : '熊底', 日期: fmtDate(p.time), 价格: p.price })));
 }
 
 init().catch((e) => {
