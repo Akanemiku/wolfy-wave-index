@@ -40,7 +40,9 @@ export function createChartAndSeries(container) {
     rightPriceScale: {
       mode: LWC.PriceScaleMode.Logarithmic,
       borderColor: COLORS.scaleBorder,
-      scaleMargins: { top: 0.06, bottom: 0.04 },
+      // 顶部多留空间：竖线徽标（减半日/今日）统一置顶显示在这条空带里，
+      // 价格内容（含最高的时长箭头）整体下移，不与徽标带重叠
+      scaleMargins: { top: 0.12, bottom: 0.04 },
     },
     timeScale: {
       borderColor: COLORS.scaleBorder,

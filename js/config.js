@@ -22,12 +22,8 @@ export const PIVOT_WINDOWS = [
   { type: 'top',    to: Infinity },                               // 进行中周期的历史最高 ≈2025-10-06
 ];
 
-// 减半日（准确日期，画竖线）。labelY 可选：徽标纵向位置（0~1，默认 0.42）
-export const HALVINGS = [
-  { date: D('2016-07-09') },
-  { date: D('2020-05-11'), labelY: 0.30 },
-  { date: D('2024-04-20') },
-];
+// 减半日（准确日期，画竖线，徽标统一置顶）
+export const HALVINGS = [D('2016-07-09'), D('2020-05-11'), D('2024-04-20')];
 
 // 周期规律：熊市 364 天，用于推算进行中熊市的预测见底日
 export const BEAR_DAYS = 364;

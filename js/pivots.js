@@ -87,7 +87,7 @@ export function buildAnnotations(pivots, candles) {
       }
       primitives.push(new VertLine({
         time: lastReal.time, color: COLORS.today, width: 1.5, dashed: true,
-        label: '今日', badgeBg: COLORS.todayBadgeBg, badgeText: COLORS.todayBadgeText, labelY: 0.08,
+        label: '今日', badgeBg: COLORS.todayBadgeBg, badgeText: COLORS.todayBadgeText,
       }));
     } else {
       primitives.push(new CycleBox({
@@ -110,11 +110,10 @@ export function buildAnnotations(pivots, candles) {
   });
 
   // 减半日竖线
-  for (const h of HALVINGS) {
+  for (const t of HALVINGS) {
     primitives.push(new VertLine({
-      time: h.date, color: COLORS.halving, label: '减半日',
+      time: t, color: COLORS.halving, label: '减半日',
       badgeBg: COLORS.halvingBadgeBg, badgeText: COLORS.halvingBadgeText,
-      labelY: h.labelY,
     }));
   }
 

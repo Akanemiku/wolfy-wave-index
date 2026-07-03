@@ -1,12 +1,14 @@
 // 全高竖线 + 可选徽标：减半日（蓝实线）、今日分隔（灰虚线）。
 // 线画在 K 线下层（'bottom'），徽标画在上层（'top'）——否则常见缩放级别下
-// 徽标会被 K 线盖住。
+// 徽标会被 K 线盖住。徽标统一置顶在竖线最上方的专用空带里
+// （OHLC 读数行之下，K 线区域之上，见 chart.js 的 scaleMargins.top）。
 import { Primitive, roundedRectPath } from './base.js';
 import { FONT } from '../config.js';
 
+const BADGE_TOP = 34; // 徽标顶边距（px），避开图表左上角的 OHLC 读数行
+
 export class VertLine extends Primitive {
-  // labelY: 徽标中心的纵向位置（0~1，占面板高度比例）
-  constructor({ time, color, width = 2, dashed = false, label, badgeBg, badgeText, labelY = 0.42 }) {
+  constructor({ time, color, width = 2, dashed = false, label, badgeBg, badgeText }) {
     super('bottom');
     this._time = time;
     this._color = color;
@@ -15,7 +17,6 @@ export class VertLine extends Primitive {
     this._label = label;
     this._badgeBg = badgeBg;
     this._badgeText = badgeText;
-    this._labelY = labelY;
     if (label) {
       this._views.push(this._makeView('top', (ctx, media) => this._drawBadge(ctx, media)));
     }
@@ -47,7 +48,7 @@ export class VertLine extends Primitive {
     const w = ctx.measureText(this._label).width + 14;
     const h = 22;
     const bx = x - w / 2;
-    const by = media.height * this._labelY - h / 2;
+    const by = BADGE_TOP;
     ctx.fillStyle = this._badgeBg;
     ctx.beginPath();
     roundedRectPath(ctx, bx, by, w, h, 4);
