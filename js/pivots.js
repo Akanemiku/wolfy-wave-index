@@ -7,7 +7,6 @@ import {
 import { CycleBox } from './primitives/cycle-box.js';
 import { VertLine } from './primitives/vert-line.js';
 import { SpanArrow } from './primitives/span-arrow.js';
-import { Callout } from './primitives/callout.js';
 
 export function computePivots(candles) {
   const pivots = [];
@@ -32,8 +31,6 @@ export function computePivots(candles) {
   return pivots;
 }
 
-const fmtDate = (t) => new Date(t * 1000).toISOString().slice(0, 10).replaceAll('-', '/');
-const fmtPrice = (p) => Math.round(p).toLocaleString('en-US');
 const days = (a, b) => Math.round((b - a) / DAY);
 
 // 由枢轴推出全部标注 primitive。返回 { primitives, extendTo }。
@@ -120,13 +117,6 @@ export function buildAnnotations(pivots, candles) {
       labelY: h.labelY,
     }));
   }
-
-  // 牛顶气泡
-  primitives.push(new Callout({
-    time: lastTop.time,
-    price: lastTop.price,
-    lines: [`牛顶 ${fmtDate(lastTop.time)}`, `$${fmtPrice(lastTop.price)}`],
-  }));
 
   // 预测见底日已过时仍保留右侧留白（以最新 K 线为准）
   return { primitives, extendTo: Math.max(predictedEnd, lastReal.time) + EXTEND_MARGIN_DAYS * DAY };

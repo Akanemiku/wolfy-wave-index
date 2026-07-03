@@ -74,10 +74,6 @@ export const THEMES = {
     arrowBull: '#26a69a',
     arrowBear: '#ef5350',
 
-    calloutBg: 'rgba(24, 28, 39, 0.96)',
-    calloutBorder: '#363a45',
-    calloutText: '#d1d4dc',
-
     watermark: 'rgba(209, 212, 220, 0.05)',
   },
   light: {
@@ -105,10 +101,6 @@ export const THEMES = {
 
     arrowBull: '#089981',
     arrowBear: '#f23645',
-
-    calloutBg: 'rgba(255, 255, 255, 0.97)',
-    calloutBorder: '#d1d4dc',
-    calloutText: '#131722',
 
     watermark: 'rgba(19, 23, 34, 0.05)',
   },
