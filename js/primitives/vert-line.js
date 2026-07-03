@@ -43,14 +43,14 @@ export class VertLine extends Primitive {
   _drawBadge(ctx, media) {
     const x = this._x(media);
     if (x === null) return;
-    ctx.font = `bold 13px ${FONT}`;
-    const w = ctx.measureText(this._label).width + 16;
-    const h = 24;
+    ctx.font = `600 12px ${FONT}`;
+    const w = ctx.measureText(this._label).width + 14;
+    const h = 22;
     const bx = x - w / 2;
     const by = media.height * this._labelY - h / 2;
     ctx.fillStyle = this._badgeBg;
     ctx.beginPath();
-    roundedRectPath(ctx, bx, by, w, h, 5);
+    roundedRectPath(ctx, bx, by, w, h, 4);
     ctx.fill();
     ctx.fillStyle = this._badgeText;
     ctx.textAlign = 'center';

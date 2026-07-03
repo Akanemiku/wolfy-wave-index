@@ -22,8 +22,7 @@ export const PIVOT_WINDOWS = [
   { type: 'top',    to: Infinity },                               // 进行中周期的历史最高 ≈2025-10-06
 ];
 
-// 减半日（准确日期，画蓝色竖线）。labelY 可选：徽标纵向位置（0~1，默认 0.42），
-// 用于避开与其他标注的重叠
+// 减半日（准确日期，画竖线）。labelY 可选：徽标纵向位置（0~1，默认 0.42）
 export const HALVINGS = [
   { date: D('2016-07-09') },
   { date: D('2020-05-11'), labelY: 0.30 },
@@ -36,37 +35,87 @@ export const BEAR_DAYS = 364;
 // 时间轴在预测见底日之后再延伸的天数（右侧留白）
 export const EXTEND_MARGIN_DAYS = 45;
 
-// 箭头标签：'fixed' 忠实还原原图数字；'computed' 显示按实际枢轴算出的天数
+// 箭头标签：'fixed' 用原图数字；'computed' 显示按实际枢轴算出的天数
 export const ARROW_LABEL_MODE = 'fixed';
 // 与周期段顺序一一对应：熊1、牛1、熊2、牛2、熊3、牛3、熊4(预测)
 export const FIXED_ARROW_LABELS = ['413 天', '1064 天', '364 天', '1064 天', '364 天', '1064 天', '364 天'];
 
 // 箭头相对框体的位置（对数坐标下用乘法偏移，视觉间距才恒定）
-export const ARROW_BEAR_FACTOR = 1.25; // 熊市红箭头 = 框顶价 × 1.25（悬于框上方）
-export const ARROW_BULL_FACTOR = 0.78; // 牛市绿箭头 = 框底价 × 0.78（悬于框下方）
-
-export const COLORS = {
-  // K 线：绿涨红跌（同原图，西式配色）。想改成红涨绿跌，交换 up/down 两行即可。
-  up: '#26a69a',
-  down: '#ef5350',
-
-  bullFill: 'rgba(76, 175, 80, 0.10)',
-  bearFill: 'rgba(239, 83, 80, 0.09)',
-  boxBorder: 'rgba(55, 60, 70, 0.55)',
-  boxLabel: '#131722',
-
-  halving: '#7ba2e8',       // 减半日竖线
-  halvingBadgeBg: '#aec6ef',
-  halvingBadgeText: '#1a2233',
-
-  today: '#787b86',         // 「今日」分隔虚线
-
-  arrowBear: '#f23645',
-  arrowBull: '#089981',
-
-  calloutBg: 'rgba(255, 255, 255, 0.94)',
-  calloutBorder: '#131722',
-  calloutText: '#131722',
-};
+export const ARROW_BEAR_FACTOR = 1.25; // 熊市箭头 = 框顶价 × 1.25（悬于框上方）
+export const ARROW_BULL_FACTOR = 0.78; // 牛市箭头 = 框底价 × 0.78（悬于框下方）
 
 export const FONT = '-apple-system, "PingFang SC", "Microsoft YaHei", sans-serif';
+
+// 主题配色。K 线为绿涨红跌（国际惯例）；想改红涨绿跌，交换各主题的 up/down。
+export const THEMES = {
+  dark: {
+    chartBg: '#131722',
+    chartText: '#9598a1',
+    grid: 'rgba(42, 46, 57, 0.55)',
+    scaleBorder: '#2a2e39',
+    up: '#26a69a',
+    down: '#ef5350',
+
+    bullFill: 'rgba(38, 166, 154, 0.09)',
+    bullBorder: 'rgba(38, 166, 154, 0.40)',
+    bullLabel: '#26a69a',
+    bearFill: 'rgba(239, 83, 80, 0.08)',
+    bearBorder: 'rgba(239, 83, 80, 0.40)',
+    bearLabel: '#ef5350',
+
+    halving: '#4a7dec',
+    halvingBadgeBg: 'rgba(41, 98, 255, 0.22)',
+    halvingBadgeText: '#82a7ff',
+
+    today: '#787b86',
+    todayBadgeBg: 'rgba(59, 63, 74, 0.92)',
+    todayBadgeText: '#d1d4dc',
+
+    arrowBull: '#26a69a',
+    arrowBear: '#ef5350',
+
+    calloutBg: 'rgba(24, 28, 39, 0.96)',
+    calloutBorder: '#363a45',
+    calloutText: '#d1d4dc',
+
+    watermark: 'rgba(209, 212, 220, 0.05)',
+  },
+  light: {
+    chartBg: '#ffffff',
+    chartText: '#5d606b',
+    grid: '#f0f3fa',
+    scaleBorder: '#d1d4dc',
+    up: '#26a69a',
+    down: '#ef5350',
+
+    bullFill: 'rgba(38, 166, 154, 0.10)',
+    bullBorder: 'rgba(38, 166, 154, 0.45)',
+    bullLabel: '#089981',
+    bearFill: 'rgba(239, 83, 80, 0.08)',
+    bearBorder: 'rgba(239, 83, 80, 0.45)',
+    bearLabel: '#e13d3d',
+
+    halving: '#2962ff',
+    halvingBadgeBg: 'rgba(41, 98, 255, 0.12)',
+    halvingBadgeText: '#2962ff',
+
+    today: '#787b86',
+    todayBadgeBg: 'rgba(120, 123, 134, 0.92)',
+    todayBadgeText: '#ffffff',
+
+    arrowBull: '#089981',
+    arrowBear: '#f23645',
+
+    calloutBg: 'rgba(255, 255, 255, 0.97)',
+    calloutBorder: '#d1d4dc',
+    calloutText: '#131722',
+
+    watermark: 'rgba(19, 23, 34, 0.05)',
+  },
+};
+
+// 运行时当前主题（setTheme 原地更新，标注在重建时读取最新值）
+export const COLORS = { ...THEMES.dark };
+export function setTheme(name) {
+  Object.assign(COLORS, THEMES[name] ?? THEMES.dark);
+}

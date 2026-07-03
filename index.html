@@ -1,28 +1,62 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>杀破狼 WolfyXBT · 比特币四年周期理论</title>
+  <title>杀破狼 WolfyXBT · 比特币四年周期</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div id="chart"></div>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-name">杀破狼 <span>WolfyXBT</span></div>
+      <div class="brand-sub">比特币四年周期</div>
+    </div>
+    <div class="stats">
+      <div class="price-block">
+        <span id="stat-price" class="price">—</span>
+        <span id="stat-chg" class="chg">—</span>
+      </div>
+      <div class="chip" id="stat-cycle">—</div>
+      <div class="chip" id="stat-bottom">—</div>
+    </div>
+  </header>
 
-  <div class="title-overlay">
-    <div class="title-main">杀破狼 WolfyXBT</div>
-    <div class="title-sub">比特币四年周期理论刻舟求剑</div>
+  <div class="toolbar">
+    <div class="btn-group" id="range-group">
+      <button data-range="all" class="active">全部</button>
+      <button data-range="cycle">本周期</button>
+      <button data-range="1y">近一年</button>
+    </div>
+    <div class="btn-group">
+      <button id="scale-toggle" class="active" title="对数/线性坐标切换">对数</button>
+      <button id="annot-toggle" class="active" title="显示/隐藏周期标注">标注</button>
+      <button id="theme-toggle" title="深色/浅色主题切换">主题</button>
+    </div>
   </div>
 
-  <div id="notice" class="notice" hidden>
-    <span id="notice-text"></span>
-    <button id="notice-close" aria-label="关闭">×</button>
-  </div>
+  <main class="chart-wrap">
+    <div id="chart"></div>
+    <div id="legend" class="legend"></div>
 
-  <div id="loading" class="loading">
-    <div class="loading-spinner"></div>
-    <div id="loading-text">加载行情数据中…</div>
-  </div>
+    <div id="notice" class="notice" hidden>
+      <span id="notice-text"></span>
+      <button id="notice-close" aria-label="关闭">×</button>
+    </div>
+
+    <div id="loading" class="loading">
+      <div class="loading-spinner"></div>
+      <div id="loading-text">加载行情数据中…</div>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <span>数据来源：Bitstamp / Coinbase Exchange</span>
+    <span class="foot-sep">·</span>
+    <span>牛市 1064 天 / 熊市 364 天，减半在牛市中点</span>
+    <span class="foot-sep">·</span>
+    <span>周期理论仅供参考，不构成投资建议</span>
+  </footer>
 
   <script>
     // 必须放在模块脚本之外：file:// 下浏览器根本不会加载 ES module，

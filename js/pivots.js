@@ -67,6 +67,8 @@ export function buildAnnotations(pivots, candles) {
     const priceHigh = Math.max(seg.from.price, seg.to.price);
     const isBull = seg.type === 'bull';
     const fill = isBull ? COLORS.bullFill : COLORS.bearFill;
+    const borderColor = isBull ? COLORS.bullBorder : COLORS.bearBorder;
+    const labelColor = isBull ? COLORS.bullLabel : COLORS.bearLabel;
     const label = isBull ? '牛市' : '熊市';
     const labelPos = isBull ? 'top' : 'bottom';
 
@@ -76,23 +78,23 @@ export function buildAnnotations(pivots, candles) {
       const splitAt = Math.min(Math.max(lastReal.time, seg.from.time), seg.to.time);
       if (splitAt > seg.from.time) {
         primitives.push(new CycleBox({
-          from: seg.from.time, to: splitAt, priceLow, priceHigh, fill, label, labelPos,
+          from: seg.from.time, to: splitAt, priceLow, priceHigh, fill, borderColor, label, labelColor, labelPos,
         }));
       }
       if (seg.to.time > splitAt) {
         primitives.push(new CycleBox({
           from: splitAt, to: seg.to.time, priceLow, priceHigh,
           fill: fill.replace(/[\d.]+\)$/, (a) => `${parseFloat(a) / 2})`),
-          label: '熊市（预测）', labelPos: 'top', dashed: true,
+          borderColor, label: '熊市（预测）', labelColor, labelPos: 'top', dashed: true,
         }));
       }
       primitives.push(new VertLine({
         time: lastReal.time, color: COLORS.today, width: 1.5, dashed: true,
-        label: '今日', badgeBg: 'rgba(120,123,134,0.9)', badgeText: '#ffffff', labelY: 0.08,
+        label: '今日', badgeBg: COLORS.todayBadgeBg, badgeText: COLORS.todayBadgeText, labelY: 0.08,
       }));
     } else {
       primitives.push(new CycleBox({
-        from: seg.from.time, to: seg.to.time, priceLow, priceHigh, fill, label, labelPos,
+        from: seg.from.time, to: seg.to.time, priceLow, priceHigh, fill, borderColor, label, labelColor, labelPos,
       }));
     }
 
@@ -123,7 +125,7 @@ export function buildAnnotations(pivots, candles) {
   primitives.push(new Callout({
     time: lastTop.time,
     price: lastTop.price,
-    lines: [`牛顶：${fmtDate(lastTop.time)}`, `比特币价格：${fmtPrice(lastTop.price)}`],
+    lines: [`牛顶 ${fmtDate(lastTop.time)}`, `$${fmtPrice(lastTop.price)}`],
   }));
 
   // 预测见底日已过时仍保留右侧留白（以最新 K 线为准）

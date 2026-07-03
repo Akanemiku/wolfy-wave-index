@@ -29,7 +29,7 @@ export class SpanArrow extends Primitive {
 
     ctx.strokeStyle = this._color;
     ctx.fillStyle = this._color;
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(cx1, y);
     ctx.lineTo(cx2 - 2, y);
@@ -39,8 +39,8 @@ export class SpanArrow extends Primitive {
     if (x2 === cx2) {
       ctx.beginPath();
       ctx.moveTo(cx2, y);
-      ctx.lineTo(cx2 - 10, y - 5);
-      ctx.lineTo(cx2 - 10, y + 5);
+      ctx.lineTo(cx2 - 9, y - 4.5);
+      ctx.lineTo(cx2 - 9, y + 4.5);
       ctx.closePath();
       ctx.fill();
     }
@@ -51,9 +51,9 @@ export class SpanArrow extends Primitive {
     const vx2 = Math.min(cx2, media.width);
     if (vx2 - vx1 < 48) return;
     const mid = Math.max(Math.min((vx1 + vx2) / 2, media.width - 40), 40);
-    ctx.font = `bold italic 15px ${FONT}`;
+    ctx.font = `600 12px ${FONT}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
-    ctx.fillText(this._label, mid, y - 6);
+    ctx.fillText(this._label, mid, y - 5);
   }
 }
