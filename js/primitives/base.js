@@ -115,12 +115,18 @@ export class Primitive {
     };
   }
 
-  attached({ chart, series }) {
+  attached({ chart, series, requestUpdate }) {
     this._chart = chart;
     this._series = series;
+    this._requestUpdate = requestUpdate;
+    // 挂载后立即请求重绘：否则要等下一次交互（如鼠标移入）才会显示
+    requestUpdate?.();
   }
 
   detached() {
+    // 卸载同样立即重绘，让标注马上消失
+    this._requestUpdate?.();
+    this._requestUpdate = null;
     this._chart = null;
     this._series = null;
   }
