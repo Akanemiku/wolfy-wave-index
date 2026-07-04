@@ -46,17 +46,14 @@ export function buildAnnotations(pivots, candles) {
     segments.push({ from: pivots[i], to: pivots[i + 1], type: pivots[i].type === 'top' ? 'bear' : 'bull' });
   }
 
-  // 进行中的熊市（预测）：见底日 = 最后一个牛顶 + 364 天；框底 = 牛顶以来的最低价（随数据滚动加深）
+  // 进行中的熊市（预测）：见底日 = 最后一个牛顶 + 364 天。
+  // 底部未知，不假设低点价格——该段画成贯穿全高的时间区间（fullHeight）
   const lastTop = pivots.at(-1);
   if (lastTop.type !== 'top') throw new Error('PIVOT_WINDOWS 应以 top 结尾（进行中周期的牛顶）');
   const predictedEnd = lastTop.time + BEAR_DAYS * DAY;
-  let runningLow = lastTop.price;
-  for (const c of candles) {
-    if (c.time >= lastTop.time && c.low < runningLow) runningLow = c.low;
-  }
   segments.push({
     from: lastTop,
-    to: { time: predictedEnd, price: runningLow },
+    to: { time: predictedEnd, price: lastTop.price },
     type: 'bear',
     projected: true,
   });
@@ -77,14 +74,16 @@ export function buildAnnotations(pivots, candles) {
       const splitAt = Math.min(Math.max(lastReal.time, seg.from.time), seg.to.time);
       if (splitAt > seg.from.time) {
         primitives.push(new CycleBox({
-          from: seg.from.time, to: splitAt, priceLow, priceHigh, fill, borderColor, label, labelColor, labelPos,
+          from: seg.from.time, to: splitAt, fill, borderColor, label, labelColor, labelPos,
+          fullHeight: true,
         }));
       }
       if (seg.to.time > splitAt) {
         primitives.push(new CycleBox({
-          from: splitAt, to: seg.to.time, priceLow, priceHigh,
+          from: splitAt, to: seg.to.time,
           fill: fill.replace(/[\d.]+\)$/, (a) => `${parseFloat(a) / 2})`),
           borderColor, label: '熊市（预测）', labelColor, labelPos: 'top', dashed: true,
+          fullHeight: true,
         }));
       }
       primitives.push(new VertLine({ time: lastReal.time, color: COLORS.today, dashed: true }));

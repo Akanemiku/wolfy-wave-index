@@ -5,7 +5,9 @@ import { COLORS } from '../config.js';
 
 export class CycleBox extends Primitive {
   // labelPos: 'top' 标签在框内左上角，'bottom' 在框内左下角
-  constructor({ from, to, priceLow, priceHigh, fill, borderColor, label, labelColor, labelPos = 'top', dashed = false }) {
+  // fullHeight: 进行中的周期底部未知，只画时间区间——贯穿全高的竖向色带，
+  //             仅画左右边界线，不参与价格自动缩放
+  constructor({ from, to, priceLow, priceHigh, fill, borderColor, label, labelColor, labelPos = 'top', dashed = false, fullHeight = false }) {
     super('bottom');
     this._from = from;
     this._to = to;
@@ -17,12 +19,14 @@ export class CycleBox extends Primitive {
     this._labelColor = labelColor;
     this._labelPos = labelPos;
     this._dashed = dashed;
+    this._fullHeight = fullHeight;
     if (label) {
       this._views.push(this._makeView('top', (ctx, media) => this._drawLabel(ctx, media)));
     }
   }
 
   _range() {
+    if (this._fullHeight) return null;
     return { fromTime: this._from, toTime: this._to, minPrice: this._priceLow, maxPrice: this._priceHigh };
   }
 
@@ -30,16 +34,22 @@ export class CycleBox extends Primitive {
   _rect(media) {
     const x1 = this.timeToX(this._from);
     const x2 = this.timeToX(this._to);
+    if (x1 === null || x2 === null) return null;
+    if (x2 < 0 || x1 > media.width) return null;
+    if (this._fullHeight) {
+      return { cx1: clamp(x1, media.width), cx2: clamp(x2, media.width), cy1: 0, cy2: media.height, x1, x2 };
+    }
     const y1 = this.priceToY(this._priceHigh);
     const y2 = this.priceToY(this._priceLow);
-    if (x1 === null || x2 === null || y1 === null || y2 === null) return null;
-    if (x2 < 0 || x1 > media.width) return null;
+    if (y1 === null || y2 === null) return null;
     if (y2 < 0 || y1 > media.height) return null;
     return {
       cx1: clamp(x1, media.width),
       cx2: clamp(x2, media.width),
       cy1: clamp(y1, media.height),
       cy2: clamp(y2, media.height),
+      x1,
+      x2,
     };
   }
 
@@ -51,7 +61,21 @@ export class CycleBox extends Primitive {
     ctx.strokeStyle = this._borderColor;
     ctx.lineWidth = 1;
     ctx.setLineDash(this._dashed ? [5, 4] : []);
-    ctx.strokeRect(r.cx1, r.cy1, r.cx2 - r.cx1, r.cy2 - r.cy1);
+    if (this._fullHeight) {
+      // 只画左右边界线（且仅当真实边缘在视口内时）
+      ctx.beginPath();
+      if (r.x1 === r.cx1) {
+        ctx.moveTo(r.cx1 + 0.5, 0);
+        ctx.lineTo(r.cx1 + 0.5, media.height);
+      }
+      if (r.x2 === r.cx2) {
+        ctx.moveTo(r.cx2 - 0.5, 0);
+        ctx.lineTo(r.cx2 - 0.5, media.height);
+      }
+      ctx.stroke();
+    } else {
+      ctx.strokeRect(r.cx1, r.cy1, r.cx2 - r.cx1, r.cy2 - r.cy1);
+    }
     ctx.setLineDash([]);
   }
 
