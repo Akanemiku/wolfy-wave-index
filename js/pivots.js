@@ -33,9 +33,11 @@ export function computePivots(candles) {
 
 const days = (a, b) => Math.round((b - a) / DAY);
 
-// 由枢轴推出全部标注 primitive。返回 { primitives, extendTo }。
+// 由枢轴推出全部标注 primitive 与顶部标签轴的标记。
+// 返回 { primitives, axisMarks, extendTo }。
 export function buildAnnotations(pivots, candles) {
   const primitives = [];
+  const axisMarks = []; // 顶部标签轴条目：{ time, label, color }
   const lastReal = candles.at(-1);
 
   // 周期段：相邻枢轴之间；顶→底 = 熊市，底→顶 = 牛市
@@ -85,10 +87,8 @@ export function buildAnnotations(pivots, candles) {
           borderColor, label: '熊市（预测）', labelColor, labelPos: 'top', dashed: true,
         }));
       }
-      primitives.push(new VertLine({
-        time: lastReal.time, color: COLORS.today, width: 1.5, dashed: true,
-        label: '今日', labelColor: COLORS.todayLabel,
-      }));
+      primitives.push(new VertLine({ time: lastReal.time, color: COLORS.today, dashed: true }));
+      axisMarks.push({ time: lastReal.time, label: '今日', color: COLORS.todayLabel });
     } else {
       primitives.push(new CycleBox({
         from: seg.from.time, to: seg.to.time, priceLow, priceHigh, fill, borderColor, label, labelColor, labelPos,
@@ -111,11 +111,10 @@ export function buildAnnotations(pivots, candles) {
 
   // 减半日竖线
   for (const t of HALVINGS) {
-    primitives.push(new VertLine({
-      time: t, color: COLORS.halving, label: '减半日', labelColor: COLORS.halvingLabel,
-    }));
+    primitives.push(new VertLine({ time: t, color: COLORS.halving }));
+    axisMarks.push({ time: t, label: '减半日', color: COLORS.halvingLabel });
   }
 
   // 预测见底日已过时仍保留右侧留白（以最新 K 线为准）
-  return { primitives, extendTo: Math.max(predictedEnd, lastReal.time) + EXTEND_MARGIN_DAYS * DAY };
+  return { primitives, axisMarks, extendTo: Math.max(predictedEnd, lastReal.time) + EXTEND_MARGIN_DAYS * DAY };
 }

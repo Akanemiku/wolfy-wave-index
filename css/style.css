@@ -1,25 +1,29 @@
 :root[data-theme="dark"] {
-  --bg: #131722;
-  --panel: #1e222d;
-  --border: #2a2e39;
-  --text: #d1d4dc;
-  --sub: #787b86;
-  --hover: #2a2e39;
-  --accent: #2962ff;
-  --up: #26a69a;
-  --down: #ef5350;
+  --bg: #0e1117;
+  --panel: #151b26;
+  --panel-2: #1a2130;
+  --border: #1e2530;
+  --hover: #1c2432;
+  --text: #e4e8f0;
+  --sub: #8b93a1;
+  --faint: #5c6470;
+  --accent: #2e6bff;
+  --up: #089981;
+  --down: #f23645;
 }
 
 :root[data-theme="light"] {
   --bg: #ffffff;
-  --panel: #f8f9fd;
-  --border: #e0e3eb;
-  --text: #131722;
-  --sub: #787b86;
-  --hover: #f0f3fa;
+  --panel: #f5f7fa;
+  --panel-2: #eef1f6;
+  --border: #e2e6ee;
+  --hover: #edf0f5;
+  --text: #161a22;
+  --sub: #767d8a;
+  --faint: #a2a9b6;
   --accent: #2962ff;
   --up: #089981;
-  --down: #ef5350;
+  --down: #e02a3a;
 }
 
 [hidden] {
@@ -38,7 +42,9 @@ html, body {
   overflow: hidden;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "Inter", -apple-system, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
@@ -51,16 +57,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 10px 16px;
+  gap: 20px;
+  padding: 10px 20px;
   border-bottom: 1px solid var(--border);
   flex: none;
 }
 
 .brand-name {
-  font-size: 17px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
   white-space: nowrap;
 }
 
@@ -69,9 +75,10 @@ body {
 }
 
 .brand-sub {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--sub);
-  margin-top: 1px;
+  margin-top: 2px;
+  letter-spacing: 0.3px;
   white-space: nowrap;
 }
 
@@ -92,17 +99,19 @@ body {
   display: flex;
   align-items: baseline;
   gap: 8px;
+  margin-right: 6px;
   white-space: nowrap;
 }
 
 .price {
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 700;
+  letter-spacing: 0.2px;
   font-variant-numeric: tabular-nums;
 }
 
 .chg {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -113,11 +122,11 @@ body {
 .chip {
   padding: 4px 10px;
   border: 1px solid var(--border);
-  border-radius: 99px;
-  background: var(--panel);
-  font-size: 12px;
+  border-radius: 6px;
+  font-size: 11.5px;
   color: var(--sub);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .chip b {
@@ -125,43 +134,85 @@ body {
   font-weight: 600;
 }
 
-/* ── 工具栏 ── */
+/* ── 工具栏（分段控件） ── */
 .toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 6px 16px;
+  padding: 8px 20px;
   border-bottom: 1px solid var(--border);
   flex: none;
 }
 
-.btn-group {
+.toolbar-group {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
-.toolbar button {
+.seg {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  flex: none;
+}
+
+.seg button {
   border: none;
   background: none;
   color: var(--sub);
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 500;
   font-family: inherit;
-  padding: 5px 12px;
+  padding: 4px 12px;
   border-radius: 6px;
   cursor: pointer;
   white-space: nowrap;
+  transition: color 0.1s ease, background-color 0.1s ease;
 }
 
-.toolbar button:hover {
-  background: var(--hover);
+.seg button:hover {
   color: var(--text);
 }
 
-.toolbar button.active {
-  background: var(--hover);
+.seg button.active {
+  background: var(--panel-2);
   color: var(--text);
   font-weight: 600;
+}
+
+/* ── 顶部标签轴（容纳减半日/今日等文本，样式对齐底部时间轴） ── */
+.top-axis {
+  position: relative;
+  height: 26px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  overflow: hidden;
+  flex: none;
+}
+
+.ax-label {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.ax-tick {
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  height: 5px;
+  opacity: 0.7;
 }
 
 /* ── 图表区 ── */
@@ -178,12 +229,12 @@ body {
 
 .legend {
   position: absolute;
-  top: 8px;
-  left: 12px;
+  top: 10px;
+  left: 14px;
   z-index: 10;
   pointer-events: none;
   user-select: none;
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--sub);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -212,7 +263,7 @@ body {
   border: 1px solid var(--border);
   border-top: none;
   border-radius: 0 0 8px 8px;
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--text);
 }
 
@@ -235,14 +286,14 @@ body {
   justify-content: center;
   gap: 14px;
   background: var(--bg);
-  font-size: 14px;
+  font-size: 13px;
   color: var(--sub);
 }
 
 .loading-spinner {
-  width: 28px;
-  height: 28px;
-  border: 3px solid var(--border);
+  width: 26px;
+  height: 26px;
+  border: 2.5px solid var(--border);
   border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 0.9s linear infinite;
@@ -257,14 +308,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 6px 16px;
+  gap: 10px;
+  padding: 6px 20px;
   border-top: 1px solid var(--border);
   font-size: 11px;
-  color: var(--sub);
+  color: var(--faint);
   flex: none;
   white-space: nowrap;
   overflow: hidden;
+}
+
+.foot-sep {
+  opacity: 0.6;
 }
 
 /* ── 移动端 ── */
@@ -275,9 +330,16 @@ body {
     padding: 8px 12px;
   }
 
-  .price { font-size: 17px; }
-  .toolbar { padding: 4px 8px; overflow-x: auto; scrollbar-width: none; }
-  .toolbar button { padding: 4px 9px; font-size: 12px; }
+  .price { font-size: 18px; }
+
+  .toolbar {
+    padding: 6px 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .toolbar::-webkit-scrollbar { display: none; }
+  .seg button { padding: 4px 9px; font-size: 11.5px; }
   .legend { font-size: 10px; }
   .foot span:nth-child(n+2) { display: none; }
 }

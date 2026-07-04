@@ -1,13 +1,13 @@
 // 入口编排：内置快照立即上屏 → 后台拉实时尾部 → 原地升级；
-// 以及页面 UI（主题/范围/坐标/标注开关、OHLC 读数、周期状态栏）
+// 页面 UI（周期/主题/范围/坐标/标注开关、OHLC 读数、周期状态栏、顶部标签轴）
 import { DAY, BEAR_DAYS, COLORS, setTheme } from './config.js';
 import { createChartAndSeries, applyChartTheme, setLogScale } from './chart.js';
 import {
   loadSnapshot, fetchBitstampLive, fetchCoinbaseFallback,
-  mergeCandles, fillGaps, extendWithWhitespace,
+  mergeCandles, fillGaps, aggregate, extendBars,
 } from './data.js';
 import { computePivots, buildAnnotations } from './pivots.js';
-import { setSeriesData } from './primitives/base.js';
+import { setSeriesData, timeToLogical, logicalToX } from './primitives/base.js';
 
 const $ = (id) => document.getElementById(id);
 const fmtDate = (t) => new Date(t * 1000).toISOString().slice(0, 10);
@@ -38,14 +38,55 @@ async function init() {
   const { chart, series } = createChartAndSeries($('chart'));
 
   // ── 状态 ──
-  let attached = [];        // 当前挂载的标注 primitive
-  let built = [];           // 最近一次构建的标注 primitive
+  let attached = [];      // 当前挂载的标注 primitive
+  let built = [];         // 最近一次构建的标注 primitive
   let annotOn = true;
   let logOn = true;
-  let currentCandles = [];  // 最近一次渲染用的 K 线（含缺口占位）
-  let currentPivots = [];
-  let extendedLen = 0;
+  let timeframe = 'day';  // 'day' | 'week' | 'month'
+  let activeRange = 'all';
+  let daily = [];         // fillGaps 后的日线（标注/枢轴/统计的数据源）
+  let dailyReal = [];     // 仅真实日线
+  let bars = [];          // 当前周期 bars + whitespace（图表数据源）
+  let pivots = [];
+  let axisMarks = [];     // 顶部标签轴条目（含 DOM 元素）
+  let idxCache = null;
   let watermark = null;
+
+  // ── 顶部标签轴 ──
+  const topAxis = $('top-axis');
+
+  function positionAxisMarks() {
+    const width = chart.timeScale().width();
+    for (const m of axisMarks) {
+      const x = logicalToX(chart, timeToLogical(m.time));
+      const show = x !== null && x >= 0 && x <= width;
+      m.el.hidden = !show;
+      m.tick.hidden = !show;
+      if (show) {
+        m.el.style.left = `${x}px`;
+        m.tick.style.left = `${x}px`;
+      }
+    }
+  }
+
+  function renderAxisMarks(marks) {
+    topAxis.textContent = '';
+    axisMarks = marks.map((m) => {
+      const el = document.createElement('span');
+      el.className = 'ax-label';
+      el.textContent = m.label;
+      el.style.color = m.color;
+      const tick = document.createElement('i');
+      tick.className = 'ax-tick';
+      tick.style.background = m.color;
+      topAxis.append(el, tick);
+      return { ...m, el, tick };
+    });
+    positionAxisMarks();
+  }
+
+  chart.timeScale().subscribeVisibleLogicalRangeChange(positionAxisMarks);
+  window.addEventListener('resize', positionAxisMarks);
 
   function makeWatermark() {
     try {
@@ -61,40 +102,41 @@ async function init() {
     }
   }
 
-  function render(rawCandles, { fit = false } = {}) {
-    const candles = fillGaps(rawCandles);
-    const pivots = computePivots(candles);
-    const { primitives, extendTo } = buildAnnotations(pivots, candles);
-    const extended = extendWithWhitespace(candles, extendTo);
-    series.setData(extended);
-    setSeriesData(extended);
+  // ── 渲染管线 ──
+  // newRawDaily 为 null 时复用现有日线（周期/主题切换）；
+  // 枢轴与标注永远基于日线计算，图表数据按当前周期聚合
+  function render(newRawDaily, { fit = false } = {}) {
+    if (newRawDaily) {
+      daily = fillGaps(newRawDaily);
+      dailyReal = daily.filter((c) => c.open !== undefined);
+      pivots = computePivots(daily);
+    }
+    const { primitives, axisMarks: marks, extendTo } = buildAnnotations(pivots, daily);
+    bars = extendBars(aggregate(daily, timeframe), extendTo, timeframe);
+    series.setData(bars);
+    setSeriesData(bars);
     for (const p of attached) series.detachPrimitive(p);
     built = primitives;
     attached = annotOn ? primitives : [];
     for (const p of attached) series.attachPrimitive(p);
-
-    currentCandles = candles;
-    currentPivots = pivots;
-    extendedLen = extended.length;
     idxCache = null;
-
+    renderAxisMarks(marks);
     if (fit) {
-      // 等一帧，确保 autoSize 已应用真实容器尺寸。不用 fitContent()：
-      // 它锚定最后一根真实 K 线，会把 whitespace 预测区间挤出屏幕
+      // 等一帧，确保 autoSize 已应用真实容器尺寸
       requestAnimationFrame(() => {
-        chart.timeScale().setVisibleLogicalRange({ from: -5, to: extended.length + 5 });
+        applyRange(activeRange);
+        positionAxisMarks();
       });
     }
     updateStats();
     updateLegend(null);
-    window.wolfy = { chart, series, pivots, candles }; // 调试用
+    window.wolfy = { chart, series, pivots, candles: daily, bars }; // 调试用
   }
 
-  // ── 顶栏统计 ──
+  // ── 顶栏统计（始终基于日线） ──
   function updateStats() {
-    const real = currentCandles.filter((c) => c.open !== undefined);
-    const last = real.at(-1);
-    const prev = real.at(-2);
+    const last = dailyReal.at(-1);
+    const prev = dailyReal.at(-2);
     if (!last) return;
 
     $('stat-price').textContent = `$${fmtPrice(last.close)}`;
@@ -105,7 +147,7 @@ async function init() {
       el.className = `chg ${chg >= 0 ? 'up' : 'down'}`;
     }
 
-    const lastTop = currentPivots.at(-1);
+    const lastTop = pivots.at(-1);
     if (lastTop?.type === 'top') {
       const bearDay = Math.round((last.time - lastTop.time) / DAY);
       const remain = BEAR_DAYS - bearDay;
@@ -118,22 +160,19 @@ async function init() {
     }
   }
 
-  // ── 十字线 OHLC 读数 ──
-  const timeIndex = () => new Map(currentCandles.map((c, i) => [c.time, i]));
-  let idxCache = null;
-
+  // ── 十字线 OHLC 读数（基于当前周期 bars） ──
   function prevRealClose(i) {
     for (let j = i - 1; j >= 0; j--) {
-      if (currentCandles[j].open !== undefined) return currentCandles[j].close;
+      if (bars[j].open !== undefined) return bars[j].close;
     }
     return null;
   }
 
-  function updateLegend(candle) {
-    let c = candle;
-    if (!c) c = currentCandles.filter((x) => x.open !== undefined).at(-1);
+  function updateLegend(bar) {
+    let c = bar;
+    if (!c) c = [...bars].reverse().find((x) => x.open !== undefined);
     if (!c || c.open === undefined) return;
-    if (!idxCache) idxCache = timeIndex();
+    if (!idxCache) idxCache = new Map(bars.map((x, i) => [x.time, i]));
     const i = idxCache.get(c.time);
     const prevClose = i !== undefined ? prevRealClose(i) : null;
     const chg = prevClose ? (c.close - prevClose) / prevClose : null;
@@ -150,29 +189,39 @@ async function init() {
     updateLegend(d && d.open !== undefined ? { ...d, time: param.time } : null);
   });
 
-  // ── 工具栏 ──
-  const rangeButtons = [...document.querySelectorAll('#range-group button')];
-  const setActiveRange = (btn) => rangeButtons.forEach((b) => b.classList.toggle('active', b === btn));
-
+  // ── 范围预设（用时间→逻辑坐标换算，任何周期下都成立） ──
   function applyRange(name) {
-    const real = currentCandles.filter((c) => c.open !== undefined);
-    const first = currentCandles[0].time;
-    const idxOf = (t) => (t - first) / DAY;
-    if (name === 'all') {
-      chart.timeScale().setVisibleLogicalRange({ from: -5, to: extendedLen + 5 });
-    } else if (name === 'cycle') {
-      const lastBottom = [...currentPivots].reverse().find((p) => p.type === 'bottom');
-      const from = lastBottom ? idxOf(lastBottom.time) - 15 : 0;
-      chart.timeScale().setVisibleLogicalRange({ from, to: extendedLen + 5 });
+    const last = dailyReal.at(-1);
+    if (!last) return;
+    if (name === 'cycle') {
+      const lastBottom = [...pivots].reverse().find((p) => p.type === 'bottom');
+      const from = lastBottom ? timeToLogical(lastBottom.time - 30 * DAY) : -3;
+      chart.timeScale().setVisibleLogicalRange({ from, to: bars.length + 3 });
     } else if (name === '1y') {
-      const lastIdx = idxOf(real.at(-1).time);
-      chart.timeScale().setVisibleLogicalRange({ from: lastIdx - 370, to: lastIdx + 45 });
+      chart.timeScale().setVisibleLogicalRange({
+        from: timeToLogical(last.time - 365 * DAY),
+        to: timeToLogical(last.time + 45 * DAY),
+      });
+    } else {
+      chart.timeScale().setVisibleLogicalRange({ from: -3, to: bars.length + 3 });
     }
   }
 
+  // ── 工具栏 ──
+  const tfButtons = [...document.querySelectorAll('#tf-group button')];
+  tfButtons.forEach((btn) => btn.addEventListener('click', () => {
+    if (btn.dataset.tf === timeframe) return;
+    timeframe = btn.dataset.tf;
+    tfButtons.forEach((b) => b.classList.toggle('active', b === btn));
+    render(null);
+    applyRange(activeRange);
+  }));
+
+  const rangeButtons = [...document.querySelectorAll('#range-group button')];
   rangeButtons.forEach((btn) => btn.addEventListener('click', () => {
-    setActiveRange(btn);
-    applyRange(btn.dataset.range);
+    activeRange = btn.dataset.range;
+    rangeButtons.forEach((b) => b.classList.toggle('active', b === btn));
+    applyRange(activeRange);
   }));
 
   $('scale-toggle').addEventListener('click', () => {
@@ -191,6 +240,7 @@ async function init() {
       for (const p of attached) series.detachPrimitive(p);
       attached = [];
     }
+    topAxis.style.visibility = annotOn ? '' : 'hidden';
     $('annot-toggle').classList.toggle('active', annotOn);
   });
 
@@ -201,7 +251,7 @@ async function init() {
     document.documentElement.dataset.theme = themeName;
     applyChartTheme(chart, series);
     makeWatermark();
-    render(currentCandles); // 重建标注以套用新配色（保留当前缩放）
+    render(null); // 重建标注/标签轴以套用新配色（保留当前缩放）
   });
 
   // ── 数据：快照立即渲染，实时尾部后台升级 ──
@@ -235,7 +285,7 @@ async function init() {
   } else {
     showNotice(`实时数据加载失败，当前显示截至 ${fmtDMY(sinceTs)} 的历史数据。`);
   }
-  console.table(currentPivots.map((p) => ({ 类型: p.type === 'top' ? '牛顶' : '熊底', 日期: fmtDate(p.time), 价格: p.price })));
+  console.table(pivots.map((p) => ({ 类型: p.type === 'top' ? '牛顶' : '熊底', 日期: fmtDate(p.time), 价格: p.price })));
 }
 
 init().catch((e) => {

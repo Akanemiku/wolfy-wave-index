@@ -82,9 +82,41 @@ export function fillGaps(candles) {
   return out;
 }
 
-// 时间轴向未来延伸（whitespace 数据只有 time 字段）
-export function extendWithWhitespace(candles, untilTs) {
-  const out = candles.slice();
-  for (let t = candles.at(-1).time + DAY; t <= untilTs; t += DAY) out.push({ time: t });
+// 日线聚合为周线（周一为界，UTC）/ 月线（自然月）
+export function aggregate(candles, tf) {
+  if (tf === 'day') return candles;
+  const bucketStart = (t) => {
+    const d = new Date(t * 1000);
+    if (tf === 'week') return t - ((d.getUTCDay() + 6) % 7) * DAY;
+    return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1) / 1000;
+  };
+  const out = [];
+  for (const c of candles) {
+    if (c.open === undefined) continue; // 跳过缺口占位
+    const b = bucketStart(c.time);
+    const last = out.at(-1);
+    if (last && last.time === b) {
+      last.high = Math.max(last.high, c.high);
+      last.low = Math.min(last.low, c.low);
+      last.close = c.close;
+    } else {
+      out.push({ time: b, open: c.open, high: c.high, low: c.low, close: c.close });
+    }
+  }
+  return out;
+}
+
+// 时间轴向未来延伸（whitespace 数据只有 time 字段），步长随周期
+export function extendBars(bars, untilTs, tf) {
+  const next = (t) => {
+    if (tf === 'week') return t + 7 * DAY;
+    if (tf === 'month') {
+      const d = new Date(t * 1000);
+      return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1) / 1000;
+    }
+    return t + DAY;
+  };
+  const out = bars.slice();
+  for (let t = next(bars.at(-1).time); t <= untilTs; t = next(t)) out.push({ time: t });
   return out;
 }

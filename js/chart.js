@@ -11,9 +11,11 @@ function themeOptions() {
       background: { type: 'solid', color: COLORS.chartBg },
       textColor: COLORS.chartText,
       fontFamily: FONT,
+      fontSize: 11,
     },
     grid: {
-      vertLines: { color: COLORS.grid },
+      // 只保留极淡的横向网格：纵向网格与减半日/今日竖线视觉冲突
+      vertLines: { visible: false },
       horzLines: { color: COLORS.grid },
     },
     rightPriceScale: { borderColor: COLORS.scaleBorder },
@@ -40,9 +42,7 @@ export function createChartAndSeries(container) {
     rightPriceScale: {
       mode: LWC.PriceScaleMode.Logarithmic,
       borderColor: COLORS.scaleBorder,
-      // 顶部多留空间：竖线徽标（减半日/今日）统一置顶显示在这条空带里，
-      // 价格内容（含最高的时长箭头）整体下移，不与徽标带重叠
-      scaleMargins: { top: 0.12, bottom: 0.04 },
+      scaleMargins: { top: 0.06, bottom: 0.04 },
     },
     timeScale: {
       borderColor: COLORS.scaleBorder,

@@ -2,21 +2,50 @@
 // 全部标注都是纯渲染（不实现 hitTest），因此天然不可选中、不可拖拽、不可编辑。
 import { DAY, FONT } from '../config.js';
 
-// setData 之后由 main.js 注入最终数据数组（真实 K 线 + whitespace），
-// 用「时间 → 数组下标」查表求逻辑坐标。不用 timeToCoordinate()：
-// 它对滚出屏幕外的时间返回 null，会导致放大到矩形内部时矩形消失。
-let _firstTime = 0;
-let _index = new Map();
+// setData 之后由 main.js 注入最终数据数组（真实 K 线 + whitespace）。
+// 任意时间 → 逻辑坐标：二分找到所在的 K 线桶，桶内按时间比例插值，
+// 因此日/周/月任何周期下标注都能精确定位（月线桶宽不均匀也没问题）。
+// 不用 timeToCoordinate()：它对屏幕外的时间返回 null，会导致放大到
+// 矩形内部时矩形消失。
+let _times = [];
 
 export function setSeriesData(data) {
-  _firstTime = data[0].time;
-  _index = new Map(data.map((c, i) => [c.time, i]));
+  _times = data.map((c) => c.time);
 }
 
 export function timeToLogical(t) {
-  const i = _index.get(t);
-  if (i !== undefined) return i;
-  return (t - _firstTime) / DAY; // 范围外的时间按逐日连续推算
+  const n = _times.length;
+  if (n === 0) return 0;
+  if (n === 1) return (t - _times[0]) / DAY;
+  if (t <= _times[0]) {
+    return (t - _times[0]) / (_times[1] - _times[0]);
+  }
+  if (t >= _times[n - 1]) {
+    return n - 1 + (t - _times[n - 1]) / (_times[n - 1] - _times[n - 2]);
+  }
+  let lo = 0;
+  let hi = n - 1;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (_times[mid] <= t) lo = mid;
+    else hi = mid;
+  }
+  return lo + (t - _times[lo]) / (_times[hi] - _times[lo]);
+}
+
+// 逻辑坐标 → 像素 x。lightweight-charts 的 logicalToCoordinate 只接受整数
+// （小数会返回 0），周/月线下标注时间常落在 K 线桶中间产生小数逻辑坐标，
+// 这里整数部分查库、小数部分按相邻两根 K 线的像素间距插值。
+export function logicalToX(chart, logical) {
+  const ts = chart.timeScale();
+  const i = Math.floor(logical);
+  const x0 = ts.logicalToCoordinate(i);
+  if (x0 === null) return null;
+  const frac = logical - i;
+  if (frac === 0) return x0;
+  const x1 = ts.logicalToCoordinate(i + 1);
+  if (x1 === null) return null;
+  return x0 + frac * (x1 - x0);
 }
 
 // 坐标钳制：远超屏幕的坐标收拢到视口 ±100px，避免画出巨型矩形
@@ -120,7 +149,7 @@ export class Primitive {
   }
 
   timeToX(t) {
-    return this._chart.timeScale().logicalToCoordinate(timeToLogical(t));
+    return logicalToX(this._chart, timeToLogical(t));
   }
 
   priceToY(p) {

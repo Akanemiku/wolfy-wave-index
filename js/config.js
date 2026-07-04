@@ -40,65 +40,65 @@ export const FIXED_ARROW_LABELS = ['413 天', '1064 天', '364 天', '1064 天',
 export const ARROW_BEAR_FACTOR = 1.25; // 熊市箭头 = 框顶价 × 1.25（悬于框上方）
 export const ARROW_BULL_FACTOR = 0.78; // 牛市箭头 = 框底价 × 0.78（悬于框下方）
 
-export const FONT = '-apple-system, "PingFang SC", "Microsoft YaHei", sans-serif';
+export const FONT = '"Inter", -apple-system, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif';
 
 // 主题配色。K 线为绿涨红跌（国际惯例）；想改红涨绿跌，交换各主题的 up/down。
 export const THEMES = {
   dark: {
-    chartBg: '#131722',
-    chartText: '#9598a1',
-    grid: 'rgba(42, 46, 57, 0.55)',
-    scaleBorder: '#2a2e39',
-    up: '#26a69a',
-    down: '#ef5350',
+    chartBg: '#0e1117',
+    chartText: '#8b93a1',
+    grid: 'rgba(139, 147, 161, 0.08)',
+    scaleBorder: '#1e2530',
+    up: '#089981',
+    down: '#f23645',
 
-    bullFill: 'rgba(38, 166, 154, 0.09)',
-    bullBorder: 'rgba(38, 166, 154, 0.40)',
-    bullLabel: '#26a69a',
-    bearFill: 'rgba(239, 83, 80, 0.08)',
-    bearBorder: 'rgba(239, 83, 80, 0.40)',
-    bearLabel: '#ef5350',
+    bullFill: 'rgba(8, 153, 129, 0.07)',
+    bullBorder: 'rgba(8, 153, 129, 0.32)',
+    bullLabel: '#27bd9b',
+    bearFill: 'rgba(242, 54, 69, 0.06)',
+    bearBorder: 'rgba(242, 54, 69, 0.30)',
+    bearLabel: '#f7525f',
 
-    halving: '#4a7dec',
-    halvingLabel: '#82a7ff',
+    halving: 'rgba(46, 107, 255, 0.55)',
+    halvingLabel: '#7da3ff',
 
-    today: '#787b86',
-    todayLabel: '#b2b5be',
+    today: 'rgba(139, 147, 161, 0.65)',
+    todayLabel: '#aeb5c0',
 
-    arrowBull: '#26a69a',
-    arrowBear: '#ef5350',
+    arrowBull: '#27bd9b',
+    arrowBear: '#f7525f',
 
-    tagBg: 'rgba(19, 23, 34, 0.88)', // 标签胶囊统一底色
+    tagBg: 'rgba(14, 17, 23, 0.92)', // 标签胶囊统一底色
 
-    watermark: 'rgba(209, 212, 220, 0.05)',
+    watermark: 'rgba(228, 232, 240, 0.04)',
   },
   light: {
     chartBg: '#ffffff',
-    chartText: '#5d606b',
-    grid: '#f0f3fa',
-    scaleBorder: '#d1d4dc',
-    up: '#26a69a',
-    down: '#ef5350',
+    chartText: '#767d8a',
+    grid: 'rgba(70, 80, 96, 0.08)',
+    scaleBorder: '#e2e6ee',
+    up: '#089981',
+    down: '#f23645',
 
-    bullFill: 'rgba(38, 166, 154, 0.10)',
-    bullBorder: 'rgba(38, 166, 154, 0.45)',
-    bullLabel: '#089981',
-    bearFill: 'rgba(239, 83, 80, 0.08)',
-    bearBorder: 'rgba(239, 83, 80, 0.45)',
-    bearLabel: '#e13d3d',
+    bullFill: 'rgba(8, 153, 129, 0.08)',
+    bullBorder: 'rgba(8, 153, 129, 0.35)',
+    bullLabel: '#079076',
+    bearFill: 'rgba(242, 54, 69, 0.06)',
+    bearBorder: 'rgba(242, 54, 69, 0.32)',
+    bearLabel: '#e02a3a',
 
-    halving: '#2962ff',
+    halving: 'rgba(41, 98, 255, 0.50)',
     halvingLabel: '#2962ff',
 
-    today: '#787b86',
-    todayLabel: '#6a6d78',
+    today: 'rgba(118, 125, 138, 0.70)',
+    todayLabel: '#6a7180',
 
-    arrowBull: '#089981',
-    arrowBear: '#f23645',
+    arrowBull: '#079076',
+    arrowBear: '#e02a3a',
 
-    tagBg: 'rgba(255, 255, 255, 0.92)', // 标签胶囊统一底色
+    tagBg: 'rgba(255, 255, 255, 0.94)', // 标签胶囊统一底色
 
-    watermark: 'rgba(19, 23, 34, 0.05)',
+    watermark: 'rgba(22, 26, 34, 0.04)',
   },
 };
 
