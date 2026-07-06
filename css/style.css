@@ -215,17 +215,19 @@ body {
   opacity: 0.7;
 }
 
-/* ── 区块模式的底部刻度轴（自绘，替代内置时间轴） ── */
+/* ── 区块模式的底部刻度轴 ──
+   透明覆盖在内置时间轴区域上（内置刻度文字在区块模式下置空），
+   十字线的底部读数从下层透出；不拦截指针事件，保留轴区拖拽缩放 */
 .block-axis {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
   height: 28px;
-  border-top: 1px solid var(--border);
-  background: var(--bg);
+  background: transparent;
   overflow: hidden;
   z-index: 5;
+  pointer-events: none;
 }
 
 .bx-label {

@@ -11,7 +11,7 @@ import {
   loadHeightAnchors, fetchTipAnchor, heightAt, timeAtHeight,
   aggregateByBlocks, extendBlocks,
 } from './blocks.js';
-import { computePivots, buildAnnotations } from './pivots.js';
+import { computePivots, buildAnnotations, phaseAt } from './pivots.js';
 import { setSeriesData, timeToLogical, logicalToX } from './primitives/base.js';
 
 const $ = (id) => document.getElementById(id);
@@ -44,10 +44,7 @@ async function init() {
   setTheme(themeName);
   document.documentElement.dataset.theme = themeName;
 
-  const LWC = window.LightweightCharts;
-  const { chart, series } = createChartAndSeries($('chart'));
-
-  // ── 状态 ──
+  // ── 状态（先于建图声明：图表的刻度格式化闭包会引用 axisMode） ──
   let attached = [];       // 当前挂载的标注 primitive
   let built = [];          // 最近一次构建的标注 primitive
   let annotOn = true;
@@ -63,6 +60,11 @@ async function init() {
   let idxCache = null;
   let tipHeight = null;    // 当前链上高度（后台获取）
   let watermark = null;
+  let paneTitle = null;    // 副图区标题（狼波周期指数）
+
+  const LWC = window.LightweightCharts;
+  const { chart, series, phaseSolid, phaseDashed } =
+    createChartAndSeries($('chart'), () => axisMode === 'blocks');
 
   // ── 顶部标签轴 ──
   const topAxis = $('top-axis');
@@ -130,6 +132,7 @@ async function init() {
     if (hFrom === null || hTo === null || hTo <= hFrom) return;
     const pxPerBlock = width / (hTo - hFrom);
     const step = TICK_STEPS.find((s) => s * pxPerBlock >= 90) ?? TICK_STEPS.at(-1);
+    blockAxis.style.height = `${chart.timeScale().height()}px`;
     blockAxis.textContent = '';
     for (let h = Math.ceil(hFrom / step) * step; h <= hTo; h += step) {
       const x = logicalToX(chart, timeToLogical(h));
@@ -162,6 +165,12 @@ async function init() {
         vertAlign: 'center',
         lines: [{ text: '杀破狼 WolfyXBT', color: COLORS.watermark, fontSize: 44, fontStyle: 'bold' }],
       });
+      paneTitle?.detach();
+      paneTitle = LWC.createTextWatermark(chart.panes()[1], {
+        horzAlign: 'left',
+        vertAlign: 'top',
+        lines: [{ text: '狼波周期指数 Wolfy Wave Index　0% = 熊底 · 100% = 牛顶', color: COLORS.phase, fontSize: 11 }],
+      });
     } catch (e) {
       console.warn('水印创建失败（不影响功能）：', e);
       watermark = null;
@@ -190,6 +199,17 @@ async function init() {
     meta = ann.meta;
     series.setData(bars);
     setSeriesData(bars);
+    // 狼波周期指数：按当前 bars 采样进副图区（实线 = 已发生，虚线 = 预测段）。
+    // 采样点严格取自 bars 的时间键，不会向时间轴引入新的点位
+    const solidData = [];
+    const dashedData = [];
+    for (const b of bars) {
+      const v = phaseAt(ann.phasePts, b.time) * 100;
+      (b.time <= ann.meta.todayPos ? solidData : dashedData).push({ time: b.time, value: v });
+    }
+    if (solidData.length && dashedData.length) dashedData.unshift(solidData.at(-1));
+    phaseSolid.setData(solidData);
+    phaseDashed.setData(dashedData);
     for (const p of attached) series.detachPrimitive(p);
     built = ann.primitives;
     attached = annotOn ? ann.primitives : [];
@@ -303,9 +323,7 @@ async function init() {
     axisMode = btn.dataset.axis;
     axisButtons.forEach((b) => b.classList.toggle('active', b === btn));
     relabelTf();
-    const blocksOn = axisMode === 'blocks';
-    chart.applyOptions({ timeScale: { visible: !blocksOn } });
-    blockAxis.hidden = !blocksOn;
+    blockAxis.hidden = axisMode !== 'blocks';
     render(null);
     fitAll();
   }));
@@ -335,7 +353,7 @@ async function init() {
     localStorage.setItem(THEME_KEY, themeName);
     setTheme(themeName);
     document.documentElement.dataset.theme = themeName;
-    applyChartTheme(chart, series);
+    applyChartTheme(chart, series, phaseSolid, phaseDashed);
     makeWatermark();
     render(null); // 重建标注/标签轴以套用新配色（保留当前缩放）
   });

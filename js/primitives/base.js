@@ -63,7 +63,6 @@ export function drawTag(ctx, x, y, text, { bg, color, anchor = 'tl' }) {
   if (anchor === 'tc') { bx = x - w / 2; }
   else if (anchor === 'bl') { by = y - h; }
   else if (anchor === 'center') { bx = x - w / 2; by = y - h / 2; }
-  else if (anchor === 'rc') { bx = x - w; by = y - h / 2; }
   ctx.beginPath();
   roundedRectPath(ctx, bx, by, w, h, 4);
   ctx.fillStyle = bg;
