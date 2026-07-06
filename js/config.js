@@ -24,6 +24,13 @@ export const PIVOT_WINDOWS = [
 
 // 减半日（准确日期，画竖线，徽标统一置顶）
 export const HALVINGS = [D('2016-07-09'), D('2020-05-11'), D('2024-04-20')];
+// 减半的准确区块高度（区块模式下直接用常量，无需插值）
+export const HALVING_HEIGHTS = [420000, 630000, 840000];
+
+// 区块模式：K 线分桶粒度（约等于 日/周/月）
+export const BLOCK_BUCKETS = { day: 144, week: 1008, month: 4368 };
+// 区块模式下时间轴向预测终点之后延伸的块数（右侧留白，约 45 天）
+export const EXTEND_MARGIN_BLOCKS = 6480;
 
 // 周期规律：熊市 364 天，用于推算进行中熊市的预测见底日
 export const BEAR_DAYS = 364;

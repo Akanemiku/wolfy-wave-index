@@ -1,7 +1,10 @@
 // 枢轴计算与标注生成。
 // 牛顶 = 搜索窗口内最高价那天，熊底 = 窗口内最低价那天（用户确认的画法）。
+// buildAnnotations 支持两种横轴：时间（UTC 秒）与区块高度——传入 blocks 上下文
+// 时所有坐标以高度为单位，预测终点按历史熊市块数规律推算。
 import {
-  DAY, PIVOT_WINDOWS, HALVINGS, BEAR_DAYS, EXTEND_MARGIN_DAYS,
+  DAY, PIVOT_WINDOWS, HALVINGS, HALVING_HEIGHTS, BEAR_DAYS,
+  EXTEND_MARGIN_DAYS, EXTEND_MARGIN_BLOCKS,
   ARROW_LABEL_MODE, FIXED_ARROW_LABELS, ARROW_BEAR_FACTOR, ARROW_BULL_FACTOR, COLORS,
 } from './config.js';
 import { CycleBox } from './primitives/cycle-box.js';
@@ -32,28 +35,43 @@ export function computePivots(candles) {
 }
 
 const days = (a, b) => Math.round((b - a) / DAY);
+const fmtInt = (n) => Math.round(n).toLocaleString('en-US');
 
 // 由枢轴推出全部标注 primitive 与顶部标签轴的标记。
-// 返回 { primitives, axisMarks, extendTo }。
-export function buildAnnotations(pivots, candles) {
+// blocks（可选）：{ heightAt(ts), today }，传入则横轴以区块高度为单位。
+// 返回 { primitives, axisMarks, extendTo, meta }；meta 供顶栏周期状态使用。
+export function buildAnnotations(pivots, candles, blocks = null) {
   const primitives = [];
   const axisMarks = []; // 顶部标签轴条目：{ time, label, color }
   const lastReal = candles.at(-1);
 
+  // 枢轴坐标：时间模式 = UTC 秒；区块模式 = 高度
+  const pts = pivots.map((p) => ({ ...p, pos: blocks ? blocks.heightAt(p.time) : p.time }));
+  const todayPos = blocks ? blocks.today : lastReal.time;
+
   // 周期段：相邻枢轴之间；顶→底 = 熊市，底→顶 = 牛市
   const segments = [];
-  for (let i = 0; i < pivots.length - 1; i++) {
-    segments.push({ from: pivots[i], to: pivots[i + 1], type: pivots[i].type === 'top' ? 'bear' : 'bull' });
+  for (let i = 0; i < pts.length - 1; i++) {
+    segments.push({ from: pts[i], to: pts[i + 1], type: pts[i].type === 'top' ? 'bear' : 'bull' });
   }
 
-  // 进行中的熊市（预测）：见底日 = 最后一个牛顶 + 364 天。
-  // 底部未知，不假设低点价格——该段画成贯穿全高的时间区间（fullHeight）
-  const lastTop = pivots.at(-1);
+  // 进行中的熊市（预测）。底部未知，不假设低点价格——画成贯穿全高的区间。
+  // 终点：时间模式 = 牛顶 + 364 天；区块模式 = 牛顶高度 + 历史熊市块数均值
+  // （与 364 天规律同样排除不合规律的第一轮熊市）
+  const lastTop = pts.at(-1);
   if (lastTop.type !== 'top') throw new Error('PIVOT_WINDOWS 应以 top 结尾（进行中周期的牛顶）');
-  const predictedEnd = lastTop.time + BEAR_DAYS * DAY;
+  let predictedEnd;
+  if (blocks) {
+    const bearSpans = [];
+    for (let i = 2; i + 1 < pts.length; i += 2) bearSpans.push(pts[i + 1].pos - pts[i].pos);
+    const bearBlocks = Math.round(bearSpans.reduce((a, b) => a + b, 0) / bearSpans.length);
+    predictedEnd = lastTop.pos + bearBlocks;
+  } else {
+    predictedEnd = lastTop.pos + BEAR_DAYS * DAY;
+  }
   segments.push({
     from: lastTop,
-    to: { time: predictedEnd, price: lastTop.price },
+    to: { pos: predictedEnd, price: lastTop.price },
     type: 'bear',
     projected: true,
   });
@@ -71,49 +89,64 @@ export function buildAnnotations(pivots, candles) {
     if (seg.projected) {
       // 在「今日」处拆成 实线段 + 虚线预测段。边界情况自然退化为只画一段：
       // 今日即牛顶（当日创周期新高）→ 全部为预测段；预测期已走完 → 全部为实线段
-      const splitAt = Math.min(Math.max(lastReal.time, seg.from.time), seg.to.time);
-      if (splitAt > seg.from.time) {
+      const splitAt = Math.min(Math.max(todayPos, seg.from.pos), seg.to.pos);
+      if (splitAt > seg.from.pos) {
         primitives.push(new CycleBox({
-          from: seg.from.time, to: splitAt, fill: COLORS.bandFill,
+          from: seg.from.pos, to: splitAt, fill: COLORS.bandFill,
           borderColor, label, labelColor, labelPos,
           fullHeight: true,
         }));
       }
-      if (seg.to.time > splitAt) {
+      if (seg.to.pos > splitAt) {
         primitives.push(new CycleBox({
-          from: splitAt, to: seg.to.time, fill: COLORS.bandFillProjected,
+          from: splitAt, to: seg.to.pos, fill: COLORS.bandFillProjected,
           borderColor, label: '熊市（预测）', labelColor, labelPos: 'top', dashed: true,
           fullHeight: true,
         }));
       }
-      primitives.push(new VertLine({ time: lastReal.time, color: COLORS.today, dashed: true }));
-      axisMarks.push({ time: lastReal.time, label: '今日', color: COLORS.todayLabel });
+      primitives.push(new VertLine({ time: todayPos, color: COLORS.today, dashed: true }));
+      axisMarks.push({ time: todayPos, label: '今日', color: COLORS.todayLabel });
     } else {
       primitives.push(new CycleBox({
-        from: seg.from.time, to: seg.to.time, priceLow, priceHigh, fill, borderColor, label, labelColor, labelPos,
+        from: seg.from.pos, to: seg.to.pos, priceLow, priceHigh, fill, borderColor, label, labelColor, labelPos,
       }));
     }
 
-    // 时长箭头：熊市悬于框上方（红），牛市悬于框下方（绿）
-    const fixed = FIXED_ARROW_LABELS[i];
-    const arrowLabel = ARROW_LABEL_MODE === 'fixed' && fixed
-      ? fixed
-      : `${days(seg.from.time, seg.to.time)} 天`;
+    // 时长标尺：熊市悬于区间上方（红），牛市悬于区间下方（绿）。
+    // 时间模式显示天数（默认原图数字）；区块模式显示块数
+    let arrowLabel;
+    if (blocks) {
+      arrowLabel = `${fmtInt(seg.to.pos - seg.from.pos)} 块`;
+    } else {
+      const fixed = FIXED_ARROW_LABELS[i];
+      arrowLabel = ARROW_LABEL_MODE === 'fixed' && fixed
+        ? fixed
+        : `${days(seg.from.pos, seg.to.pos)} 天`;
+    }
     primitives.push(new SpanArrow({
-      from: seg.from.time,
-      to: seg.to.time,
+      from: seg.from.pos,
+      to: seg.to.pos,
       price: isBull ? priceLow * ARROW_BULL_FACTOR : priceHigh * ARROW_BEAR_FACTOR,
       label: arrowLabel,
       color: isBull ? COLORS.arrowBull : COLORS.arrowBear,
     }));
   });
 
-  // 减半日竖线
-  for (const t of HALVINGS) {
+  // 减半竖线：时间模式用准确日期，区块模式用准确高度常量
+  const halvingPts = blocks ? HALVING_HEIGHTS : HALVINGS;
+  for (const t of halvingPts) {
     primitives.push(new VertLine({ time: t, color: COLORS.halving }));
     axisMarks.push({ time: t, label: '减半日', color: COLORS.halvingLabel });
   }
 
-  // 预测见底日已过时仍保留右侧留白（以最新 K 线为准）
-  return { primitives, axisMarks, extendTo: Math.max(predictedEnd, lastReal.time) + EXTEND_MARGIN_DAYS * DAY };
+  // 预测终点已过时仍保留右侧留白（以「今日」为准）
+  const extendTo = Math.max(predictedEnd, todayPos)
+    + (blocks ? EXTEND_MARGIN_BLOCKS : EXTEND_MARGIN_DAYS * DAY);
+
+  return {
+    primitives,
+    axisMarks,
+    extendTo,
+    meta: { topPos: lastTop.pos, todayPos, predictedEnd },
+  };
 }

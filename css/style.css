@@ -215,6 +215,39 @@ body {
   opacity: 0.7;
 }
 
+/* ── 区块模式的底部刻度轴（自绘，替代内置时间轴） ── */
+.block-axis {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 28px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  overflow: hidden;
+  z-index: 5;
+}
+
+.bx-label {
+  position: absolute;
+  top: 55%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  color: var(--sub);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.bx-tick {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 5px;
+  background: var(--sub);
+  opacity: 0.55;
+}
+
 /* ── 图表区 ── */
 .chart-wrap {
   position: relative;
