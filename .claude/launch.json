@@ -4,7 +4,7 @@
     {
       "name": "wolfy-index",
       "runtimeExecutable": "sh",
-      "runtimeArgs": ["-c", "python3 -m http.server ${PORT:-8080}"],
+      "runtimeArgs": ["-c", "python3 -m http.server \"$PORT\""],
       "port": 8080,
       "autoPort": true
     }
