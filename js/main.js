@@ -43,7 +43,6 @@ async function init() {
   let annotOn = true;
   let logOn = true;
   let timeframe = 'day';  // 'day' | 'week' | 'month'
-  let activeRange = 'all';
   let daily = [];         // fillGaps 后的日线（标注/枢轴/统计的数据源）
   let dailyReal = [];     // 仅真实日线
   let bars = [];          // 当前周期 bars + whitespace（图表数据源）
@@ -124,7 +123,7 @@ async function init() {
     if (fit) {
       // 等一帧，确保 autoSize 已应用真实容器尺寸
       requestAnimationFrame(() => {
-        applyRange(activeRange);
+        fitAll();
         positionAxisMarks();
       });
     }
@@ -189,22 +188,9 @@ async function init() {
     updateLegend(d && d.open !== undefined ? { ...d, time: param.time } : null);
   });
 
-  // ── 范围预设（用时间→逻辑坐标换算，任何周期下都成立） ──
-  function applyRange(name) {
-    const last = dailyReal.at(-1);
-    if (!last) return;
-    if (name === 'cycle') {
-      const lastBottom = [...pivots].reverse().find((p) => p.type === 'bottom');
-      const from = lastBottom ? timeToLogical(lastBottom.time - 30 * DAY) : -3;
-      chart.timeScale().setVisibleLogicalRange({ from, to: bars.length + 3 });
-    } else if (name === '1y') {
-      chart.timeScale().setVisibleLogicalRange({
-        from: timeToLogical(last.time - 365 * DAY),
-        to: timeToLogical(last.time + 45 * DAY),
-      });
-    } else {
-      chart.timeScale().setVisibleLogicalRange({ from: -3, to: bars.length + 3 });
-    }
+  // 显示全部范围（含右侧预测区间）
+  function fitAll() {
+    chart.timeScale().setVisibleLogicalRange({ from: -3, to: bars.length + 3 });
   }
 
   // ── 工具栏 ──
@@ -214,14 +200,7 @@ async function init() {
     timeframe = btn.dataset.tf;
     tfButtons.forEach((b) => b.classList.toggle('active', b === btn));
     render(null);
-    applyRange(activeRange);
-  }));
-
-  const rangeButtons = [...document.querySelectorAll('#range-group button')];
-  rangeButtons.forEach((btn) => btn.addEventListener('click', () => {
-    activeRange = btn.dataset.range;
-    rangeButtons.forEach((b) => b.classList.toggle('active', b === btn));
-    applyRange(activeRange);
+    fitAll();
   }));
 
   $('scale-toggle').addEventListener('click', () => {
