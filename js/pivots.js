@@ -133,9 +133,9 @@ export function buildAnnotations(pivots, candles, blocks = null) {
     }));
   });
 
-  // 周期相位折线：0 = 熊底，1 = 牛顶。历史锚点用实际顶底（峰谷与真实
-  // 高低点严格对齐），未来段到预测见底为止；图左侧起点按平均牛市跨度
-  // 从首个牛顶向前外推，让折线覆盖整个可见范围
+  // 狼波周期指数（Wolfy Wave Index）：0 = 熊底，1 = 牛顶。历史锚点用
+  // 实际顶底（峰谷与真实高低点严格对齐），未来段到预测见底为止；
+  // 图左侧起点按平均牛市跨度从首个牛顶向前外推，让折线覆盖整个可见范围
   const bullSpans = [];
   for (let i = 1; i + 1 < pts.length; i += 2) bullSpans.push(pts[i + 1].pos - pts[i].pos);
   const meanBull = bullSpans.reduce((a, b) => a + b, 0) / bullSpans.length;

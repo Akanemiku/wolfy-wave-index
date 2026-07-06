@@ -1,7 +1,8 @@
-// 周期相位折线：0 = 熊底，1 = 牛顶。牛市段线性上行（约三年），
-// 熊市段线性下行（约一年），锯齿状叠印在 K 线图上。
-// y 轴用绘图区像素比例（与价格坐标无关），对数/线性切换不影响形态。
-// 「今日」之前实线，之后（预测段）虚线，并在今日位置标出当前相位百分比。
+// 狼波周期指数（Wolfy Wave Index）：0 = 熊底，1 = 牛顶。
+// 牛市段线性上行（约三年，减半在中点），熊市段线性下行（约一年），
+// 锯齿状叠印在 K 线图上。y 轴用绘图区像素比例（与价格坐标无关），
+// 对数/线性切换不影响形态。「今日」之前实线，之后（预测段）虚线，
+// 并在今日位置标出当前指数百分比。
 import { Primitive, drawTag } from './base.js';
 import { COLORS } from '../config.js';
 
@@ -63,13 +64,13 @@ export class PhaseLine extends Primitive {
     ctx.setLineDash([]);
     ctx.restore();
 
-    // 今日相位：圆点 + 百分比标签（0% = 熊底，100% = 牛顶）
+    // 今日读数：圆点 + 百分比标签（0% = 熊底，100% = 牛顶）
     if (splitPt.x !== null && splitPt.x >= -20 && splitPt.x <= media.width + 20) {
       ctx.fillStyle = this._color;
       ctx.beginPath();
       ctx.arc(splitPt.x, splitPt.y, 3, 0, Math.PI * 2);
       ctx.fill();
-      drawTag(ctx, splitPt.x - 8, splitPt.y, `相位 ${Math.round(splitVal * 100)}%`, {
+      drawTag(ctx, splitPt.x - 8, splitPt.y, `狼波指数 ${Math.round(splitVal * 100)}%`, {
         bg: COLORS.tagBg, color: this._color, anchor: 'rc',
       });
     }
