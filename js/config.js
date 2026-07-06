@@ -59,6 +59,10 @@ export const THEMES = {
     bearBorder: 'rgba(242, 54, 69, 0.30)',
     bearLabel: '#f7525f',
 
+    // 进行中熊市的全高色带：需要明显可辨的红色高亮背景
+    bandFill: 'rgba(242, 54, 69, 0.14)',
+    bandFillProjected: 'rgba(242, 54, 69, 0.08)',
+
     halving: 'rgba(46, 107, 255, 0.55)',
     halvingLabel: '#7da3ff',
 
@@ -86,6 +90,10 @@ export const THEMES = {
     bearFill: 'rgba(242, 54, 69, 0.06)',
     bearBorder: 'rgba(242, 54, 69, 0.32)',
     bearLabel: '#e02a3a',
+
+    // 进行中熊市的全高色带：需要明显可辨的红色高亮背景
+    bandFill: 'rgba(242, 54, 69, 0.10)',
+    bandFillProjected: 'rgba(242, 54, 69, 0.06)',
 
     halving: 'rgba(41, 98, 255, 0.50)',
     halvingLabel: '#2962ff',

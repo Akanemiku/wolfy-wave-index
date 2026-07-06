@@ -74,14 +74,14 @@ export function buildAnnotations(pivots, candles) {
       const splitAt = Math.min(Math.max(lastReal.time, seg.from.time), seg.to.time);
       if (splitAt > seg.from.time) {
         primitives.push(new CycleBox({
-          from: seg.from.time, to: splitAt, fill, borderColor, label, labelColor, labelPos,
+          from: seg.from.time, to: splitAt, fill: COLORS.bandFill,
+          borderColor, label, labelColor, labelPos,
           fullHeight: true,
         }));
       }
       if (seg.to.time > splitAt) {
         primitives.push(new CycleBox({
-          from: splitAt, to: seg.to.time,
-          fill: fill.replace(/[\d.]+\)$/, (a) => `${parseFloat(a) / 2})`),
+          from: splitAt, to: seg.to.time, fill: COLORS.bandFillProjected,
           borderColor, label: '熊市（预测）', labelColor, labelPos: 'top', dashed: true,
           fullHeight: true,
         }));
