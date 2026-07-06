@@ -3,10 +3,11 @@
 // buildAnnotations 支持两种横轴：时间（UTC 秒）与区块高度——传入 blocks 上下文
 // 时所有坐标以高度为单位，预测终点按历史熊市块数规律推算。
 import {
-  DAY, PIVOT_WINDOWS, HALVINGS, HALVING_HEIGHTS, BEAR_DAYS,
+  DAY, PIVOT_WINDOWS, HALVINGS, HALVING_HEIGHTS, HALVING_INTERVAL, BEAR_DAYS,
   EXTEND_MARGIN_DAYS, EXTEND_MARGIN_BLOCKS,
   ARROW_LABEL_MODE, FIXED_ARROW_LABELS, ARROW_BEAR_FACTOR, ARROW_BULL_FACTOR, COLORS,
 } from './config.js';
+import { timeAtHeight } from './blocks.js';
 import { CycleBox } from './primitives/cycle-box.js';
 import { VertLine } from './primitives/vert-line.js';
 import { SpanArrow } from './primitives/span-arrow.js';
@@ -39,8 +40,10 @@ const fmtInt = (n) => Math.round(n).toLocaleString('en-US');
 
 // 由枢轴推出全部标注 primitive 与顶部标签轴的标记。
 // blocks（可选）：{ heightAt(ts), today }，传入则横轴以区块高度为单位。
+// horizon（可选）：未来视界（当前轴单位），时间轴至少延伸到此，
+// 未来的减半线也铺到此为止。
 // 返回 { primitives, axisMarks, extendTo, meta }；meta 供顶栏周期状态使用。
-export function buildAnnotations(pivots, candles, blocks = null) {
+export function buildAnnotations(pivots, candles, blocks = null, horizon = null) {
   const primitives = [];
   const axisMarks = []; // 顶部标签轴条目：{ time, label, color }
   const lastReal = candles.at(-1);
@@ -132,16 +135,23 @@ export function buildAnnotations(pivots, candles, blocks = null) {
     }));
   });
 
-  // 减半竖线：时间模式用准确日期，区块模式用准确高度常量
-  const halvingPts = blocks ? HALVING_HEIGHTS : HALVINGS;
-  for (const t of halvingPts) {
-    primitives.push(new VertLine({ time: t, color: COLORS.halving }));
-    axisMarks.push({ time: t, label: '减半日', color: COLORS.halvingLabel });
-  }
+  // 预测终点已过时仍保留右侧留白（以「今日」为准）；有未来视界时延伸到视界
+  const extendTo = Math.max(
+    horizon ?? 0,
+    Math.max(predictedEnd, todayPos)
+      + (blocks ? EXTEND_MARGIN_BLOCKS : EXTEND_MARGIN_DAYS * DAY),
+  );
 
-  // 预测终点已过时仍保留右侧留白（以「今日」为准）
-  const extendTo = Math.max(predictedEnd, todayPos)
-    + (blocks ? EXTEND_MARGIN_BLOCKS : EXTEND_MARGIN_DAYS * DAY);
+  // 减半竖线：按 210,000 块网格铺到视界为止。已发生的用准确日期/高度；
+  // 未来的高度精确、日期只是按当前出块速度的估算（时间视图画虚线以示区别）
+  for (let i = 0; i < 10; i++) {
+    const hgt = HALVING_HEIGHTS[0] + i * HALVING_INTERVAL;
+    const pos = blocks ? hgt : (HALVINGS[i] ?? timeAtHeight(hgt));
+    if (pos > extendTo) break;
+    const future = pos > todayPos;
+    primitives.push(new VertLine({ time: pos, color: COLORS.halving, dashed: future && !blocks }));
+    axisMarks.push({ time: pos, label: '减半日', color: COLORS.halvingLabel });
+  }
 
   return {
     primitives,

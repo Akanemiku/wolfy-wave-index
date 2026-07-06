@@ -2,9 +2,7 @@
 // 狼波周期指数（纯区块制）。
 // 锚点 = 每 2016 块一次的难度调整 (timestamp, height)，桶内区块产出近似均匀，
 // 分段线性插值的误差在宏观图上不可见（实测对照三次减半准确高度 ≤ 220 块）。
-import { DAY, WAVE_BULL_HALF } from './config.js';
-
-const HALVING_INTERVAL = 210000;
+import { DAY, WAVE_BULL_HALF, HALVING_INTERVAL } from './config.js';
 
 // 狼波周期指数：高度的纯函数，0 = 熊底，1 = 牛顶。
 // 牛市 = 减半 ± WAVE_BULL_HALF（0→1 线性），熊市 = 其余区块（1→0 线性），
@@ -18,6 +16,12 @@ export function waveIndexAt(h) {
   const bearLen = HALVING_INTERVAL - 2 * WAVE_BULL_HALF;
   const into = d > 0 ? d - WAVE_BULL_HALF : d + HALVING_INTERVAL - WAVE_BULL_HALF;
   return 1 - into / bearLen;
+}
+
+// 未来视界：当前高度之后的「下下个」理论熊底高度——
+// 保证图表右侧完整铺出下一轮周期（下次减半 + 下轮牛顶 + 下轮熊底）
+export function waveHorizonHeight(h) {
+  return (Math.floor((h + WAVE_BULL_HALF) / HALVING_INTERVAL) + 2) * HALVING_INTERVAL - WAVE_BULL_HALF;
 }
 
 const timeoutSignal = (ms) => {

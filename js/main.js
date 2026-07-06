@@ -9,7 +9,7 @@ import {
 } from './data.js';
 import {
   loadHeightAnchors, fetchTipAnchor, heightAt, timeAtHeight,
-  aggregateByBlocks, extendBlocks, waveIndexAt,
+  aggregateByBlocks, extendBlocks, waveIndexAt, waveHorizonHeight,
 } from './blocks.js';
 import { computePivots, buildAnnotations } from './pivots.js';
 import { setSeriesData, timeToLogical, logicalToX } from './primitives/base.js';
@@ -186,14 +186,18 @@ async function init() {
       dailyReal = daily.filter((c) => c.open !== undefined);
       pivots = computePivots(daily);
     }
+    // 未来视界：延伸到「下下个」理论熊底，铺出完整的下一轮周期
+    //（未来的减半区块与狼波周期都是可直接推算的）
+    const hNow = tipHeight ?? heightAt(dailyReal.at(-1).time + DAY);
+    const horizonH = waveHorizonHeight(hNow);
     let ann;
     if (axisMode === 'blocks') {
       const bucket = BLOCK_BUCKETS[timeframe];
-      const blockCtx = { heightAt, today: tipHeight ?? heightAt(dailyReal.at(-1).time + DAY) };
-      ann = buildAnnotations(pivots, daily, blockCtx);
+      const blockCtx = { heightAt, today: hNow };
+      ann = buildAnnotations(pivots, daily, blockCtx, horizonH);
       bars = extendBlocks(aggregateByBlocks(daily, bucket), ann.extendTo, bucket);
     } else {
-      ann = buildAnnotations(pivots, daily);
+      ann = buildAnnotations(pivots, daily, null, timeAtHeight(horizonH));
       bars = extendBars(aggregate(daily, timeframe), ann.extendTo, timeframe);
     }
     meta = ann.meta;
@@ -220,7 +224,7 @@ async function init() {
     if (fit) {
       // 等一帧，确保 autoSize 已应用真实容器尺寸
       requestAnimationFrame(() => {
-        fitAll();
+        focusCurrent();
         positionAxisMarks();
         renderBlockAxis();
       });
@@ -301,9 +305,16 @@ async function init() {
     updateLegend(d && d.open !== undefined ? { ...d, time: param.time } : null);
   });
 
-  // 显示全部范围（含右侧预测区间）
-  function fitAll() {
-    chart.timeScale().setVisibleLogicalRange({ from: -3, to: bars.length + 3 });
+  // 默认视图聚焦当前周期：上一轮实际熊底 → 本轮预测见底
+  //（未来的完整下一轮周期已铺在右侧，滚轮缩小即可查看）
+  function focusCurrent() {
+    const lastBottom = [...pivots].reverse().find((p) => p.type === 'bottom');
+    if (!lastBottom || !meta) return;
+    const fromPos = axisMode === 'blocks' ? heightAt(lastBottom.time) : lastBottom.time;
+    chart.timeScale().setVisibleLogicalRange({
+      from: timeToLogical(fromPos) - 15,
+      to: timeToLogical(meta.predictedEnd) + 20,
+    });
   }
 
   // ── 工具栏 ──
@@ -315,7 +326,7 @@ async function init() {
     timeframe = btn.dataset.tf;
     tfButtons.forEach((b) => b.classList.toggle('active', b === btn));
     render(null);
-    fitAll();
+    focusCurrent();
   }));
 
   const axisButtons = [...document.querySelectorAll('#axis-group button')];
@@ -326,7 +337,7 @@ async function init() {
     relabelTf();
     blockAxis.hidden = axisMode !== 'blocks';
     render(null);
-    fitAll();
+    focusCurrent();
   }));
 
   $('scale-toggle').addEventListener('click', () => {
