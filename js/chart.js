@@ -76,8 +76,8 @@ export function createChartAndSeries(container, isBlocksMode) {
   const series = chart.addSeries(LWC.CandlestickSeries, seriesThemeOptions());
 
   // 狼波周期指数副图区（TradingView 风格的下方独立面板）：
-  // 实线 = 已发生，虚线 = 预测段；右轴显示百分比读数
-  const phaseFormat = { type: 'custom', formatter: (v) => `${Math.round(v)}%`, minMove: 1 };
+  // 实线 = 已发生，虚线 = 预测段；右轴显示 0~1 小数读数
+  const phaseFormat = { type: 'custom', formatter: (v) => v.toFixed(2), minMove: 0.01 };
   const phaseSolid = chart.addSeries(LWC.LineSeries, {
     ...phaseThemeOptions(),
     lineWidth: 1.5,

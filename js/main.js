@@ -169,7 +169,7 @@ async function init() {
       paneTitle = LWC.createTextWatermark(chart.panes()[1], {
         horzAlign: 'left',
         vertAlign: 'top',
-        lines: [{ text: '狼波周期指数 Wolfy Wave Index　0% = 熊底 · 100% = 牛顶', color: COLORS.phase, fontSize: 11 }],
+        lines: [{ text: '狼波周期指数 Wolfy Wave Index　0 = 熊底 · 1 = 牛顶', color: COLORS.phase, fontSize: 11 }],
       });
     } catch (e) {
       console.warn('水印创建失败（不影响功能）：', e);
@@ -204,7 +204,7 @@ async function init() {
     const solidData = [];
     const dashedData = [];
     for (const b of bars) {
-      const v = phaseAt(ann.phasePts, b.time) * 100;
+      const v = phaseAt(ann.phasePts, b.time);
       (b.time <= ann.meta.todayPos ? solidData : dashedData).push({ time: b.time, value: v });
     }
     if (solidData.length && dashedData.length) dashedData.unshift(solidData.at(-1));
