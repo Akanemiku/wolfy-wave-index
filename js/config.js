@@ -29,6 +29,11 @@ export const HALVING_HEIGHTS = [420000, 630000, 840000];
 
 // 区块模式：K 线分桶粒度（约等于 日/周/月）
 export const BLOCK_BUCKETS = { day: 144, week: 1008, month: 4368 };
+
+// 狼波周期指数（纯区块制）：周期 = 210,000 块（减半到减半），牛三熊一 →
+// 牛市 = 157,500 块且减半在正中间，即 减半 ± 78,750 块；熊市 = 其余 52,500 块。
+// 不参考现实时间与实际价格顶底，整条锯齿仅由减半区块网格推导
+export const WAVE_BULL_HALF = 78750;
 // 区块模式下时间轴向预测终点之后延伸的块数（右侧留白，约 45 天）
 export const EXTEND_MARGIN_BLOCKS = 6480;
 

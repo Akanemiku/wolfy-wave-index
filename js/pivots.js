@@ -132,17 +132,6 @@ export function buildAnnotations(pivots, candles, blocks = null) {
     }));
   });
 
-  // 狼波周期指数（Wolfy Wave Index）锚点：0 = 熊底，1 = 牛顶。历史锚点用
-  // 实际顶底（峰谷与真实高低点严格对齐），未来段到预测见底为止；
-  // 图左侧起点按平均牛市跨度从首个牛顶向前外推，覆盖整个可见范围。
-  // 折线本身由 main.js 采样成独立副图区的线序列
-  const bullSpans = [];
-  for (let i = 1; i + 1 < pts.length; i += 2) bullSpans.push(pts[i + 1].pos - pts[i].pos);
-  const meanBull = bullSpans.reduce((a, b) => a + b, 0) / bullSpans.length;
-  const phasePts = [{ pos: pts[0].pos - meanBull, value: 0 }];
-  for (const p of pts) phasePts.push({ pos: p.pos, value: p.type === 'top' ? 1 : 0 });
-  phasePts.push({ pos: predictedEnd, value: 0 });
-
   // 减半竖线：时间模式用准确日期，区块模式用准确高度常量
   const halvingPts = blocks ? HALVING_HEIGHTS : HALVINGS;
   for (const t of halvingPts) {
@@ -158,19 +147,6 @@ export function buildAnnotations(pivots, candles, blocks = null) {
     primitives,
     axisMarks,
     extendTo,
-    phasePts,
     meta: { topPos: lastTop.pos, todayPos, predictedEnd },
   };
-}
-
-// 狼波周期指数在任意坐标处的取值（锚点间线性插值，0~1）
-export function phaseAt(points, pos) {
-  if (pos <= points[0].pos) return points[0].value;
-  for (let i = 0; i + 1 < points.length; i++) {
-    if (pos <= points[i + 1].pos) {
-      const f = (pos - points[i].pos) / (points[i + 1].pos - points[i].pos);
-      return points[i].value + f * (points[i + 1].value - points[i].value);
-    }
-  }
-  return points.at(-1).value;
 }

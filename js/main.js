@@ -9,9 +9,9 @@ import {
 } from './data.js';
 import {
   loadHeightAnchors, fetchTipAnchor, heightAt, timeAtHeight,
-  aggregateByBlocks, extendBlocks,
+  aggregateByBlocks, extendBlocks, waveIndexAt,
 } from './blocks.js';
-import { computePivots, buildAnnotations, phaseAt } from './pivots.js';
+import { computePivots, buildAnnotations } from './pivots.js';
 import { setSeriesData, timeToLogical, logicalToX } from './primitives/base.js';
 
 const $ = (id) => document.getElementById(id);
@@ -199,12 +199,13 @@ async function init() {
     meta = ann.meta;
     series.setData(bars);
     setSeriesData(bars);
-    // 狼波周期指数：按当前 bars 采样进副图区（实线 = 已发生，虚线 = 预测段）。
-    // 采样点严格取自 bars 的时间键，不会向时间轴引入新的点位
+    // 狼波周期指数（纯区块制）：指数是高度的纯函数，时间视图先把日期换算成
+    // 高度再取值，两种视图读数一致。采样点严格取自 bars 的时间键，
+    // 不会向时间轴引入新的点位。实线 = 已发生，虚线 = 未来段
     const solidData = [];
     const dashedData = [];
     for (const b of bars) {
-      const v = phaseAt(ann.phasePts, b.time);
+      const v = waveIndexAt(axisMode === 'blocks' ? b.time : heightAt(b.time));
       (b.time <= ann.meta.todayPos ? solidData : dashedData).push({ time: b.time, value: v });
     }
     if (solidData.length && dashedData.length) dashedData.unshift(solidData.at(-1));

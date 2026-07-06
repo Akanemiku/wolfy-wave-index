@@ -1,7 +1,24 @@
-// 区块高度轴：日期 ↔ 高度插值映射、按块数分桶聚合、时间轴延伸。
+// 区块高度轴：日期 ↔ 高度插值映射、按块数分桶聚合、时间轴延伸、
+// 狼波周期指数（纯区块制）。
 // 锚点 = 每 2016 块一次的难度调整 (timestamp, height)，桶内区块产出近似均匀，
 // 分段线性插值的误差在宏观图上不可见（实测对照三次减半准确高度 ≤ 220 块）。
-import { DAY } from './config.js';
+import { DAY, WAVE_BULL_HALF } from './config.js';
+
+const HALVING_INTERVAL = 210000;
+
+// 狼波周期指数：高度的纯函数，0 = 熊底，1 = 牛顶。
+// 牛市 = 减半 ± WAVE_BULL_HALF（0→1 线性），熊市 = 其余区块（1→0 线性），
+// 按减半网格无限周期延拓，与现实时间和价格无关
+export function waveIndexAt(h) {
+  const k = Math.round(h / HALVING_INTERVAL);
+  const d = h - k * HALVING_INTERVAL; // 距最近减半的有符号偏移 ∈ [-105000, +105000)
+  if (Math.abs(d) <= WAVE_BULL_HALF) {
+    return (d + WAVE_BULL_HALF) / (2 * WAVE_BULL_HALF);
+  }
+  const bearLen = HALVING_INTERVAL - 2 * WAVE_BULL_HALF;
+  const into = d > 0 ? d - WAVE_BULL_HALF : d + HALVING_INTERVAL - WAVE_BULL_HALF;
+  return 1 - into / bearLen;
+}
 
 const timeoutSignal = (ms) => {
   const c = new AbortController();
