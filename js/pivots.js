@@ -10,6 +10,7 @@ import {
 import { CycleBox } from './primitives/cycle-box.js';
 import { VertLine } from './primitives/vert-line.js';
 import { SpanArrow } from './primitives/span-arrow.js';
+import { PhaseLine } from './primitives/phase-line.js';
 
 export function computePivots(candles) {
   const pivots = [];
@@ -131,6 +132,17 @@ export function buildAnnotations(pivots, candles, blocks = null) {
       color: isBull ? COLORS.arrowBull : COLORS.arrowBear,
     }));
   });
+
+  // 周期相位折线：0 = 熊底，1 = 牛顶。历史锚点用实际顶底（峰谷与真实
+  // 高低点严格对齐），未来段到预测见底为止；图左侧起点按平均牛市跨度
+  // 从首个牛顶向前外推，让折线覆盖整个可见范围
+  const bullSpans = [];
+  for (let i = 1; i + 1 < pts.length; i += 2) bullSpans.push(pts[i + 1].pos - pts[i].pos);
+  const meanBull = bullSpans.reduce((a, b) => a + b, 0) / bullSpans.length;
+  const phasePts = [{ pos: pts[0].pos - meanBull, value: 0 }];
+  for (const p of pts) phasePts.push({ pos: p.pos, value: p.type === 'top' ? 1 : 0 });
+  phasePts.push({ pos: predictedEnd, value: 0 });
+  primitives.push(new PhaseLine({ points: phasePts, splitAt: todayPos, color: COLORS.phase }));
 
   // 减半竖线：时间模式用准确日期，区块模式用准确高度常量
   const halvingPts = blocks ? HALVING_HEIGHTS : HALVINGS;

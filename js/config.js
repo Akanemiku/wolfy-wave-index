@@ -79,6 +79,8 @@ export const THEMES = {
     arrowBull: '#27bd9b',
     arrowBear: '#f7525f',
 
+    phase: '#eab04d', // 周期相位折线（0=熊底 → 1=牛顶）
+
     tagBg: 'rgba(14, 17, 23, 0.92)', // 标签胶囊统一底色
 
     watermark: 'rgba(228, 232, 240, 0.04)',
@@ -110,6 +112,8 @@ export const THEMES = {
 
     arrowBull: '#079076',
     arrowBear: '#e02a3a',
+
+    phase: '#c88a2d', // 周期相位折线（0=熊底 → 1=牛顶）
 
     tagBg: 'rgba(255, 255, 255, 0.94)', // 标签胶囊统一底色
 
