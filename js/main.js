@@ -164,7 +164,10 @@ async function init() {
       watermark = LWC.createTextWatermark(chart.panes()[0], {
         horzAlign: 'center',
         vertAlign: 'center',
-        lines: [{ text: '杀破狼 WolfyXBT', color: COLORS.watermark, fontSize: 44, fontStyle: 'bold' }],
+        lines: [
+          { text: '狼波周期指数', color: COLORS.watermark, fontSize: 44, fontStyle: 'bold' },
+          { text: 'Wolfy Wave Index', color: COLORS.watermark, fontSize: 18 },
+        ],
       });
       paneTitle?.detach();
       paneTitle = LWC.createTextWatermark(chart.panes()[1], {
