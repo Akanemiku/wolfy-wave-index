@@ -60,7 +60,8 @@ async function init() {
   let idxCache = null;
   let tipHeight = null;    // 当前链上高度（后台获取）
   let watermark = null;
-  let paneTitle = null;    // 副图区标题（狼波周期指数）
+  let paneTitle = null;    // 副图区标题（狼波周期指数，含跟随十字线的读数）
+  let waveNow = null;      // 当前（今日）狼波指数值，十字线移开时回落显示
 
   const LWC = window.LightweightCharts;
   const { chart, series, phaseSolid, phaseDashed } =
@@ -169,12 +170,27 @@ async function init() {
       paneTitle = LWC.createTextWatermark(chart.panes()[1], {
         horzAlign: 'left',
         vertAlign: 'top',
-        lines: [{ text: '狼波周期指数 Wolfy Wave Index　0 = 熊底 · 1 = 牛顶', color: COLORS.phase, fontSize: 11 }],
+        lines: [{ text: '狼波周期指数 Wolfy Wave Index', color: COLORS.phase, fontSize: 11 }],
       });
+      updateWaveTitle();
     } catch (e) {
       console.warn('水印创建失败（不影响功能）：', e);
       watermark = null;
     }
+  }
+
+  // 副图区标题行的实时读数：十字线指向的位置值，或当前值
+  function updateWaveTitle(v = waveNow) {
+    if (!paneTitle || v === null) return;
+    try {
+      paneTitle.applyOptions({
+        lines: [{
+          text: `狼波周期指数 Wolfy Wave Index　${v.toFixed(2)}　（0 = 熊底 · 1 = 牛顶）`,
+          color: COLORS.phase,
+          fontSize: 11,
+        }],
+      });
+    } catch { /* 面板重建瞬间可能失效，忽略 */ }
   }
 
   // ── 渲染管线 ──
@@ -215,6 +231,8 @@ async function init() {
     if (solidData.length && dashedData.length) dashedData.unshift(solidData.at(-1));
     phaseSolid.setData(solidData);
     phaseDashed.setData(dashedData);
+    waveNow = waveIndexAt(hNow);
+    updateWaveTitle();
     for (const p of attached) series.detachPrimitive(p);
     built = ann.primitives;
     attached = annotOn ? ann.primitives : [];
@@ -233,7 +251,7 @@ async function init() {
     }
     updateStats();
     updateLegend(null);
-    window.wolfy = { chart, series, pivots, candles: daily, bars, meta }; // 调试用
+    window.wolfy = { chart, series, phaseSolid, phaseDashed, pivots, candles: daily, bars, meta }; // 调试用
   }
 
   // ── 顶栏统计 ──
@@ -303,6 +321,11 @@ async function init() {
   chart.subscribeCrosshairMove((param) => {
     const d = param?.time !== undefined ? param.seriesData.get(series) : null;
     updateLegend(d && d.open !== undefined ? { ...d, time: param.time } : null);
+    // 狼波指数读数跟随十字线（未来虚线段也有值），移开时回落到当前值
+    const w = param?.time !== undefined
+      ? (param.seriesData.get(phaseSolid) ?? param.seriesData.get(phaseDashed))
+      : null;
+    updateWaveTitle(w ? w.value : waveNow);
   });
 
   // 默认视图聚焦当前周期：上一轮实际熊底 → 本轮预测见底
