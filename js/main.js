@@ -1,11 +1,11 @@
 // 入口编排：内置快照立即上屏 → 后台拉实时尾部 → 原地升级；
-// 页面 UI（时间/区块双横轴、周期/主题/坐标/标注开关、OHLC 读数、周期状态栏、
-// 顶部标签轴、区块模式的自绘底部刻度轴）
-import { DAY, BEAR_DAYS, BLOCK_BUCKETS, COLORS, setTheme } from './config.js';
+// 页面 UI（区块主轴 + 底部「高度/≈日期」双行刻度轴、分桶/主题/坐标/标注开关、
+// OHLC 读数、周期状态栏、顶部标签轴）
+import { DAY, BLOCK_BUCKETS, COLORS, setTheme } from './config.js';
 import { createChartAndSeries, applyChartTheme, setLogScale } from './chart.js';
 import {
   loadSnapshot, fetchBitstampLive, fetchCoinbaseFallback,
-  mergeCandles, fillGaps, aggregate, extendBars,
+  mergeCandles, fillGaps,
 } from './data.js';
 import {
   loadHeightAnchors, fetchTipAnchor, heightAt, timeAtHeight,
@@ -22,15 +22,16 @@ const fmtDMY = (t) => {
   const p = (n) => String(n).padStart(2, '0');
   return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}/${d.getUTCFullYear()}`;
 };
+// 粗刻度用的月份格式：MM/YYYY
+const fmtMY = (t) => {
+  const d = new Date(t * 1000);
+  return `${String(d.getUTCMonth() + 1).padStart(2, '0')}/${d.getUTCFullYear()}`;
+};
 const fmtPrice = (p) => (p >= 100 ? Math.round(p).toLocaleString('en-US') : p.toFixed(2));
 const fmtInt = (n) => Math.round(n).toLocaleString('en-US');
 const fmtPct = (v) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(2)}%`;
 
 const THEME_KEY = 'wolfy-theme';
-const TF_LABELS = {
-  time: { day: '日线', week: '周线', month: '月线' },
-  blocks: { day: '144 块', week: '1,008 块', month: '4,368 块' },
-};
 
 function showNotice(text) {
   $('notice-text').textContent = text;
@@ -44,20 +45,19 @@ async function init() {
   setTheme(themeName);
   document.documentElement.dataset.theme = themeName;
 
-  // ── 状态（先于建图声明：图表的刻度格式化闭包会引用 axisMode） ──
+  // ── 状态 ──
   let attached = [];       // 当前挂载的标注 primitive（主图）
   let built = [];          // 最近一次构建的标注 primitive（主图）
-  let attachedPhase = [];  // 当前挂载的副图标注（减半竖线的贯穿部分）
+  let attachedPhase = [];  // 当前挂载的副图标注（贯穿的色带与减半线）
   let builtPhase = [];     // 最近一次构建的副图标注
   let annotOn = true;
   let logOn = true;
-  let axisMode = 'time';   // 'time' | 'blocks'
-  let timeframe = 'day';   // 'day' | 'week' | 'month'
-  let daily = [];          // fillGaps 后的日线（标注/枢轴/统计的数据源）
+  let timeframe = 'day';   // 分桶粒度键：day=144块 week=1,008块 month=4,368块
+  let daily = [];          // fillGaps 后的日线（枢轴/统计的数据源）
   let dailyReal = [];      // 仅真实日线
-  let bars = [];           // 当前横轴模式与粒度下的 bars + whitespace（图表数据源）
+  let bars = [];           // 按块分桶的 bars + whitespace（图表数据源，time=桶起始高度）
   let pivots = [];
-  let meta = null;         // { topPos, todayPos, predictedEnd }（单位随模式）
+  let meta = null;         // { topPos, todayPos, predictedEnd }（单位：高度）
   let axisMarks = [];      // 顶部标签轴条目（含 DOM 元素）
   let idxCache = null;
   let tipHeight = null;    // 当前链上高度（后台获取）
@@ -66,14 +66,12 @@ async function init() {
   let waveNow = null;      // 当前（今日）狼波指数值，十字线移开时回落显示
 
   const LWC = window.LightweightCharts;
-  const { chart, series, phaseSolid, phaseDashed } =
-    createChartAndSeries($('chart'), () => axisMode === 'blocks');
+  const { chart, series, phaseSolid, phaseDashed } = createChartAndSeries($('chart'));
 
   // ── 顶部标签轴 ──
   const topAxis = $('top-axis');
 
-  // 绘图区宽度。不能用 timeScale().width()：它量的是底部时间轴 UI 的宽度，
-  // 区块模式下时间轴隐藏时返回 0
+  // 绘图区宽度。不能用 timeScale().width()：内置时间轴已隐藏，它返回 0
   function paneWidth() {
     try {
       return chart.paneSize().width;
@@ -112,8 +110,9 @@ async function init() {
     positionAxisMarks();
   }
 
-  // ── 区块模式的底部刻度轴（自绘；内置时间轴在区块模式下隐藏） ──
+  // ── 底部区块刻度轴（主行：高度；副行：对应≈日期） ──
   const blockAxis = $('block-axis');
+  const bxCursor = $('bx-cursor');
   const TICK_STEPS = [1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000];
 
   // 逻辑坐标 → 高度（bars 反查 + 桶内插值），用于计算可见高度范围
@@ -126,7 +125,6 @@ async function init() {
   }
 
   function renderBlockAxis() {
-    if (axisMode !== 'blocks') return;
     const range = chart.timeScale().getVisibleLogicalRange();
     const width = paneWidth();
     if (!range || !width) return;
@@ -134,21 +132,42 @@ async function init() {
     const hTo = heightAtLogical(range.to);
     if (hFrom === null || hTo === null || hTo <= hFrom) return;
     const pxPerBlock = width / (hTo - hFrom);
-    const step = TICK_STEPS.find((s) => s * pxPerBlock >= 90) ?? TICK_STEPS.at(-1);
-    blockAxis.style.height = `${chart.timeScale().height()}px`;
-    blockAxis.textContent = '';
+    const step = TICK_STEPS.find((s) => s * pxPerBlock >= 96) ?? TICK_STEPS.at(-1);
+    const fmtTickDate = step >= 20000 ? fmtMY : fmtDMY; // 粗刻度只标到月
+    for (const el of [...blockAxis.querySelectorAll('.bx-label, .bx-date, .bx-tick')]) el.remove();
     for (let h = Math.ceil(hFrom / step) * step; h <= hTo; h += step) {
       const x = logicalToX(chart, timeToLogical(h));
       if (x === null || x < 0 || x > width) continue;
-      const el = document.createElement('span');
-      el.className = 'bx-label';
-      el.textContent = fmtInt(h);
-      el.style.left = `${x}px`;
       const tick = document.createElement('i');
       tick.className = 'bx-tick';
       tick.style.left = `${x}px`;
-      blockAxis.append(el, tick);
+      const label = document.createElement('span');
+      label.className = 'bx-label';
+      label.textContent = fmtInt(h);
+      label.style.left = `${x}px`;
+      const date = document.createElement('span');
+      date.className = 'bx-date';
+      date.textContent = `≈${fmtTickDate(timeAtHeight(h))}`;
+      date.style.left = `${x}px`;
+      blockAxis.append(tick, label, date);
     }
+  }
+
+  // 十字线在底轴上的浮标：高度 · ≈日期
+  function updateAxisCursor(h) {
+    if (h === null) {
+      bxCursor.hidden = true;
+      return;
+    }
+    const x = logicalToX(chart, timeToLogical(h));
+    const width = paneWidth();
+    if (x === null || x < 0 || x > width) {
+      bxCursor.hidden = true;
+      return;
+    }
+    bxCursor.textContent = `${fmtInt(h)} · ≈${fmtDMY(timeAtHeight(h))}`;
+    bxCursor.style.left = `${x}px`;
+    bxCursor.hidden = false;
   }
 
   chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
@@ -199,8 +218,8 @@ async function init() {
   }
 
   // ── 渲染管线 ──
-  // newRawDaily 为 null 时复用现有日线（模式/周期/主题切换）；
-  // 枢轴与标注永远基于日线计算，图表数据按当前横轴模式与粒度聚合
+  // newRawDaily 为 null 时复用现有日线（分桶/主题切换）；
+  // 枢轴基于日线计算，图表数据按当前粒度分桶（time = 桶起始高度）
   function render(newRawDaily, { fit = false } = {}) {
     if (newRawDaily) {
       daily = fillGaps(newRawDaily);
@@ -211,26 +230,18 @@ async function init() {
     //（未来的减半区块与狼波周期都是可直接推算的）
     const hNow = tipHeight ?? heightAt(dailyReal.at(-1).time + DAY);
     const horizonH = waveHorizonHeight(hNow);
-    let ann;
-    if (axisMode === 'blocks') {
-      const bucket = BLOCK_BUCKETS[timeframe];
-      const blockCtx = { heightAt, today: hNow };
-      ann = buildAnnotations(pivots, daily, blockCtx, horizonH);
-      bars = extendBlocks(aggregateByBlocks(daily, bucket), ann.extendTo, bucket);
-    } else {
-      ann = buildAnnotations(pivots, daily, null, timeAtHeight(horizonH));
-      bars = extendBars(aggregate(daily, timeframe), ann.extendTo, timeframe);
-    }
+    const bucket = BLOCK_BUCKETS[timeframe];
+    const ann = buildAnnotations(pivots, daily, hNow, horizonH);
+    bars = extendBlocks(aggregateByBlocks(daily, bucket), ann.extendTo, bucket);
     meta = ann.meta;
     series.setData(bars);
     setSeriesData(bars);
-    // 狼波周期指数（纯区块制）：指数是高度的纯函数，时间视图先把日期换算成
-    // 高度再取值，两种视图读数一致。采样点严格取自 bars 的时间键，
-    // 不会向时间轴引入新的点位。实线 = 已发生，虚线 = 未来段
+    // 狼波周期指数：高度的纯函数，按 bars 的桶起始高度采样。
+    // 实线 = 已发生，虚线 = 未来段
     const solidData = [];
     const dashedData = [];
     for (const b of bars) {
-      const v = waveIndexAt(axisMode === 'blocks' ? b.time : heightAt(b.time));
+      const v = waveIndexAt(b.time);
       (b.time <= ann.meta.todayPos ? solidData : dashedData).push({ time: b.time, value: v });
     }
     if (solidData.length && dashedData.length) dashedData.unshift(solidData.at(-1));
@@ -278,26 +289,15 @@ async function init() {
     }
     if (!meta) return;
 
-    if (axisMode === 'blocks') {
-      const elapsed = meta.todayPos - meta.topPos;
-      const total = meta.predictedEnd - meta.topPos;
-      const remain = meta.predictedEnd - meta.todayPos;
-      $('stat-cycle').innerHTML = elapsed >= 0
-        ? `熊市 第 <b>${fmtInt(elapsed)}</b> / ${fmtInt(total)} 块`
-        : '—';
-      $('stat-bottom').innerHTML = remain >= 0
-        ? `距预测见底 <b>${fmtInt(remain)}</b> 块（高度 ${fmtInt(meta.predictedEnd)}）`
-        : `已超过预测见底高度 <b>${fmtInt(-remain)}</b> 块`;
-    } else {
-      const bearDay = Math.round((meta.todayPos - meta.topPos) / DAY);
-      const remain = BEAR_DAYS - bearDay;
-      $('stat-cycle').innerHTML = bearDay >= 0
-        ? `熊市 第 <b>${bearDay}</b> / ${BEAR_DAYS} 天`
-        : '—';
-      $('stat-bottom').innerHTML = remain >= 0
-        ? `距预测见底 <b>${remain}</b> 天（${fmtDMY(meta.predictedEnd)}）`
-        : `已超过预测见底日 <b>${-remain}</b> 天`;
-    }
+    const elapsed = meta.todayPos - meta.topPos;
+    const total = meta.predictedEnd - meta.topPos;
+    const remain = meta.predictedEnd - meta.todayPos;
+    $('stat-cycle').innerHTML = elapsed >= 0
+      ? `熊市 第 <b>${fmtInt(elapsed)}</b> / ${fmtInt(total)} 块`
+      : '—';
+    $('stat-bottom').innerHTML = remain >= 0
+      ? `距预测见底 <b>${fmtInt(remain)}</b> 块（高度 ${fmtInt(meta.predictedEnd)}）`
+      : `已超过预测见底高度 <b>${fmtInt(-remain)}</b> 块`;
   }
 
   // ── 十字线 OHLC 读数（基于当前 bars） ──
@@ -317,11 +317,8 @@ async function init() {
     const prevClose = i !== undefined ? prevRealClose(i) : null;
     const chg = prevClose ? (c.close - prevClose) / prevClose : null;
     const dir = chg !== null && chg < 0 ? 'down' : 'up';
-    const head = axisMode === 'blocks'
-      ? `区块 ${fmtInt(c.time)}　≈${fmtDMY(timeAtHeight(c.time))}`
-      : fmtDMY(c.time);
     $('legend').innerHTML =
-      `${head}　`
+      `区块 ${fmtInt(c.time)}　≈${fmtDMY(timeAtHeight(c.time))}　`
       + `开 <b>${fmtPrice(c.open)}</b>　高 <b>${fmtPrice(c.high)}</b>　`
       + `低 <b>${fmtPrice(c.low)}</b>　收 <b>${fmtPrice(c.close)}</b>`
       + (chg !== null ? `　<span class="${dir}">${fmtPct(chg)}</span>` : '');
@@ -335,6 +332,8 @@ async function init() {
       ? (param.seriesData.get(phaseSolid) ?? param.seriesData.get(phaseDashed))
       : null;
     updateWaveTitle(w ? w.value : waveNow);
+    // 底轴浮标：十字线位置的高度与≈日期
+    updateAxisCursor(param?.time !== undefined ? param.time : null);
   });
 
   // 默认视图聚焦当前周期：上一轮实际熊底 → 本轮预测见底
@@ -342,32 +341,18 @@ async function init() {
   function focusCurrent() {
     const lastBottom = [...pivots].reverse().find((p) => p.type === 'bottom');
     if (!lastBottom || !meta) return;
-    const fromPos = axisMode === 'blocks' ? heightAt(lastBottom.time) : lastBottom.time;
     chart.timeScale().setVisibleLogicalRange({
-      from: timeToLogical(fromPos) - 15,
+      from: timeToLogical(heightAt(lastBottom.time)) - 15,
       to: timeToLogical(meta.predictedEnd) + 20,
     });
   }
 
   // ── 工具栏 ──
   const tfButtons = [...document.querySelectorAll('#tf-group button')];
-  const relabelTf = () => tfButtons.forEach((b) => { b.textContent = TF_LABELS[axisMode][b.dataset.tf]; });
-
   tfButtons.forEach((btn) => btn.addEventListener('click', () => {
     if (btn.dataset.tf === timeframe) return;
     timeframe = btn.dataset.tf;
     tfButtons.forEach((b) => b.classList.toggle('active', b === btn));
-    render(null);
-    focusCurrent();
-  }));
-
-  const axisButtons = [...document.querySelectorAll('#axis-group button')];
-  axisButtons.forEach((btn) => btn.addEventListener('click', () => {
-    if (btn.dataset.axis === axisMode) return;
-    axisMode = btn.dataset.axis;
-    axisButtons.forEach((b) => b.classList.toggle('active', b === btn));
-    relabelTf();
-    blockAxis.hidden = axisMode !== 'blocks';
     render(null);
     focusCurrent();
   }));

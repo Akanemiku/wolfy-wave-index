@@ -22,12 +22,10 @@ export const PIVOT_WINDOWS = [
   { type: 'top',    to: Infinity },                               // 进行中周期的历史最高 ≈2025-10-06
 ];
 
-// 减半日（准确日期，画竖线，徽标统一置顶）
-export const HALVINGS = [D('2016-07-09'), D('2020-05-11'), D('2024-04-20')];
-// 减半的准确区块高度（区块模式下直接用常量，无需插值）
+// 减半的准确区块高度（协议常量，横轴锚点）
 export const HALVING_HEIGHTS = [420000, 630000, 840000];
 
-// 区块模式：K 线分桶粒度（约等于 日/周/月）
+// K 线分桶粒度（块，约等于 日/周/月）
 export const BLOCK_BUCKETS = { day: 144, week: 1008, month: 4368 };
 
 // 减半周期：每 210,000 块一次
@@ -37,19 +35,8 @@ export const HALVING_INTERVAL = 210000;
 // 牛市 = 157,500 块且减半在正中间，即 减半 ± 78,750 块；熊市 = 其余 52,500 块。
 // 不参考现实时间与实际价格顶底，整条锯齿仅由减半区块网格推导
 export const WAVE_BULL_HALF = 78750;
-// 区块模式下时间轴向预测终点之后延伸的块数（右侧留白，约 45 天）
+// 横轴向预测终点之后延伸的块数（右侧留白，约 45 天）
 export const EXTEND_MARGIN_BLOCKS = 6480;
-
-// 周期规律：熊市 364 天，用于推算进行中熊市的预测见底日
-export const BEAR_DAYS = 364;
-
-// 时间轴在预测见底日之后再延伸的天数（右侧留白）
-export const EXTEND_MARGIN_DAYS = 45;
-
-// 箭头标签：'fixed' 用原图数字；'computed' 显示按实际枢轴算出的天数
-export const ARROW_LABEL_MODE = 'fixed';
-// 与周期段顺序一一对应：熊1、牛1、熊2、牛2、熊3、牛3、熊4(预测)
-export const FIXED_ARROW_LABELS = ['413 天', '1064 天', '364 天', '1064 天', '364 天', '1064 天', '364 天'];
 
 // 箭头相对框体的位置（对数坐标下用乘法偏移，视觉间距才恒定）
 export const ARROW_BEAR_FACTOR = 1.25; // 熊市箭头 = 框顶价 × 1.25（悬于框上方）

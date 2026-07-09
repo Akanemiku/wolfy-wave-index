@@ -1,16 +1,11 @@
-// 图表创建与主题（对数坐标、中文、全范围可缩放、狼波指数副图区）
+// 图表创建与主题（对数坐标、中文、全范围可缩放、狼波指数副图区）。
+// 横轴以区块高度为主：内置时间轴隐藏，底部刻度（高度 + ≈日期）由
+// main.js 的自绘轴条负责。
 import { COLORS, FONT } from './config.js';
 
 const priceFormatter = (p) => (p >= 100
   ? Math.round(p).toLocaleString('en-US')
   : p.toFixed(2));
-
-const fmtInt = (n) => Math.round(n).toLocaleString('en-US');
-const fmtDMY = (t) => {
-  const d = new Date(t * 1000);
-  const p = (n) => String(n).padStart(2, '0');
-  return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}/${d.getUTCFullYear()}`;
-};
 
 function themeOptions() {
   return {
@@ -27,7 +22,6 @@ function themeOptions() {
       horzLines: { color: COLORS.grid },
     },
     rightPriceScale: { borderColor: COLORS.scaleBorder },
-    timeScale: { borderColor: COLORS.scaleBorder },
   };
 }
 
@@ -39,7 +33,7 @@ function seriesThemeOptions() {
     wickDownColor: COLORS.down,
     borderVisible: false,
     // 价格格式挂在系列上而非 localization.priceFormatter：
-    // 后者是全图表生效，会把副图区 0~100 的指数读数也格式化成价格
+    // 后者是全图表生效，会把副图区 0~1 的指数读数也格式化成价格
     priceFormat: { type: 'custom', formatter: priceFormatter, minMove: 0.01 },
   };
 }
@@ -48,9 +42,7 @@ function phaseThemeOptions() {
   return { color: COLORS.phase };
 }
 
-// isBlocksMode: () => boolean。时间轴始终可见；区块模式下内置刻度文字置空
-// （由 main.js 的自绘区块刻度轴覆盖在同一区域），十字线底部读数显示区块高度。
-export function createChartAndSeries(container, isBlocksMode) {
+export function createChartAndSeries(container) {
   const LWC = window.LightweightCharts;
 
   const chart = LWC.createChart(container, {
@@ -62,15 +54,11 @@ export function createChartAndSeries(container, isBlocksMode) {
       scaleMargins: { top: 0.06, bottom: 0.04 },
     },
     timeScale: {
-      borderColor: COLORS.scaleBorder,
+      visible: false, // 底部刻度轴由自绘的区块轴条接管
       // 默认 minBarSpacing 0.5 会让 ~5300 根 K 线无法一屏放下，必须调小
       minBarSpacing: 0.05,
-      tickMarkFormatter: () => (isBlocksMode() ? '' : null),
     },
-    localization: {
-      locale: 'zh-CN',
-      timeFormatter: (t) => (isBlocksMode() ? `区块 ${fmtInt(t)}` : fmtDMY(t)),
-    },
+    localization: { locale: 'zh-CN' },
   });
 
   const series = chart.addSeries(LWC.CandlestickSeries, seriesThemeOptions());

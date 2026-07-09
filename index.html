@@ -24,14 +24,10 @@
 
   <div class="toolbar">
     <div class="toolbar-group">
-      <div class="seg" id="axis-group">
-        <button data-axis="time" class="active">时间</button>
-        <button data-axis="blocks">区块</button>
-      </div>
       <div class="seg" id="tf-group">
-        <button data-tf="day" class="active">日线</button>
-        <button data-tf="week">周线</button>
-        <button data-tf="month">月线</button>
+        <button data-tf="day" class="active">144 块</button>
+        <button data-tf="week">1,008 块</button>
+        <button data-tf="month">4,368 块</button>
       </div>
     </div>
     <div class="toolbar-group">
@@ -48,7 +44,6 @@
   <main class="chart-wrap">
     <div id="chart"></div>
     <div id="legend" class="legend"></div>
-    <div id="block-axis" class="block-axis" hidden></div>
 
     <div id="notice" class="notice" hidden>
       <span id="notice-text"></span>
@@ -60,6 +55,10 @@
       <div id="loading-text">加载行情数据中…</div>
     </div>
   </main>
+
+  <div id="block-axis" class="block-axis">
+    <div id="bx-cursor" class="bx-cursor" hidden></div>
+  </div>
 
   <footer class="foot">
     <span>数据来源：Bitstamp / Coinbase Exchange</span>

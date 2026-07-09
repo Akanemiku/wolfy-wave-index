@@ -215,27 +215,33 @@ body {
   opacity: 0.7;
 }
 
-/* ── 区块模式的底部刻度轴 ──
-   透明覆盖在内置时间轴区域上（内置刻度文字在区块模式下置空），
-   十字线的底部读数从下层透出；不拦截指针事件，保留轴区拖拽缩放 */
+/* ── 底部区块刻度轴（主轴：区块高度，副行：对应≈日期） ── */
 .block-axis {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 28px;
-  background: transparent;
+  position: relative;
+  height: 40px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
   overflow: hidden;
-  z-index: 5;
-  pointer-events: none;
+  flex: none;
 }
 
 .bx-label {
   position: absolute;
-  top: 55%;
-  transform: translate(-50%, -50%);
+  top: 6px;
+  transform: translateX(-50%);
   font-size: 11px;
   color: var(--sub);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.bx-date {
+  position: absolute;
+  top: 22px;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--faint);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   user-select: none;
@@ -245,9 +251,26 @@ body {
   position: absolute;
   top: 0;
   width: 1px;
-  height: 5px;
+  height: 4px;
   background: var(--sub);
   opacity: 0.55;
+}
+
+/* 十字线在轴上的浮标：高度 · 日期 */
+.bx-cursor {
+  position: absolute;
+  top: 7px;
+  transform: translateX(-50%);
+  padding: 3px 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 10.5px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  z-index: 2;
+  pointer-events: none;
 }
 
 /* ── 图表区 ── */
