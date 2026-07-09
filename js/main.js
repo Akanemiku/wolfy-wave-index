@@ -371,21 +371,23 @@ async function init() {
     tfButtons.forEach((b) => { b.textContent = t(TF_KEYS[b.dataset.tf]); });
     $('scale-toggle').textContent = logOn ? t('log') : t('linear');
     $('annot-toggle').textContent = t('marks');
-    $('theme-toggle').textContent = t('theme');
-    $('lang-toggle').textContent = t('langBtn');
+    document.querySelectorAll('.lang-opt').forEach((b) => {
+      b.classList.toggle('active', b.dataset.lang === I18N.lang);
+    });
     $('foot-data').textContent = t('footData');
     $('foot-theory').textContent = t('footTheory');
     $('foot-disclaimer').textContent = t('footDisclaimer');
   }
   applyStaticLang();
 
-  $('lang-toggle').addEventListener('click', () => {
-    setLang(I18N.lang === 'zh' ? 'en' : 'zh');
+  document.querySelectorAll('.lang-opt').forEach((btn) => btn.addEventListener('click', () => {
+    if (btn.dataset.lang === I18N.lang) return;
+    setLang(btn.dataset.lang);
     localStorage.setItem(LANG_KEY, I18N.lang);
     applyStaticLang();
     makeWatermark();
     render(null); // 重建标注/标签轴/读数以套用新语言（保留当前缩放）
-  });
+  }));
 
   $('scale-toggle').addEventListener('click', () => {
     logOn = !logOn;

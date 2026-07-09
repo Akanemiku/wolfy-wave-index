@@ -77,6 +77,67 @@ body {
   min-width: 0;
 }
 
+/* ── 右上角：语言双选滑块 + 主题图标按钮 ── */
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.lang-switch {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.lang-opt {
+  border: none;
+  background: none;
+  color: var(--sub);
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 3px 9px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.lang-opt:hover {
+  color: var(--text);
+}
+
+.lang-opt.active {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 28px;
+  padding: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--sub);
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  color: var(--text);
+  background: var(--hover);
+}
+
+/* 主题按钮显示当前状态：深色 = 月亮，浅色 = 太阳 */
+:root[data-theme="dark"] .icon-sun { display: none; }
+:root[data-theme="light"] .icon-moon { display: none; }
+
 .stats {
   display: flex;
   align-items: center;
