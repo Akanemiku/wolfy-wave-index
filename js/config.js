@@ -38,10 +38,6 @@ export const WAVE_BULL_HALF = 78750;
 // 横轴向预测终点之后延伸的块数（右侧留白，约 45 天）
 export const EXTEND_MARGIN_BLOCKS = 6480;
 
-// 箭头相对框体的位置（对数坐标下用乘法偏移，视觉间距才恒定）
-export const ARROW_BEAR_FACTOR = 1.25; // 熊市箭头 = 框顶价 × 1.25（悬于框上方）
-export const ARROW_BULL_FACTOR = 0.78; // 牛市箭头 = 框底价 × 0.78（悬于框下方）
-
 export const FONT = '"Inter", -apple-system, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif';
 
 // 主题配色。K 线为绿涨红跌（国际惯例）；想改红涨绿跌，交换各主题的 up/down。
@@ -70,9 +66,6 @@ export const THEMES = {
 
     today: 'rgba(139, 147, 161, 0.65)',
     todayLabel: '#aeb5c0',
-
-    arrowBull: '#27bd9b',
-    arrowBear: '#f7525f',
 
     phase: '#eab04d', // 狼波周期指数折线（0=熊底 → 1=牛顶）
 
@@ -104,9 +97,6 @@ export const THEMES = {
 
     today: 'rgba(118, 125, 138, 0.70)',
     todayLabel: '#6a7180',
-
-    arrowBull: '#079076',
-    arrowBear: '#e02a3a',
 
     phase: '#c88a2d', // 狼波周期指数折线（0=熊底 → 1=牛顶）
 

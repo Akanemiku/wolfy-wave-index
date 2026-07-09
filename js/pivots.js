@@ -3,12 +3,11 @@
 // 横轴以区块高度为唯一坐标系：所有标注位置都是高度，日期仅作刻度辅助显示。
 import {
   PIVOT_WINDOWS, HALVING_HEIGHTS, HALVING_INTERVAL, WAVE_BULL_HALF,
-  EXTEND_MARGIN_BLOCKS, ARROW_BEAR_FACTOR, ARROW_BULL_FACTOR, COLORS,
+  EXTEND_MARGIN_BLOCKS, COLORS,
 } from './config.js';
 import { heightAt } from './blocks.js';
 import { CycleBox } from './primitives/cycle-box.js';
 import { VertLine } from './primitives/vert-line.js';
-import { SpanArrow } from './primitives/span-arrow.js';
 
 export function computePivots(candles) {
   const pivots = [];
@@ -33,8 +32,6 @@ export function computePivots(candles) {
   return pivots;
 }
 
-const fmtInt = (n) => Math.round(n).toLocaleString('en-US');
-
 // 由枢轴推出全部标注 primitive 与顶部标签轴的标记。
 // todayH：当前链上高度；horizon：未来视界高度（横轴至少延伸到此）。
 // 返回 { primitives, phasePrimitives, axisMarks, extendTo, meta }。
@@ -47,41 +44,14 @@ export function buildAnnotations(pivots, candles, todayH, horizon = null) {
   const pts = pivots.map((p) => ({ ...p, pos: heightAt(p.time) }));
   const todayPos = todayH;
 
-  // 周期段：相邻枢轴之间；顶→底 = 熊市，底→顶 = 牛市
-  const segments = [];
-  for (let i = 0; i < pts.length - 1; i++) {
-    segments.push({ from: pts[i], to: pts[i + 1], type: pts[i].type === 'top' ? 'bear' : 'bull' });
-  }
-
-  // 进行中的熊市（预测）：终点 = 牛顶高度 + 历史熊市块数均值
-  //（与原 364 天规律一致，排除不合规律的第一轮熊市）
+  // 进行中熊市的预测终点 = 牛顶高度 + 历史熊市块数均值
+  //（排除不合规律的第一轮熊市；供顶栏周期状态与右侧留白使用）
   const lastTop = pts.at(-1);
   if (lastTop.type !== 'top') throw new Error('PIVOT_WINDOWS 应以 top 结尾（进行中周期的牛顶）');
   const bearSpans = [];
   for (let i = 2; i + 1 < pts.length; i += 2) bearSpans.push(pts[i + 1].pos - pts[i].pos);
   const bearBlocks = Math.round(bearSpans.reduce((a, b) => a + b, 0) / bearSpans.length);
   const predictedEnd = lastTop.pos + bearBlocks;
-  segments.push({
-    from: lastTop,
-    to: { pos: predictedEnd, price: lastTop.price },
-    type: 'bear',
-    projected: true,
-  });
-
-  // 时长标尺（实际市场的度量层，端点为价格枢轴）：熊市悬于上方（红），
-  // 牛市悬于下方（绿），显示实际块数
-  segments.forEach((seg) => {
-    const priceLow = Math.min(seg.from.price, seg.to.price);
-    const priceHigh = Math.max(seg.from.price, seg.to.price);
-    const isBull = seg.type === 'bull';
-    primitives.push(new SpanArrow({
-      from: seg.from.pos,
-      to: seg.to.pos,
-      price: isBull ? priceLow * ARROW_BULL_FACTOR : priceHigh * ARROW_BEAR_FACTOR,
-      label: `${fmtInt(seg.to.pos - seg.from.pos)} 块`,
-      color: isBull ? COLORS.arrowBull : COLORS.arrowBear,
-    }));
-  });
 
   // 「今日」分隔线：实际数据与未来推演的分界
   primitives.push(new VertLine({ time: todayPos, color: COLORS.today, dashed: true }));
