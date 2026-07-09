@@ -12,6 +12,7 @@ import {
   aggregateByBlocks, extendBlocks, waveIndexAt, waveHorizonHeight,
 } from './blocks.js';
 import { computePivots, buildAnnotations } from './pivots.js';
+import { t, setLang, I18N } from './i18n.js';
 import { setSeriesData, timeToLogical, logicalToX } from './primitives/base.js';
 
 const $ = (id) => document.getElementById(id);
@@ -32,6 +33,7 @@ const fmtInt = (n) => Math.round(n).toLocaleString('en-US');
 const fmtPct = (v) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(2)}%`;
 
 const THEME_KEY = 'wolfy-theme';
+const LANG_KEY = 'wolfy-lang';
 
 function showNotice(text) {
   $('notice-text').textContent = text;
@@ -40,10 +42,12 @@ function showNotice(text) {
 $('notice-close').addEventListener('click', () => { $('notice').hidden = true; });
 
 async function init() {
-  // ── 主题初始化（在建图之前） ──
+  // ── 主题与语言初始化（在建图之前） ──
   let themeName = localStorage.getItem(THEME_KEY) || 'dark';
   setTheme(themeName);
   document.documentElement.dataset.theme = themeName;
+  setLang(localStorage.getItem(LANG_KEY) || 'zh');
+  $('loading-text').textContent = t('loading');
 
   // ── 状态 ──
   let attached = [];       // 当前挂载的标注 primitive（主图）
@@ -182,12 +186,13 @@ async function init() {
   function makeWatermark() {
     try {
       watermark?.detach();
+      const [big, small] = t('watermark');
       watermark = LWC.createTextWatermark(chart.panes()[0], {
         horzAlign: 'center',
         vertAlign: 'center',
         lines: [
-          { text: '狼波周期指数', color: COLORS.watermark, fontSize: 44, fontStyle: 'bold' },
-          { text: 'Wolfy Wave Index', color: COLORS.watermark, fontSize: 18 },
+          { text: big, color: COLORS.watermark, fontSize: 44, fontStyle: 'bold' },
+          ...(small ? [{ text: small, color: COLORS.watermark, fontSize: 18 }] : []),
         ],
       });
       paneTitle?.detach();
@@ -209,7 +214,7 @@ async function init() {
     try {
       paneTitle.applyOptions({
         lines: [{
-          text: `狼波周期指数 Wolfy Wave Index　${v.toFixed(2)}　（0 = 熊底 · 1 = 牛顶）`,
+          text: t('paneTitle', v.toFixed(2)),
           color: COLORS.phase,
           fontSize: 11,
         }],
@@ -293,11 +298,11 @@ async function init() {
     const total = meta.predictedEnd - meta.topPos;
     const remain = meta.predictedEnd - meta.todayPos;
     $('stat-cycle').innerHTML = elapsed >= 0
-      ? `熊市 第 <b>${fmtInt(elapsed)}</b> / ${fmtInt(total)} 块`
+      ? t('statCycle', fmtInt(elapsed), fmtInt(total))
       : '—';
     $('stat-bottom').innerHTML = remain >= 0
-      ? `距预测见底 <b>${fmtInt(remain)}</b> 块（高度 ${fmtInt(meta.predictedEnd)}）`
-      : `已超过预测见底高度 <b>${fmtInt(-remain)}</b> 块`;
+      ? t('statBottom', fmtInt(remain), fmtInt(meta.predictedEnd))
+      : t('statBottomOver', fmtInt(-remain));
   }
 
   // ── 十字线 OHLC 读数（基于当前 bars） ──
@@ -317,10 +322,11 @@ async function init() {
     const prevClose = i !== undefined ? prevRealClose(i) : null;
     const chg = prevClose ? (c.close - prevClose) / prevClose : null;
     const dir = chg !== null && chg < 0 ? 'down' : 'up';
+    const [o, h, l, cl] = t('legendOHLC');
     $('legend').innerHTML =
-      `区块 ${fmtInt(c.time)}　≈${fmtDMY(timeAtHeight(c.time))}　`
-      + `开 <b>${fmtPrice(c.open)}</b>　高 <b>${fmtPrice(c.high)}</b>　`
-      + `低 <b>${fmtPrice(c.low)}</b>　收 <b>${fmtPrice(c.close)}</b>`
+      `${t('legendHead', fmtInt(c.time), fmtDMY(timeAtHeight(c.time)))}　`
+      + `${o} <b>${fmtPrice(c.open)}</b>　${h} <b>${fmtPrice(c.high)}</b>　`
+      + `${l} <b>${fmtPrice(c.low)}</b>　${cl} <b>${fmtPrice(c.close)}</b>`
       + (chg !== null ? `　<span class="${dir}">${fmtPct(chg)}</span>` : '');
   }
 
@@ -357,10 +363,34 @@ async function init() {
     focusCurrent();
   }));
 
+  // ── 语言：刷新所有静态文案（图内标注由 render 重建时套用） ──
+  const TF_KEYS = { day: 'tfDay', week: 'tfWeek', month: 'tfMonth' };
+  function applyStaticLang() {
+    document.documentElement.lang = I18N.lang === 'zh' ? 'zh-CN' : 'en';
+    $('brand-name').textContent = t('brand');
+    tfButtons.forEach((b) => { b.textContent = t(TF_KEYS[b.dataset.tf]); });
+    $('scale-toggle').textContent = logOn ? t('log') : t('linear');
+    $('annot-toggle').textContent = t('marks');
+    $('theme-toggle').textContent = t('theme');
+    $('lang-toggle').textContent = t('langBtn');
+    $('foot-data').textContent = t('footData');
+    $('foot-theory').textContent = t('footTheory');
+    $('foot-disclaimer').textContent = t('footDisclaimer');
+  }
+  applyStaticLang();
+
+  $('lang-toggle').addEventListener('click', () => {
+    setLang(I18N.lang === 'zh' ? 'en' : 'zh');
+    localStorage.setItem(LANG_KEY, I18N.lang);
+    applyStaticLang();
+    makeWatermark();
+    render(null); // 重建标注/标签轴/读数以套用新语言（保留当前缩放）
+  });
+
   $('scale-toggle').addEventListener('click', () => {
     logOn = !logOn;
     setLogScale(chart, logOn);
-    $('scale-toggle').textContent = logOn ? '对数' : '线性';
+    $('scale-toggle').textContent = logOn ? t('log') : t('linear');
     $('scale-toggle').classList.toggle('active', logOn);
   });
 
@@ -397,7 +427,7 @@ async function init() {
     [snapshot] = await Promise.all([loadSnapshot(), loadHeightAnchors()]);
   } catch (e) {
     console.error(e);
-    $('loading-text').textContent = `历史数据加载失败：${e.message}`;
+    $('loading-text').textContent = t('loadFailData', e.message);
     return;
   }
   render(snapshot, { fit: true });
@@ -428,12 +458,12 @@ async function init() {
   } else {
     if (liveRes.status === 'rejected') console.warn('Coinbase 备用源也失败：', liveRes.reason);
     render(null); // 至少套用 tipHeight
-    showNotice(`实时数据加载失败，当前显示截至 ${fmtDMY(sinceTs)} 的历史数据。`);
+    showNotice(t('noticeStale', fmtDMY(sinceTs)));
   }
   console.table(pivots.map((p) => ({ 类型: p.type === 'top' ? '牛顶' : '熊底', 日期: fmtDate(p.time), 价格: p.price, 高度: heightAt(p.time) })));
 }
 
 init().catch((e) => {
   console.error(e);
-  $('loading-text').textContent = `页面初始化失败：${e.message}`;
+  $('loading-text').textContent = t('loadFailInit', e.message);
 });

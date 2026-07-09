@@ -9,16 +9,21 @@
 <body>
   <header class="topbar">
     <div class="brand">
-      <div class="brand-name">狼波周期指数 <span>Wolfy Wave Index</span></div>
-      <div class="brand-sub">BTC/USD</div>
+      <div class="brand-name" id="brand-name">狼波周期指数</div>
     </div>
-    <div class="stats">
-      <div class="price-block">
-        <span id="stat-price" class="price">—</span>
-        <span id="stat-chg" class="chg">—</span>
+    <div class="topbar-right">
+      <div class="stats">
+        <div class="price-block">
+          <span id="stat-price" class="price">—</span>
+          <span id="stat-chg" class="chg">—</span>
+        </div>
+        <div class="chip" id="stat-cycle">—</div>
+        <div class="chip" id="stat-bottom">—</div>
       </div>
-      <div class="chip" id="stat-cycle">—</div>
-      <div class="chip" id="stat-bottom">—</div>
+      <div class="seg">
+        <button id="lang-toggle" title="中/EN">EN</button>
+        <button id="theme-toggle" title="深色/浅色主题切换">主题</button>
+      </div>
     </div>
   </header>
 
@@ -34,7 +39,6 @@
       <div class="seg">
         <button id="scale-toggle" class="active" title="对数/线性坐标切换">对数</button>
         <button id="annot-toggle" class="active" title="显示/隐藏周期标注">标注</button>
-        <button id="theme-toggle" title="深色/浅色主题切换">主题</button>
       </div>
     </div>
   </div>
@@ -61,11 +65,11 @@
   </div>
 
   <footer class="foot">
-    <span>数据来源：Bitstamp / Coinbase Exchange</span>
+    <span id="foot-data">数据来源：Bitstamp / Coinbase Exchange</span>
     <span class="foot-sep">·</span>
-    <span>牛市 1064 天 / 熊市 364 天，减半在牛市中点</span>
+    <span id="foot-theory">牛市 157,500 块 / 熊市 52,500 块，减半在牛市正中</span>
     <span class="foot-sep">·</span>
-    <span>周期理论仅供参考，不构成投资建议</span>
+    <span id="foot-disclaimer">周期理论仅供参考，不构成投资建议</span>
   </footer>
 
   <script>

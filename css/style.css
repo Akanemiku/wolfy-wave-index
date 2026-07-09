@@ -70,16 +70,11 @@ body {
   white-space: nowrap;
 }
 
-.brand-name span {
-  color: var(--accent);
-}
-
-.brand-sub {
-  font-size: 11px;
-  color: var(--sub);
-  margin-top: 2px;
-  letter-spacing: 0.3px;
-  white-space: nowrap;
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
 .stats {

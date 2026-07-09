@@ -6,6 +6,7 @@ import {
   EXTEND_MARGIN_BLOCKS, COLORS,
 } from './config.js';
 import { heightAt } from './blocks.js';
+import { t } from './i18n.js';
 import { CycleBox } from './primitives/cycle-box.js';
 import { VertLine } from './primitives/vert-line.js';
 
@@ -55,7 +56,7 @@ export function buildAnnotations(pivots, candles, todayH, horizon = null) {
 
   // 「今日」分隔线：实际数据与未来推演的分界
   primitives.push(new VertLine({ time: todayPos, color: COLORS.today, dashed: true }));
-  axisMarks.push({ time: todayPos, label: '今日', color: COLORS.todayLabel });
+  axisMarks.push({ time: todayPos, label: t('today'), color: COLORS.todayLabel });
 
   // 预测终点已过时仍保留右侧留白（以「今日」为准）；有未来视界时延伸到视界
   const extendTo = Math.max(
@@ -83,7 +84,7 @@ export function buildAnnotations(pivots, candles, todayH, horizon = null) {
       labelPos: isBull ? 'top' : 'bottom',
       fullHeight: true,
     };
-    const label = isBull ? '牛市' : '熊市';
+    const label = isBull ? t('bull') : t('bear');
     const fill = isBull ? COLORS.bandFillBull : COLORS.bandFillBear;
     const fillProjected = isBull ? COLORS.bandFillBullProjected : COLORS.bandFillBearProjected;
     // 主图带标签；副图（狼波指数面板）画同位置的无标签副本，视觉贯穿两个面板
@@ -94,10 +95,10 @@ export function buildAnnotations(pivots, candles, todayH, horizon = null) {
     if (to <= todayPos) {
       addBand(from, to, fill, label);
     } else if (from >= todayPos) {
-      addBand(from, to, fillProjected, `${label}（预测）`, true);
+      addBand(from, to, fillProjected, t('proj', label), true);
     } else {
       addBand(from, todayPos, fill, label);
-      addBand(todayPos, to, fillProjected, `${label}（预测）`, true);
+      addBand(todayPos, to, fillProjected, t('proj', label), true);
     }
   }
 
@@ -108,7 +109,7 @@ export function buildAnnotations(pivots, candles, todayH, horizon = null) {
     if (hgt > extendTo) break;
     primitives.push(new VertLine({ time: hgt, color: COLORS.halving }));
     phasePrimitives.push(new VertLine({ time: hgt, color: COLORS.halving }));
-    axisMarks.push({ time: hgt, label: '减半日', color: COLORS.halvingLabel });
+    axisMarks.push({ time: hgt, label: t('halving'), color: COLORS.halvingLabel });
   }
 
   return {

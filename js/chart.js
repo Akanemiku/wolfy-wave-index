@@ -83,9 +83,10 @@ export function createChartAndSeries(container) {
   }, 1);
   // 副图的价格轴必须显式设为线性：chart 级 rightPriceScale 的对数模式
   // 会套到所有面板，0 值在对数轴上会导致折线被削顶
+  // 指数恒在 0~1，上下只留极少留白，避免浪费副图空间
   phaseSolid.priceScale().applyOptions({
     mode: LWC.PriceScaleMode.Normal,
-    scaleMargins: { top: 0.2, bottom: 0.15 },
+    scaleMargins: { top: 0.06, bottom: 0.05 },
   });
 
   // 主图 : 副图 ≈ 4 : 1
