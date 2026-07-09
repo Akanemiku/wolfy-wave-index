@@ -139,13 +139,18 @@ export function buildAnnotations(pivots, candles, blocks = null, horizon = null)
     const label = isBull ? '牛市' : '熊市';
     const fill = isBull ? COLORS.bandFillBull : COLORS.bandFillBear;
     const fillProjected = isBull ? COLORS.bandFillBullProjected : COLORS.bandFillBearProjected;
+    // 主图带标签；副图（狼波指数面板）画同位置的无标签副本，视觉贯穿两个面板
+    const addBand = (bFrom, bTo, bFill, bLabel, dashed = false) => {
+      primitives.push(new CycleBox({ ...base, from: bFrom, to: bTo, fill: bFill, label: bLabel, dashed }));
+      phasePrimitives.push(new CycleBox({ ...base, from: bFrom, to: bTo, fill: bFill, dashed }));
+    };
     if (to <= todayPos) {
-      primitives.push(new CycleBox({ ...base, from, to, fill, label }));
+      addBand(from, to, fill, label);
     } else if (from >= todayPos) {
-      primitives.push(new CycleBox({ ...base, from, to, fill: fillProjected, label: `${label}（预测）`, dashed: true }));
+      addBand(from, to, fillProjected, `${label}（预测）`, true);
     } else {
-      primitives.push(new CycleBox({ ...base, from, to: todayPos, fill, label }));
-      primitives.push(new CycleBox({ ...base, from: todayPos, to, fill: fillProjected, label: `${label}（预测）`, dashed: true }));
+      addBand(from, todayPos, fill, label);
+      addBand(todayPos, to, fillProjected, `${label}（预测）`, true);
     }
   }
 
