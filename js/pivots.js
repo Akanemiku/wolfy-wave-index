@@ -3,11 +3,11 @@
 // buildAnnotations 支持两种横轴：时间（UTC 秒）与区块高度——传入 blocks 上下文
 // 时所有坐标以高度为单位，预测终点按历史熊市块数规律推算。
 import {
-  DAY, PIVOT_WINDOWS, HALVINGS, HALVING_HEIGHTS, HALVING_INTERVAL, BEAR_DAYS,
+  DAY, PIVOT_WINDOWS, HALVINGS, HALVING_HEIGHTS, HALVING_INTERVAL, WAVE_BULL_HALF, BEAR_DAYS,
   EXTEND_MARGIN_DAYS, EXTEND_MARGIN_BLOCKS,
   ARROW_LABEL_MODE, FIXED_ARROW_LABELS, ARROW_BEAR_FACTOR, ARROW_BULL_FACTOR, COLORS,
 } from './config.js';
-import { timeAtHeight } from './blocks.js';
+import { timeAtHeight, heightAt } from './blocks.js';
 import { CycleBox } from './primitives/cycle-box.js';
 import { VertLine } from './primitives/vert-line.js';
 import { SpanArrow } from './primitives/span-arrow.js';
@@ -79,44 +79,12 @@ export function buildAnnotations(pivots, candles, blocks = null, horizon = null)
     projected: true,
   });
 
+  // 时长标尺（实际市场的度量层，端点为价格枢轴）：熊市悬于上方（红），
+  // 牛市悬于下方（绿）。时间模式显示天数（默认原图数字）；区块模式显示块数
   segments.forEach((seg, i) => {
     const priceLow = Math.min(seg.from.price, seg.to.price);
     const priceHigh = Math.max(seg.from.price, seg.to.price);
     const isBull = seg.type === 'bull';
-    const fill = isBull ? COLORS.bullFill : COLORS.bearFill;
-    const borderColor = isBull ? COLORS.bullBorder : COLORS.bearBorder;
-    const labelColor = isBull ? COLORS.bullLabel : COLORS.bearLabel;
-    const label = isBull ? '牛市' : '熊市';
-    const labelPos = isBull ? 'top' : 'bottom';
-
-    if (seg.projected) {
-      // 在「今日」处拆成 实线段 + 虚线预测段。边界情况自然退化为只画一段：
-      // 今日即牛顶（当日创周期新高）→ 全部为预测段；预测期已走完 → 全部为实线段
-      const splitAt = Math.min(Math.max(todayPos, seg.from.pos), seg.to.pos);
-      if (splitAt > seg.from.pos) {
-        primitives.push(new CycleBox({
-          from: seg.from.pos, to: splitAt, fill: COLORS.bandFill,
-          borderColor, label, labelColor, labelPos,
-          fullHeight: true,
-        }));
-      }
-      if (seg.to.pos > splitAt) {
-        primitives.push(new CycleBox({
-          from: splitAt, to: seg.to.pos, fill: COLORS.bandFillProjected,
-          borderColor, label: '熊市（预测）', labelColor, labelPos: 'top', dashed: true,
-          fullHeight: true,
-        }));
-      }
-      primitives.push(new VertLine({ time: todayPos, color: COLORS.today, dashed: true }));
-      axisMarks.push({ time: todayPos, label: '今日', color: COLORS.todayLabel });
-    } else {
-      primitives.push(new CycleBox({
-        from: seg.from.pos, to: seg.to.pos, priceLow, priceHigh, fill, borderColor, label, labelColor, labelPos,
-      }));
-    }
-
-    // 时长标尺：熊市悬于区间上方（红），牛市悬于区间下方（绿）。
-    // 时间模式显示天数（默认原图数字）；区块模式显示块数
     let arrowLabel;
     if (blocks) {
       arrowLabel = `${fmtInt(seg.to.pos - seg.from.pos)} 块`;
@@ -135,12 +103,50 @@ export function buildAnnotations(pivots, candles, blocks = null, horizon = null)
     }));
   });
 
+  // 「今日」分隔线：实际数据与未来推演的分界
+  primitives.push(new VertLine({ time: todayPos, color: COLORS.today, dashed: true }));
+  axisMarks.push({ time: todayPos, label: '今日', color: COLORS.todayLabel });
+
   // 预测终点已过时仍保留右侧留白（以「今日」为准）；有未来视界时延伸到视界
   const extendTo = Math.max(
     horizon ?? 0,
     Math.max(predictedEnd, todayPos)
       + (blocks ? EXTEND_MARGIN_BLOCKS : EXTEND_MARGIN_DAYS * DAY),
   );
+
+  // 牛熊区间：由狼波周期指数（纯区块制）推导——牛市 = 减半 ± 78,750 块
+  //（指数上行段），其余为熊市（下行段）；铺满全轴含未来推演，
+  // 「今日」之后的部分用浅色 + 虚线边 +（预测）标注
+  const startPos = blocks ? heightAt(candles[0].time) : candles[0].time;
+  const toPos = (h) => (blocks ? h : timeAtHeight(h));
+  const bandAnchors = [];
+  for (let k = 1; k <= 12; k++) {
+    bandAnchors.push({ h: k * HALVING_INTERVAL - WAVE_BULL_HALF, bull: true });
+    bandAnchors.push({ h: k * HALVING_INTERVAL + WAVE_BULL_HALF, bull: false });
+  }
+  for (let i = 0; i + 1 < bandAnchors.length; i++) {
+    const from = toPos(bandAnchors[i].h);
+    const to = toPos(bandAnchors[i + 1].h);
+    if (to < startPos || from > extendTo) continue;
+    const isBull = bandAnchors[i].bull;
+    const base = {
+      borderColor: isBull ? COLORS.bullBorder : COLORS.bearBorder,
+      labelColor: isBull ? COLORS.bullLabel : COLORS.bearLabel,
+      labelPos: isBull ? 'top' : 'bottom',
+      fullHeight: true,
+    };
+    const label = isBull ? '牛市' : '熊市';
+    const fill = isBull ? COLORS.bandFillBull : COLORS.bandFillBear;
+    const fillProjected = isBull ? COLORS.bandFillBullProjected : COLORS.bandFillBearProjected;
+    if (to <= todayPos) {
+      primitives.push(new CycleBox({ ...base, from, to, fill, label }));
+    } else if (from >= todayPos) {
+      primitives.push(new CycleBox({ ...base, from, to, fill: fillProjected, label: `${label}（预测）`, dashed: true }));
+    } else {
+      primitives.push(new CycleBox({ ...base, from, to: todayPos, fill, label }));
+      primitives.push(new CycleBox({ ...base, from: todayPos, to, fill: fillProjected, label: `${label}（预测）`, dashed: true }));
+    }
+  }
 
   // 减半竖线：按 210,000 块网格铺到视界为止。已发生的用准确日期/高度；
   // 未来的高度精确、日期只是按当前出块速度的估算（时间视图画虚线以示区别）

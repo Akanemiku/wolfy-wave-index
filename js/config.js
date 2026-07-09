@@ -67,16 +67,16 @@ export const THEMES = {
     up: '#089981',
     down: '#f23645',
 
-    bullFill: 'rgba(8, 153, 129, 0.07)',
     bullBorder: 'rgba(8, 153, 129, 0.32)',
     bullLabel: '#27bd9b',
-    bearFill: 'rgba(242, 54, 69, 0.06)',
     bearBorder: 'rgba(242, 54, 69, 0.30)',
     bearLabel: '#f7525f',
 
-    // 进行中熊市的全高色带：需要明显可辨的红色高亮背景
-    bandFill: 'rgba(242, 54, 69, 0.14)',
-    bandFillProjected: 'rgba(242, 54, 69, 0.08)',
+    // 狼波周期指数推导的牛熊区间底色（「今日」之后的推演段用浅色）
+    bandFillBull: 'rgba(8, 153, 129, 0.09)',
+    bandFillBullProjected: 'rgba(8, 153, 129, 0.05)',
+    bandFillBear: 'rgba(242, 54, 69, 0.14)',
+    bandFillBearProjected: 'rgba(242, 54, 69, 0.08)',
 
     halving: 'rgba(46, 107, 255, 0.55)',
     halvingLabel: '#7da3ff',
@@ -101,16 +101,16 @@ export const THEMES = {
     up: '#089981',
     down: '#f23645',
 
-    bullFill: 'rgba(8, 153, 129, 0.08)',
     bullBorder: 'rgba(8, 153, 129, 0.35)',
     bullLabel: '#079076',
-    bearFill: 'rgba(242, 54, 69, 0.06)',
     bearBorder: 'rgba(242, 54, 69, 0.32)',
     bearLabel: '#e02a3a',
 
-    // 进行中熊市的全高色带：需要明显可辨的红色高亮背景
-    bandFill: 'rgba(242, 54, 69, 0.10)',
-    bandFillProjected: 'rgba(242, 54, 69, 0.06)',
+    // 狼波周期指数推导的牛熊区间底色（「今日」之后的推演段用浅色）
+    bandFillBull: 'rgba(8, 153, 129, 0.08)',
+    bandFillBullProjected: 'rgba(8, 153, 129, 0.05)',
+    bandFillBear: 'rgba(242, 54, 69, 0.10)',
+    bandFillBearProjected: 'rgba(242, 54, 69, 0.06)',
 
     halving: 'rgba(41, 98, 255, 0.50)',
     halvingLabel: '#2962ff',

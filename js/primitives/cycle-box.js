@@ -87,7 +87,8 @@ export class CycleBox extends Primitive {
     if (r.cx2 - lx < 64) return; // 框太窄/基本滚出视口时不画标签
     const opts = { bg: COLORS.tagBg, color: this._labelColor };
     if (this._labelPos === 'top') {
-      drawTag(ctx, lx, r.cy1 < 0 ? 62 : r.cy1 + 8, this._label, { ...opts, anchor: 'tl' });
+      // 贴住面板顶缘时下移到 OHLC 读数行之下
+      drawTag(ctx, lx, r.cy1 <= 0 ? 32 : r.cy1 + 8, this._label, { ...opts, anchor: 'tl' });
     } else {
       drawTag(ctx, lx, Math.min(r.cy2, media.height) - 8, this._label, { ...opts, anchor: 'bl' });
     }
