@@ -45,6 +45,7 @@ const fmtInt = (n) => Math.round(n).toLocaleString('en-US');
 // 返回 { primitives, axisMarks, extendTo, meta }；meta 供顶栏周期状态使用。
 export function buildAnnotations(pivots, candles, blocks = null, horizon = null) {
   const primitives = [];
+  const phasePrimitives = []; // 挂在副图（狼波指数面板）上的标注
   const axisMarks = []; // 顶部标签轴条目：{ time, label, color }
   const lastReal = candles.at(-1);
 
@@ -149,18 +150,21 @@ export function buildAnnotations(pivots, candles, blocks = null, horizon = null)
   }
 
   // 减半竖线：按 210,000 块网格铺到视界为止。已发生的用准确日期/高度；
-  // 未来的高度精确、日期只是按当前出块速度的估算（时间视图画虚线以示区别）
+  // 未来的高度精确、日期只是按当前出块速度的估算（时间视图画虚线以示区别）。
+  // 主图与狼波指数副图各挂一条，视觉上贯穿两个面板
   for (let i = 0; i < 10; i++) {
     const hgt = HALVING_HEIGHTS[0] + i * HALVING_INTERVAL;
     const pos = blocks ? hgt : (HALVINGS[i] ?? timeAtHeight(hgt));
     if (pos > extendTo) break;
     const future = pos > todayPos;
     primitives.push(new VertLine({ time: pos, color: COLORS.halving, dashed: future && !blocks }));
+    phasePrimitives.push(new VertLine({ time: pos, color: COLORS.halving, dashed: future && !blocks }));
     axisMarks.push({ time: pos, label: '减半日', color: COLORS.halvingLabel });
   }
 
   return {
     primitives,
+    phasePrimitives,
     axisMarks,
     extendTo,
     meta: { topPos: lastTop.pos, todayPos, predictedEnd },

@@ -45,8 +45,10 @@ async function init() {
   document.documentElement.dataset.theme = themeName;
 
   // ── 状态（先于建图声明：图表的刻度格式化闭包会引用 axisMode） ──
-  let attached = [];       // 当前挂载的标注 primitive
-  let built = [];          // 最近一次构建的标注 primitive
+  let attached = [];       // 当前挂载的标注 primitive（主图）
+  let built = [];          // 最近一次构建的标注 primitive（主图）
+  let attachedPhase = [];  // 当前挂载的副图标注（减半竖线的贯穿部分）
+  let builtPhase = [];     // 最近一次构建的副图标注
   let annotOn = true;
   let logOn = true;
   let axisMode = 'time';   // 'time' | 'blocks'
@@ -240,6 +242,10 @@ async function init() {
     built = ann.primitives;
     attached = annotOn ? ann.primitives : [];
     for (const p of attached) series.attachPrimitive(p);
+    for (const p of attachedPhase) phaseSolid.detachPrimitive(p);
+    builtPhase = ann.phasePrimitives;
+    attachedPhase = annotOn ? ann.phasePrimitives : [];
+    for (const p of attachedPhase) phaseSolid.attachPrimitive(p);
     idxCache = null;
     renderAxisMarks(ann.axisMarks);
     if (fit) {
@@ -378,9 +384,13 @@ async function init() {
     if (annotOn) {
       for (const p of built) series.attachPrimitive(p);
       attached = built;
+      for (const p of builtPhase) phaseSolid.attachPrimitive(p);
+      attachedPhase = builtPhase;
     } else {
       for (const p of attached) series.detachPrimitive(p);
       attached = [];
+      for (const p of attachedPhase) phaseSolid.detachPrimitive(p);
+      attachedPhase = [];
     }
     topAxis.style.visibility = annotOn ? '' : 'hidden';
     $('annot-toggle').classList.toggle('active', annotOn);
