@@ -42,8 +42,8 @@ export const THEMES = {
   dark: {
     chartBg: '#0e1117',
     chartText: '#8b93a1',
-    grid: 'rgba(139, 147, 161, 0.08)',
-    scaleBorder: '#1e2530',
+    grid: 'rgba(139, 147, 161, 0.13)',
+    scaleBorder: '#323c4d',
     up: '#089981',
     down: '#f23645',
 
@@ -52,11 +52,12 @@ export const THEMES = {
     bearBorder: 'rgba(246, 70, 93, 0.60)',
     bearLabel: '#f7525f',
 
-    // 狼波周期指数推导的牛熊区间底色（「今日」之后的推演段用浅色）
-    bandFillBull: 'rgba(11, 189, 154, 0.20)',
-    bandFillBullProjected: 'rgba(11, 189, 154, 0.11)',
-    bandFillBear: 'rgba(246, 70, 93, 0.24)',
-    bandFillBearProjected: 'rgba(246, 70, 93, 0.13)',
+    // 狼波周期指数推导的牛熊区间底色（「今日」之后的推演段用浅色）；
+    // 有高饱和边界线兜底，填充保持轻量
+    bandFillBull: 'rgba(11, 189, 154, 0.12)',
+    bandFillBullProjected: 'rgba(11, 189, 154, 0.06)',
+    bandFillBear: 'rgba(246, 70, 93, 0.15)',
+    bandFillBearProjected: 'rgba(246, 70, 93, 0.08)',
 
     halving: 'rgba(46, 107, 255, 0.55)',
     halvingLabel: '#7da3ff',
@@ -73,8 +74,8 @@ export const THEMES = {
   light: {
     chartBg: '#ffffff',
     chartText: '#767d8a',
-    grid: 'rgba(70, 80, 96, 0.08)',
-    scaleBorder: '#e2e6ee',
+    grid: 'rgba(70, 80, 96, 0.12)',
+    scaleBorder: '#c6cedb',
     up: '#089981',
     down: '#f23645',
 
@@ -83,11 +84,12 @@ export const THEMES = {
     bearBorder: 'rgba(242, 54, 69, 0.50)',
     bearLabel: '#e02a3a',
 
-    // 狼波周期指数推导的牛熊区间底色（「今日」之后的推演段用浅色）
-    bandFillBull: 'rgba(8, 153, 129, 0.15)',
-    bandFillBullProjected: 'rgba(8, 153, 129, 0.08)',
-    bandFillBear: 'rgba(242, 54, 69, 0.15)',
-    bandFillBearProjected: 'rgba(242, 54, 69, 0.08)',
+    // 狼波周期指数推导的牛熊区间底色（「今日」之后的推演段用浅色）；
+    // 有高饱和边界线兜底，填充保持轻量
+    bandFillBull: 'rgba(8, 153, 129, 0.09)',
+    bandFillBullProjected: 'rgba(8, 153, 129, 0.05)',
+    bandFillBear: 'rgba(242, 54, 69, 0.09)',
+    bandFillBearProjected: 'rgba(242, 54, 69, 0.05)',
 
     halving: 'rgba(41, 98, 255, 0.50)',
     halvingLabel: '#2962ff',

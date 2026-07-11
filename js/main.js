@@ -85,7 +85,7 @@ async function init() {
   let builtPhase = [];     // 最近一次构建的副图标注
   let annotOn = true;
   let logOn = true;
-  let chartStyle = 'candles'; // 'candles' | 'line'
+  let chartStyle = 'wave'; // 'candles' | 'line' | 'wave'，默认狼波着色
   let timeframe = 'day';   // 分桶粒度键：day=144区块 week=1,008区块 month=4,368区块
   let daily = [];          // fillGaps 后的日线（枢轴/统计的数据源）
   let dailyReal = [];      // 仅真实日线
@@ -102,6 +102,10 @@ async function init() {
   const { chart, series, lineSeries, waveLine, phaseSolid, phaseDashed } = createChartAndSeries($('chart'));
   let attachedHost = series; // 标注当前挂载的价格系列（随展示模式切换迁移）
   const styleHost = () => (chartStyle === 'line' ? lineSeries : chartStyle === 'wave' ? waveLine : series);
+  // 初始可见性与默认展示模式对齐（chart.js 里 K 线是建图默认）
+  series.applyOptions({ visible: chartStyle === 'candles' });
+  lineSeries.applyOptions({ visible: chartStyle === 'line' });
+  waveLine.applyOptions({ visible: chartStyle === 'wave' });
 
   // 绘图区宽度。不能用 timeScale().width()：内置时间轴已隐藏，它返回 0
   function paneWidth() {

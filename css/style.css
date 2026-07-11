@@ -2,7 +2,7 @@
   --bg: #0e1117;
   --panel: #151b26;
   --panel-2: #1a2130;
-  --border: #1e2530;
+  --border: #323c4d;
   --hover: #1c2432;
   --text: #e4e8f0;
   --sub: #8b93a1;
@@ -17,7 +17,7 @@
   --bg: #ffffff;
   --panel: #f5f7fa;
   --panel-2: #eef1f6;
-  --border: #e2e6ee;
+  --border: #c6cedb;
   --hover: #edf0f5;
   --text: #161a22;
   --sub: #767d8a;
@@ -321,7 +321,7 @@ body {
   width: 1px;
   height: 4px;
   background: var(--sub);
-  opacity: 0.55;
+  opacity: 0.8;
 }
 
 /* 当前区块引导线（与 y 轴价格引导线对称）：贯穿两个面板的竖直虚线，
