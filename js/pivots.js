@@ -2,7 +2,7 @@
 // 牛顶 = 搜索窗口内最高价那天，熊底 = 窗口内最低价那天（用户确认的画法）。
 // 横轴以区块高度为唯一坐标系：所有标注位置都是高度，日期仅作刻度辅助显示。
 import {
-  PIVOT_WINDOWS, HALVING_HEIGHTS, HALVING_INTERVAL, WAVE_BULL_HALF,
+  PIVOT_WINDOWS, HALVING_INTERVAL, WAVE_BULL_HALF,
   EXTEND_MARGIN_BLOCKS, COLORS,
 } from './config.js';
 import { heightAt } from './blocks.js';
@@ -33,10 +33,10 @@ export function computePivots(candles) {
   return pivots;
 }
 
-// 由枢轴推出全部标注 primitive 与顶部标签轴的标记。
+// 由枢轴推出全部标注 primitive。
 // todayH：当前链上高度；horizon：未来视界高度（横轴至少延伸到此）。
-// 返回 { primitives, phasePrimitives, axisMarks, extendTo, meta }。
-export function buildAnnotations(pivots, candles, todayH, horizon = null) {
+// 返回 { primitives, phasePrimitives, extendTo, meta }。
+export function buildAnnotations(pivots, todayH, horizon = null) {
   const primitives = [];
   const phasePrimitives = []; // 挂在副图（狼波指数面板）上的标注
 
@@ -65,19 +65,18 @@ export function buildAnnotations(pivots, candles, todayH, horizon = null) {
     Math.max(predictedEnd, todayPos) + EXTEND_MARGIN_BLOCKS,
   );
 
-  // 牛熊区间：由狼波周期指数（纯区块制）推导——牛市 = 减半 ± 78,750 块
-  //（指数上行段），其余为熊市（下行段）；铺满全轴含未来推演，
-  // 「今日」之后的部分用浅色 + 虚线边 +（预测）标注
-  const startPos = heightAt(candles[0].time);
+  // 牛熊区间：由狼波周期指数（纯区块制）推导——牛市 = 减半 ± 78,750 区块
+  //（指数上行段），其余为熊市（下行段）；从区块 0 铺满全轴含未来推演
+  //（负高度不存在，区间起点钳制在 0），「今日」之后浅色 + 虚线边 +（预测）
   const bandAnchors = [];
-  for (let k = 1; k <= 12; k++) {
+  for (let k = 0; k <= 12; k++) {
     bandAnchors.push({ h: k * HALVING_INTERVAL - WAVE_BULL_HALF, bull: true });
     bandAnchors.push({ h: k * HALVING_INTERVAL + WAVE_BULL_HALF, bull: false });
   }
   for (let i = 0; i + 1 < bandAnchors.length; i++) {
-    const from = bandAnchors[i].h;
+    const from = Math.max(bandAnchors[i].h, 0);
     const to = bandAnchors[i + 1].h;
-    if (to < startPos || from > extendTo) continue;
+    if (to <= 0 || from > extendTo) continue;
     const isBull = bandAnchors[i].bull;
     const base = {
       borderColor: isBull ? COLORS.bullBorder : COLORS.bearBorder,
@@ -103,10 +102,11 @@ export function buildAnnotations(pivots, candles, todayH, horizon = null) {
     }
   }
 
-  // 减半竖线：按 210,000 块网格铺到视界为止（高度是协议常量，全部实线）。
-  // 主图与狼波指数副图各挂一条，视觉上贯穿两个面板；标签钉在主图线顶
+  // 减半竖线：按 210,000 区块网格从首次减半（210,000）铺到视界为止
+  //（高度是协议常量，全部实线）。主图与狼波指数副图各挂一条，
+  // 视觉上贯穿两个面板；标签钉在主图线顶
   for (let i = 0; i < 10; i++) {
-    const hgt = HALVING_HEIGHTS[0] + i * HALVING_INTERVAL;
+    const hgt = (i + 1) * HALVING_INTERVAL;
     if (hgt > extendTo) break;
     primitives.push(new VertLine({
       time: hgt, color: COLORS.halving,

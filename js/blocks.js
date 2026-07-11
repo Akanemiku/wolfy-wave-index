@@ -106,3 +106,12 @@ export function extendBlocks(bars, untilHeight, bucketSize) {
   for (let t = bars.at(-1).time + bucketSize; t <= untilHeight; t += bucketSize) out.push({ time: t });
   return out;
 }
+
+// 高度轴向创世块回填（whitespace 占位）：价格数据虽从 2013 年开始，
+// 但区块 0 之后的牛熊区域、减半线与狼波指数都是可推算的
+export function prependBlocks(bars, bucketSize) {
+  if (!bars.length || bars[0].time <= 0) return bars;
+  const head = [];
+  for (let t = 0; t < bars[0].time; t += bucketSize) head.push({ time: t });
+  return head.concat(bars);
+}

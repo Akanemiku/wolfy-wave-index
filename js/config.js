@@ -22,9 +22,6 @@ export const PIVOT_WINDOWS = [
   { type: 'top',    to: Infinity },                               // 进行中周期的历史最高 ≈2025-10-06
 ];
 
-// 减半的准确区块高度（协议常量，横轴锚点）
-export const HALVING_HEIGHTS = [420000, 630000, 840000];
-
 // K 线分桶粒度（块，约等于 日/周/月）
 export const BLOCK_BUCKETS = { day: 144, week: 1008, month: 4368 };
 

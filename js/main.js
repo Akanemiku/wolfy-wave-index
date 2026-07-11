@@ -9,7 +9,7 @@ import {
 } from './data.js';
 import {
   loadHeightAnchors, fetchTipAnchor, heightAt, timeAtHeight,
-  aggregateByBlocks, extendBlocks, waveIndexAt, waveHorizonHeight,
+  aggregateByBlocks, extendBlocks, prependBlocks, waveIndexAt, waveHorizonHeight,
 } from './blocks.js';
 import { computePivots, buildAnnotations } from './pivots.js';
 import { t, setLang, I18N } from './i18n.js';
@@ -107,7 +107,8 @@ async function init() {
     const step = TICK_STEPS.find((s) => s * pxPerBlock >= 96) ?? TICK_STEPS.at(-1);
     const fmtTickDate = step >= 20000 ? fmtMY : fmtDMY; // 粗刻度只标到月
     for (const el of [...blockAxis.querySelectorAll('.bx-label, .bx-date, .bx-tick')]) el.remove();
-    for (let h = Math.ceil(hFrom / step) * step; h <= hTo; h += step) {
+    // 负高度不存在：刻度从区块 0 起
+    for (let h = Math.max(0, Math.ceil(hFrom / step) * step); h <= hTo; h += step) {
       const x = logicalToX(chart, timeToLogical(h));
       if (x === null || x < 0 || x > width) continue;
       const tick = document.createElement('i');
@@ -125,9 +126,9 @@ async function init() {
     }
   }
 
-  // 十字线在底轴上的浮标：高度 · ≈日期
+  // 十字线在底轴上的浮标：高度 · ≈日期（负高度不存在，不显示）
   function updateAxisCursor(h) {
-    if (h === null) {
+    if (h === null || h < 0) {
       bxCursor.hidden = true;
       return;
     }
@@ -198,8 +199,9 @@ async function init() {
     const hNow = tipHeight ?? heightAt(dailyReal.at(-1).time + DAY);
     const horizonH = waveHorizonHeight(hNow);
     const bucket = BLOCK_BUCKETS[timeframe];
-    const ann = buildAnnotations(pivots, daily, hNow, horizonH);
-    bars = extendBlocks(aggregateByBlocks(daily, bucket), ann.extendTo, bucket);
+    const ann = buildAnnotations(pivots, hNow, horizonH);
+    // 横轴覆盖 [区块 0, 未来视界]：价格数据之前与之后都用 whitespace 占位
+    bars = extendBlocks(prependBlocks(aggregateByBlocks(daily, bucket), bucket), ann.extendTo, bucket);
     meta = ann.meta;
     series.setData(bars);
     // 折线系列取收盘价，时间键与 K 线完全一致（不向时间轴引入新点位）
