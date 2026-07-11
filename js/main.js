@@ -35,6 +35,30 @@ const fmtPct = (v) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(2)}%`;
 const THEME_KEY = 'wolfy-theme';
 const LANG_KEY = 'wolfy-lang';
 
+// 狼波着色模式的色谱（参照 RSI 彩虹渐变）：0 = 蓝（熊底）→ 1 = 红（牛顶）
+const WAVE_COLOR_STOPS = [
+  [0.00, [38, 60, 219]],
+  [0.25, [62, 196, 233]],
+  [0.50, [72, 190, 80]],
+  [0.70, [214, 223, 56]],
+  [0.85, [246, 156, 28]],
+  [1.00, [236, 38, 38]],
+];
+
+function waveColor(v) {
+  const x = Math.max(0, Math.min(1, v));
+  for (let i = 0; i + 1 < WAVE_COLOR_STOPS.length; i++) {
+    const [a, ca] = WAVE_COLOR_STOPS[i];
+    const [b, cb] = WAVE_COLOR_STOPS[i + 1];
+    if (x <= b) {
+      const f = (x - a) / (b - a);
+      const c = ca.map((v0, j) => Math.round(v0 + f * (cb[j] - v0)));
+      return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+    }
+  }
+  return 'rgb(236, 38, 38)';
+}
+
 function showNotice(text) {
   $('notice-text').textContent = text;
   $('notice').hidden = false;
@@ -70,8 +94,9 @@ async function init() {
   let waveNow = null;      // 当前（今日）狼波指数值，十字线移开时回落显示
 
   const LWC = window.LightweightCharts;
-  const { chart, series, lineSeries, phaseSolid, phaseDashed } = createChartAndSeries($('chart'));
-  let attachedHost = series; // 标注当前挂载的价格系列（K线或折线，随切换迁移）
+  const { chart, series, lineSeries, waveLine, phaseSolid, phaseDashed } = createChartAndSeries($('chart'));
+  let attachedHost = series; // 标注当前挂载的价格系列（随展示模式切换迁移）
+  const styleHost = () => (chartStyle === 'line' ? lineSeries : chartStyle === 'wave' ? waveLine : series);
 
   // 绘图区宽度。不能用 timeScale().width()：内置时间轴已隐藏，它返回 0
   function paneWidth() {
@@ -204,8 +229,15 @@ async function init() {
     bars = extendBlocks(prependBlocks(aggregateByBlocks(daily, bucket), bucket), ann.extendTo, bucket);
     meta = ann.meta;
     series.setData(bars);
-    // 折线系列取收盘价，时间键与 K 线完全一致（不向时间轴引入新点位）
-    lineSeries.setData(bars.filter((b) => b.open !== undefined).map((b) => ({ time: b.time, value: b.close })));
+    // 折线/着色系列取收盘价，时间键与 K 线完全一致（不向时间轴引入新点位）；
+    // 着色模式逐点上色：颜色 = 该处狼波指数（蓝 0 → 红 1）
+    const realBars = bars.filter((b) => b.open !== undefined);
+    lineSeries.setData(realBars.map((b) => ({ time: b.time, value: b.close })));
+    waveLine.setData(realBars.map((b) => ({
+      time: b.time,
+      value: b.close,
+      color: waveColor(waveIndexAt(b.time)),
+    })));
     setSeriesData(bars);
     // 狼波周期指数：高度的纯函数，按 bars 的桶起始高度采样。
     // 实线 = 已发生，虚线 = 未来段
@@ -220,8 +252,8 @@ async function init() {
     phaseDashed.setData(dashedData);
     waveNow = waveIndexAt(hNow);
     updateWaveTitle();
-    // 标注挂载到当前可见的价格系列（K线或折线）
-    const host = chartStyle === 'line' ? lineSeries : series;
+    // 标注挂载到当前可见的价格系列
+    const host = styleHost();
     for (const p of attached) attachedHost.detachPrimitive(p);
     attachedHost = host;
     built = ann.primitives;
@@ -337,7 +369,7 @@ async function init() {
     focusCurrent();
   }));
 
-  // K线 / 折线切换：迁移标注宿主并保留缩放
+  // K线 / 折线 / 狼波着色切换：迁移标注宿主并保留缩放
   const styleButtons = [...document.querySelectorAll('#style-group button')];
   styleButtons.forEach((btn) => btn.addEventListener('click', () => {
     if (btn.dataset.style === chartStyle) return;
@@ -345,12 +377,13 @@ async function init() {
     styleButtons.forEach((b) => b.classList.toggle('active', b === btn));
     series.applyOptions({ visible: chartStyle === 'candles' });
     lineSeries.applyOptions({ visible: chartStyle === 'line' });
+    waveLine.applyOptions({ visible: chartStyle === 'wave' });
     render(null); // 标注重新挂载到当前可见的价格系列
   }));
 
   // ── 语言：刷新所有静态文案（图内标注由 render 重建时套用） ──
   const TF_KEYS = { day: 'tfDay', week: 'tfWeek', month: 'tfMonth' };
-  const STYLE_KEYS = { candles: 'styleCandles', line: 'styleLine' };
+  const STYLE_KEYS = { candles: 'styleCandles', line: 'styleLine', wave: 'styleWave' };
   function applyStaticLang() {
     document.documentElement.lang = I18N.lang === 'zh' ? 'zh-CN' : 'en';
     $('brand-name').textContent = t('brand');

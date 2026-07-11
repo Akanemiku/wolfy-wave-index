@@ -67,10 +67,20 @@ export function createChartAndSeries(container) {
 
   const series = chart.addSeries(LWC.CandlestickSeries, seriesThemeOptions());
 
-  // 折线模式的价格系列（收盘价），与 K 线二选一显示、共用右轴
+  // 折线模式的价格系列（收盘价），与 K 线切换显示、共用右轴
   const lineSeries = chart.addSeries(LWC.LineSeries, {
     ...lineThemeOptions(),
     lineWidth: 1.5,
+    visible: false,
+    priceFormat: { type: 'custom', formatter: priceFormatter, minMove: 0.01 },
+    priceLineVisible: true,
+    lastValueVisible: true,
+  });
+
+  // 狼波着色模式：折线逐点着色（颜色 = 该处狼波指数，蓝 0 → 红 1），
+  // 颜色随数据点传入，不走主题
+  const waveLine = chart.addSeries(LWC.LineSeries, {
+    lineWidth: 2.5,
     visible: false,
     priceFormat: { type: 'custom', formatter: priceFormatter, minMove: 0.01 },
     priceLineVisible: true,
@@ -112,7 +122,7 @@ export function createChartAndSeries(container) {
     console.warn('副图高度设置失败（不影响功能）：', e);
   }
 
-  return { chart, series, lineSeries, phaseSolid, phaseDashed };
+  return { chart, series, lineSeries, waveLine, phaseSolid, phaseDashed };
 }
 
 // 主题切换时刷新图表配色（标注由调用方重建）
