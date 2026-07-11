@@ -64,8 +64,23 @@
   </div>
 
   <main class="chart-wrap">
-    <div id="chart"></div>
-    <div id="legend" class="legend"></div>
+    <div class="chart-host">
+      <div id="chart"></div>
+      <div id="legend" class="legend"></div>
+    </div>
+
+    <aside class="wave-scale" title="狼波指数色标 / Wave index color scale">
+      <div class="ws-label" id="ws-top">牛顶</div>
+      <div class="ws-body">
+        <div class="ws-bar" id="ws-bar">
+          <div class="ws-marker" id="ws-marker" hidden></div>
+        </div>
+        <div class="ws-ticks">
+          <span>1.00</span><span>0.75</span><span>0.50</span><span>0.25</span><span>0.00</span>
+        </div>
+      </div>
+      <div class="ws-label" id="ws-bottom">熊底</div>
+    </aside>
 
     <div id="notice" class="notice" hidden>
       <span id="notice-text"></span>

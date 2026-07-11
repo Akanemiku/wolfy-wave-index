@@ -73,6 +73,11 @@ async function init() {
   setLang(localStorage.getItem(LANG_KEY) || 'zh');
   $('loading-text').textContent = t('loading');
 
+  // 右侧色标：按同一份色谱生成渐变，保证与折线逐点颜色严格一致
+  $('ws-bar').style.background = `linear-gradient(to top, ${
+    WAVE_COLOR_STOPS.map(([p, c]) => `rgb(${c[0]}, ${c[1]}, ${c[2]}) ${p * 100}%`).join(', ')
+  })`;
+
   // ── 状态 ──
   let attached = [];       // 当前挂载的标注 primitive（主图）
   let built = [];          // 最近一次构建的标注 primitive（主图）
@@ -293,6 +298,12 @@ async function init() {
       el.className = `chg ${chg >= 0 ? 'up' : 'down'}`;
     }
     $('stat-wave').textContent = waveNow !== null ? waveNow.toFixed(2) : '—';
+    const marker = $('ws-marker');
+    if (waveNow !== null) {
+      marker.hidden = false;
+      marker.style.bottom = `calc(${(waveNow * 100).toFixed(2)}% - 1px)`;
+      marker.title = waveNow.toFixed(2);
+    }
     if (!meta) return;
 
     const elapsed = meta.todayPos - meta.topPos;
@@ -394,6 +405,8 @@ async function init() {
     $('stat-wave-label').textContent = t('waveLabel');
     scaleButtons.forEach((b) => { b.textContent = t(b.dataset.scale === 'log' ? 'log' : 'linear'); });
     $('annot-label').textContent = t('marks');
+    $('ws-top').textContent = t('scaleTop');
+    $('ws-bottom').textContent = t('scaleBottom');
     document.querySelectorAll('.lang-opt').forEach((b) => {
       b.classList.toggle('active', b.dataset.lang === I18N.lang);
     });

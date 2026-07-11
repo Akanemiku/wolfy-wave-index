@@ -345,11 +345,75 @@ body {
   position: relative;
   flex: 1;
   min-height: 0;
+  display: flex;
+}
+
+.chart-host {
+  position: relative;
+  flex: 1;
+  min-width: 0;
 }
 
 #chart {
   position: absolute;
   inset: 0;
+}
+
+/* ── 狼波指数色标（右侧垂直渐变条，蓝 0 = 熊底 → 红 1 = 牛顶） ── */
+.wave-scale {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 10px 10px 6px;
+  border-left: 1px solid var(--border);
+  user-select: none;
+}
+
+.ws-label {
+  font-size: 10.5px;
+  color: var(--sub);
+  white-space: nowrap;
+}
+
+.ws-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 6px;
+}
+
+.ws-bar {
+  position: relative;
+  width: 12px;
+  height: 100%;
+  border: 1px solid var(--border);
+  /* 渐变底色由 main.js 按 WAVE_COLOR_STOPS 生成，与折线颜色严格一致 */
+}
+
+.ws-ticks {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin: -4px 0;
+  font-size: 9.5px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.ws-ticks span {
+  line-height: 1;
+}
+
+/* 当前指数游标：横线钉在色条上对应位置 */
+.ws-marker {
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  height: 0;
+  border-top: 2px solid var(--text);
+  pointer-events: none;
 }
 
 .legend {
@@ -465,6 +529,7 @@ body {
   .toolbar::-webkit-scrollbar { display: none; }
   .seg button { padding: 4px 9px; font-size: 11.5px; }
   .toggle-btn { padding: 0 9px; font-size: 11.5px; }
+  .wave-scale { display: none; }
   .legend { font-size: 10px; }
   .foot span:nth-child(n+2) { display: none; }
 }
