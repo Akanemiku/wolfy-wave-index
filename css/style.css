@@ -460,6 +460,34 @@ body {
   pointer-events: none;
 }
 
+/* 副图（狼波指数窗格）显隐开关：浮在窗格右上角；窗格收起后退到图表右下角 */
+.phase-toggle {
+  position: absolute;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--sub);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.phase-toggle:hover {
+  color: var(--text);
+  background: var(--hover);
+}
+
+.phase-toggle .icon-expand { display: none; }
+.phase-toggle:not(.active) .icon-collapse { display: none; }
+.phase-toggle:not(.active) .icon-expand { display: inline; }
+
 .legend {
   position: absolute;
   top: 10px;

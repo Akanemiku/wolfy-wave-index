@@ -108,6 +108,7 @@ async function init() {
   let attachedPhase = [];  // 当前挂载的副图标注（贯穿的色带与减半线）
   let builtPhase = [];     // 最近一次构建的副图标注
   let annotOn = true;
+  let phaseOn = true;      // 狼波指数副图窗格显示中
   let logOn = true;
   let chartStyle = 'wave'; // 'candles' | 'line' | 'wave'，默认狼波着色
   let timeframe = 'day';   // 分桶粒度键：day=144区块 week=1,008区块 month=4,368区块
@@ -226,6 +227,77 @@ async function init() {
   chart.timeScale().subscribeVisibleLogicalRangeChange(renderBlockAxis);
   window.addEventListener('resize', renderBlockAxis);
 
+  // ── 狼波指数副图窗格的显隐 ──
+  // 隐藏 = 把两条指数系列移到主面板并设不可见（空面板被 LWC 自动移除，
+  // 主图占满全高）；显示 = 移回面板 1 并恢复线性坐标、留白与 4:1 高度。
+  // 开关按钮浮在窗格右上角，收起后退到图表右下角。
+  const phaseBtn = $('phase-toggle');
+  function positionPhaseToggle() {
+    const hostH = $('chart').clientHeight;
+    let scaleW = 70;
+    try { scaleW = chart.priceScale('right').width() || 70; } catch { /* 布局未就绪 */ }
+    phaseBtn.style.right = `${scaleW + 8}px`;
+    let top = hostH - 28; // 收起态：贴图表右下角
+    if (phaseOn) {
+      try {
+        const p0 = chart.paneSize(0).height;
+        const p1 = chart.paneSize(1).height;
+        top = p0 + Math.max(0, hostH - p0 - p1) + 5; // 面板顶 + 分隔条
+      } catch { /* 布局未就绪 */ }
+    }
+    phaseBtn.style.top = `${top}px`;
+  }
+  // 面板高度变化（拖分隔条/窗口缩放/显隐切换）都会引起画布尺寸变化
+  const paneObserver = new ResizeObserver(() => positionPhaseToggle());
+  function observePaneCanvases() {
+    paneObserver.disconnect();
+    for (const cv of $('chart').querySelectorAll('canvas')) paneObserver.observe(cv);
+  }
+  observePaneCanvases();
+  positionPhaseToggle();
+
+  function setPhaseVisible(on) {
+    phaseOn = on;
+    if (on) {
+      phaseSolid.moveToPane(1);
+      phaseDashed.moveToPane(1);
+      phaseSolid.applyOptions({ visible: true });
+      phaseDashed.applyOptions({ visible: true });
+      // 新面板的价格轴是全新实例：重设线性坐标与留白
+      phaseSolid.priceScale().applyOptions({
+        mode: LWC.PriceScaleMode.Normal,
+        scaleMargins: { top: 0.06, bottom: 0.05 },
+      });
+      try {
+        const panes = chart.panes();
+        panes[0].setStretchFactor(4);
+        panes[1].setStretchFactor(1);
+      } catch (e) { console.warn('副图高度设置失败（不影响功能）：', e); }
+      makeWatermark(); // 副图标题随面板销毁，重建
+      if (annotOn) {
+        for (const p of builtPhase) phaseSolid.attachPrimitive(p);
+        attachedPhase = builtPhase;
+      }
+    } else {
+      for (const p of attachedPhase) phaseSolid.detachPrimitive(p);
+      attachedPhase = [];
+      try { paneTitle?.detach(); } catch { /* 面板已随隐藏销毁 */ }
+      paneTitle = null;
+      phaseSolid.applyOptions({ visible: false });
+      phaseDashed.applyOptions({ visible: false });
+      phaseSolid.moveToPane(0);
+      phaseDashed.moveToPane(0);
+    }
+    phaseBtn.classList.toggle('active', on);
+    $('phase-label').textContent = t(on ? 'phaseHide' : 'phaseShow');
+    requestAnimationFrame(() => {
+      observePaneCanvases(); // 面板画布重建后重新观察
+      positionPhaseToggle();
+    });
+  }
+
+  phaseBtn.addEventListener('click', () => setPhaseVisible(!phaseOn));
+
   function makeWatermark() {
     try {
       watermark?.detach();
@@ -239,12 +311,16 @@ async function init() {
         ],
       });
       paneTitle?.detach();
-      paneTitle = LWC.createTextWatermark(chart.panes()[1], {
-        horzAlign: 'left',
-        vertAlign: 'top',
-        lines: [{ text: '狼波周期指数 Wolfy Wave Index', color: COLORS.phase, fontSize: 11 }],
-      });
-      updateWaveTitle();
+      paneTitle = null;
+      // 副图窗格收起时不重建它的标题（面板不存在）
+      if (phaseOn) {
+        paneTitle = LWC.createTextWatermark(chart.panes()[1], {
+          horzAlign: 'left',
+          vertAlign: 'top',
+          lines: [{ text: '狼波周期指数 Wolfy Wave Index', color: COLORS.phase, fontSize: 11 }],
+        });
+        updateWaveTitle();
+      }
     } catch (e) {
       console.warn('水印创建失败（不影响功能）：', e);
       watermark = null;
@@ -317,7 +393,7 @@ async function init() {
     for (const p of attached) attachedHost.attachPrimitive(p);
     for (const p of attachedPhase) phaseSolid.detachPrimitive(p);
     builtPhase = ann.phasePrimitives;
-    attachedPhase = annotOn ? ann.phasePrimitives : [];
+    attachedPhase = annotOn && phaseOn ? ann.phasePrimitives : [];
     for (const p of attachedPhase) phaseSolid.attachPrimitive(p);
     idxCache = null;
     if (fit) {
@@ -462,6 +538,7 @@ async function init() {
     $('stat-wave-label').textContent = t('waveLabel');
     scaleButtons.forEach((b) => { b.textContent = t(b.dataset.scale === 'log' ? 'log' : 'linear'); });
     $('annot-label').textContent = t('marks');
+    $('phase-label').textContent = t(phaseOn ? 'phaseHide' : 'phaseShow');
     $('ws-top').textContent = t('scaleTop');
     $('ws-bottom').textContent = t('scaleBottom');
     document.querySelectorAll('.lang-opt').forEach((b) => {
@@ -495,8 +572,10 @@ async function init() {
     if (annotOn) {
       for (const p of built) attachedHost.attachPrimitive(p);
       attached = built;
-      for (const p of builtPhase) phaseSolid.attachPrimitive(p);
-      attachedPhase = builtPhase;
+      if (phaseOn) {
+        for (const p of builtPhase) phaseSolid.attachPrimitive(p);
+        attachedPhase = builtPhase;
+      }
     } else {
       for (const p of attached) attachedHost.detachPrimitive(p);
       attached = [];
