@@ -47,9 +47,7 @@ export const THEMES = {
     up: '#089981',
     down: '#f23645',
 
-    bullBorder: 'rgba(8, 153, 129, 0.32)',
     bullLabel: '#27bd9b',
-    bearBorder: 'rgba(242, 54, 69, 0.30)',
     bearLabel: '#f7525f',
 
     // 狼波周期指数推导的牛熊区间底色（「今日」之后的推演段用浅色）
@@ -78,9 +76,7 @@ export const THEMES = {
     up: '#089981',
     down: '#f23645',
 
-    bullBorder: 'rgba(8, 153, 129, 0.35)',
     bullLabel: '#079076',
-    bearBorder: 'rgba(242, 54, 69, 0.32)',
     bearLabel: '#e02a3a',
 
     // 狼波周期指数推导的牛熊区间底色（「今日」之后的推演段用浅色）

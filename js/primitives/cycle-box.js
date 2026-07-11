@@ -1,24 +1,22 @@
-// 牛市/熊市半透明区间 + 类型标签胶囊。projected（预测）段用虚线边框 + 减半填充。
-// 区间底色画在 K 线下层，标签胶囊画在上层保持可读。
+// 牛市/熊市半透明区间 + 类型标签胶囊。projected（预测）段用减半填充表达。
+// 纯填充无边框；区间底色画在 K 线下层，标签胶囊画在上层保持可读。
 import { Primitive, clamp, drawTag } from './base.js';
 import { COLORS } from '../config.js';
 
 export class CycleBox extends Primitive {
   // labelPos: 'top' 标签在框内左上角，'bottom' 在框内左下角
   // fullHeight: 进行中的周期底部未知，只画时间区间——贯穿全高的竖向色带，
-  //             仅画左右边界线，不参与价格自动缩放
-  constructor({ from, to, priceLow, priceHigh, fill, borderColor, label, labelColor, labelPos = 'top', dashed = false, fullHeight = false }) {
+  //             不参与价格自动缩放
+  constructor({ from, to, priceLow, priceHigh, fill, label, labelColor, labelPos = 'top', fullHeight = false }) {
     super('bottom');
     this._from = from;
     this._to = to;
     this._priceLow = priceLow;
     this._priceHigh = priceHigh;
     this._fill = fill;
-    this._borderColor = borderColor;
     this._label = label;
     this._labelColor = labelColor;
     this._labelPos = labelPos;
-    this._dashed = dashed;
     this._fullHeight = fullHeight;
     if (label) {
       this._views.push(this._makeView('top', (ctx, media) => this._drawLabel(ctx, media)));
@@ -58,25 +56,6 @@ export class CycleBox extends Primitive {
     if (!r) return;
     ctx.fillStyle = this._fill;
     ctx.fillRect(r.cx1, r.cy1, r.cx2 - r.cx1, r.cy2 - r.cy1);
-    ctx.strokeStyle = this._borderColor;
-    ctx.lineWidth = 1;
-    ctx.setLineDash(this._dashed ? [5, 4] : []);
-    if (this._fullHeight) {
-      // 只画左右边界线（且仅当真实边缘在视口内时）
-      ctx.beginPath();
-      if (r.x1 === r.cx1) {
-        ctx.moveTo(r.cx1 + 0.5, 0);
-        ctx.lineTo(r.cx1 + 0.5, media.height);
-      }
-      if (r.x2 === r.cx2) {
-        ctx.moveTo(r.cx2 - 0.5, 0);
-        ctx.lineTo(r.cx2 - 0.5, media.height);
-      }
-      ctx.stroke();
-    } else {
-      ctx.strokeRect(r.cx1, r.cy1, r.cx2 - r.cx1, r.cy2 - r.cy1);
-    }
-    ctx.setLineDash([]);
   }
 
   _drawLabel(ctx, media) {

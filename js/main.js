@@ -240,12 +240,13 @@ async function init() {
     })));
     setSeriesData(bars);
     // 狼波周期指数：高度的纯函数，按 bars 的桶起始高度采样。
-    // 实线 = 已发生，虚线 = 未来段
+    // 实线 = 已发生，虚线 = 未来段；逐点上色 = 与着色模式同一色谱（蓝 0 → 红 1）
     const solidData = [];
     const dashedData = [];
     for (const b of bars) {
       const v = waveIndexAt(b.time);
-      (b.time <= ann.meta.todayPos ? solidData : dashedData).push({ time: b.time, value: v });
+      (b.time <= ann.meta.todayPos ? solidData : dashedData)
+        .push({ time: b.time, value: v, color: waveColor(v) });
     }
     if (solidData.length && dashedData.length) dashedData.unshift(solidData.at(-1));
     phaseSolid.setData(solidData);
