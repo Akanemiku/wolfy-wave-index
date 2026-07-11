@@ -10,6 +10,7 @@
   --accent: #2e6bff;
   --up: #089981;
   --down: #f23645;
+  --wave: #eab04d;
 }
 
 :root[data-theme="light"] {
@@ -24,6 +25,7 @@
   --accent: #2962ff;
   --up: #089981;
   --down: #e02a3a;
+  --wave: #c88a2d;
 }
 
 [hidden] {
@@ -174,6 +176,18 @@ body {
 
 .chg.up { color: var(--up); }
 .chg.down { color: var(--down); }
+
+/* 顶栏狼波指数模块 */
+.wave-value {
+  color: var(--wave);
+}
+
+.wave-label {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--sub);
+  white-space: nowrap;
+}
 
 .chip {
   padding: 4px 10px;

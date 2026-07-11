@@ -17,6 +17,10 @@
           <span id="stat-price" class="price">—</span>
           <span id="stat-chg" class="chg">—</span>
         </div>
+        <div class="price-block">
+          <span id="stat-wave" class="price wave-value">—</span>
+          <span id="stat-wave-label" class="wave-label">狼波指数</span>
+        </div>
         <div class="chip" id="stat-cycle">—</div>
         <div class="chip" id="stat-bottom">—</div>
       </div>
@@ -36,9 +40,13 @@
   <div class="toolbar">
     <div class="toolbar-group">
       <div class="seg" id="tf-group">
-        <button data-tf="day" class="active">144 块</button>
-        <button data-tf="week">1,008 块</button>
-        <button data-tf="month">4,368 块</button>
+        <button data-tf="day" class="active">144 区块</button>
+        <button data-tf="week">1,008 区块</button>
+        <button data-tf="month">4,368 区块</button>
+      </div>
+      <div class="seg" id="style-group">
+        <button data-style="candles" class="active">K线</button>
+        <button data-style="line">折线</button>
       </div>
     </div>
     <div class="toolbar-group">

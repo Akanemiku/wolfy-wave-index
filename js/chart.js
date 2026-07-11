@@ -42,6 +42,10 @@ function phaseThemeOptions() {
   return { color: COLORS.phase };
 }
 
+function lineThemeOptions() {
+  return { color: COLORS.up };
+}
+
 export function createChartAndSeries(container) {
   const LWC = window.LightweightCharts;
 
@@ -62,6 +66,16 @@ export function createChartAndSeries(container) {
   });
 
   const series = chart.addSeries(LWC.CandlestickSeries, seriesThemeOptions());
+
+  // 折线模式的价格系列（收盘价），与 K 线二选一显示、共用右轴
+  const lineSeries = chart.addSeries(LWC.LineSeries, {
+    ...lineThemeOptions(),
+    lineWidth: 1.5,
+    visible: false,
+    priceFormat: { type: 'custom', formatter: priceFormatter, minMove: 0.01 },
+    priceLineVisible: true,
+    lastValueVisible: true,
+  });
 
   // 狼波周期指数副图区（TradingView 风格的下方独立面板）：
   // 实线 = 已发生，虚线 = 预测段；右轴显示 0~1 小数读数
@@ -98,13 +112,14 @@ export function createChartAndSeries(container) {
     console.warn('副图高度设置失败（不影响功能）：', e);
   }
 
-  return { chart, series, phaseSolid, phaseDashed };
+  return { chart, series, lineSeries, phaseSolid, phaseDashed };
 }
 
 // 主题切换时刷新图表配色（标注由调用方重建）
-export function applyChartTheme(chart, series, phaseSolid, phaseDashed) {
+export function applyChartTheme(chart, series, lineSeries, phaseSolid, phaseDashed) {
   chart.applyOptions(themeOptions());
   series.applyOptions(seriesThemeOptions());
+  lineSeries.applyOptions(lineThemeOptions());
   phaseSolid.applyOptions(phaseThemeOptions());
   phaseDashed.applyOptions(phaseThemeOptions());
 }

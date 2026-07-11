@@ -56,7 +56,8 @@ async function init() {
   let builtPhase = [];     // 最近一次构建的副图标注
   let annotOn = true;
   let logOn = true;
-  let timeframe = 'day';   // 分桶粒度键：day=144块 week=1,008块 month=4,368块
+  let chartStyle = 'candles'; // 'candles' | 'line'
+  let timeframe = 'day';   // 分桶粒度键：day=144区块 week=1,008区块 month=4,368区块
   let daily = [];          // fillGaps 后的日线（枢轴/统计的数据源）
   let dailyReal = [];      // 仅真实日线
   let bars = [];           // 按块分桶的 bars + whitespace（图表数据源，time=桶起始高度）
@@ -69,7 +70,8 @@ async function init() {
   let waveNow = null;      // 当前（今日）狼波指数值，十字线移开时回落显示
 
   const LWC = window.LightweightCharts;
-  const { chart, series, phaseSolid, phaseDashed } = createChartAndSeries($('chart'));
+  const { chart, series, lineSeries, phaseSolid, phaseDashed } = createChartAndSeries($('chart'));
+  let attachedHost = series; // 标注当前挂载的价格系列（K线或折线，随切换迁移）
 
   // 绘图区宽度。不能用 timeScale().width()：内置时间轴已隐藏，它返回 0
   function paneWidth() {
@@ -200,6 +202,8 @@ async function init() {
     bars = extendBlocks(aggregateByBlocks(daily, bucket), ann.extendTo, bucket);
     meta = ann.meta;
     series.setData(bars);
+    // 折线系列取收盘价，时间键与 K 线完全一致（不向时间轴引入新点位）
+    lineSeries.setData(bars.filter((b) => b.open !== undefined).map((b) => ({ time: b.time, value: b.close })));
     setSeriesData(bars);
     // 狼波周期指数：高度的纯函数，按 bars 的桶起始高度采样。
     // 实线 = 已发生，虚线 = 未来段
@@ -214,10 +218,13 @@ async function init() {
     phaseDashed.setData(dashedData);
     waveNow = waveIndexAt(hNow);
     updateWaveTitle();
-    for (const p of attached) series.detachPrimitive(p);
+    // 标注挂载到当前可见的价格系列（K线或折线）
+    const host = chartStyle === 'line' ? lineSeries : series;
+    for (const p of attached) attachedHost.detachPrimitive(p);
+    attachedHost = host;
     built = ann.primitives;
     attached = annotOn ? ann.primitives : [];
-    for (const p of attached) series.attachPrimitive(p);
+    for (const p of attached) attachedHost.attachPrimitive(p);
     for (const p of attachedPhase) phaseSolid.detachPrimitive(p);
     builtPhase = ann.phasePrimitives;
     attachedPhase = annotOn ? ann.phasePrimitives : [];
@@ -250,6 +257,7 @@ async function init() {
       el.textContent = fmtPct(chg);
       el.className = `chg ${chg >= 0 ? 'up' : 'down'}`;
     }
+    $('stat-wave').textContent = waveNow !== null ? waveNow.toFixed(2) : '—';
     if (!meta) return;
 
     const elapsed = meta.todayPos - meta.topPos;
@@ -289,8 +297,14 @@ async function init() {
   }
 
   chart.subscribeCrosshairMove((param) => {
-    const d = param?.time !== undefined ? param.seriesData.get(series) : null;
-    updateLegend(d && d.open !== undefined ? { ...d, time: param.time } : null);
+    // 读数直接按时间键查 bars，不依赖价格系列（K线/折线切换均可用）
+    let hovered = null;
+    if (param?.time !== undefined) {
+      if (!idxCache) idxCache = new Map(bars.map((x, i) => [x.time, i]));
+      const b = bars[idxCache.get(param.time)];
+      if (b && b.open !== undefined) hovered = b;
+    }
+    updateLegend(hovered);
     // 狼波指数读数跟随十字线（未来虚线段也有值），移开时回落到当前值
     const w = param?.time !== undefined
       ? (param.seriesData.get(phaseSolid) ?? param.seriesData.get(phaseDashed))
@@ -321,12 +335,26 @@ async function init() {
     focusCurrent();
   }));
 
+  // K线 / 折线切换：迁移标注宿主并保留缩放
+  const styleButtons = [...document.querySelectorAll('#style-group button')];
+  styleButtons.forEach((btn) => btn.addEventListener('click', () => {
+    if (btn.dataset.style === chartStyle) return;
+    chartStyle = btn.dataset.style;
+    styleButtons.forEach((b) => b.classList.toggle('active', b === btn));
+    series.applyOptions({ visible: chartStyle === 'candles' });
+    lineSeries.applyOptions({ visible: chartStyle === 'line' });
+    render(null); // 标注重新挂载到当前可见的价格系列
+  }));
+
   // ── 语言：刷新所有静态文案（图内标注由 render 重建时套用） ──
   const TF_KEYS = { day: 'tfDay', week: 'tfWeek', month: 'tfMonth' };
+  const STYLE_KEYS = { candles: 'styleCandles', line: 'styleLine' };
   function applyStaticLang() {
     document.documentElement.lang = I18N.lang === 'zh' ? 'zh-CN' : 'en';
     $('brand-name').textContent = t('brand');
     tfButtons.forEach((b) => { b.textContent = t(TF_KEYS[b.dataset.tf]); });
+    styleButtons.forEach((b) => { b.textContent = t(STYLE_KEYS[b.dataset.style]); });
+    $('stat-wave-label').textContent = t('waveLabel');
     $('scale-toggle').textContent = logOn ? t('log') : t('linear');
     $('annot-toggle').textContent = t('marks');
     document.querySelectorAll('.lang-opt').forEach((b) => {
@@ -357,12 +385,12 @@ async function init() {
   $('annot-toggle').addEventListener('click', () => {
     annotOn = !annotOn;
     if (annotOn) {
-      for (const p of built) series.attachPrimitive(p);
+      for (const p of built) attachedHost.attachPrimitive(p);
       attached = built;
       for (const p of builtPhase) phaseSolid.attachPrimitive(p);
       attachedPhase = builtPhase;
     } else {
-      for (const p of attached) series.detachPrimitive(p);
+      for (const p of attached) attachedHost.detachPrimitive(p);
       attached = [];
       for (const p of attachedPhase) phaseSolid.detachPrimitive(p);
       attachedPhase = [];
@@ -375,7 +403,7 @@ async function init() {
     localStorage.setItem(THEME_KEY, themeName);
     setTheme(themeName);
     document.documentElement.dataset.theme = themeName;
-    applyChartTheme(chart, series, phaseSolid, phaseDashed);
+    applyChartTheme(chart, series, lineSeries, phaseSolid, phaseDashed);
     makeWatermark();
     render(null); // 重建标注/标签轴以套用新配色（保留当前缩放）
   });
