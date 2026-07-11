@@ -250,6 +250,39 @@ body {
   font-weight: 600;
 }
 
+/* 独立开关按钮（标注显隐）：与分段控件分开，睁眼/闭眼表达开关状态 */
+.toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 11px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--faint);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: none;
+}
+
+.toggle-btn:hover {
+  color: var(--text);
+  background: var(--hover);
+}
+
+.toggle-btn.active {
+  background: var(--panel-2);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.toggle-btn .icon-eye-off { display: none; }
+.toggle-btn:not(.active) .icon-eye { display: none; }
+.toggle-btn:not(.active) .icon-eye-off { display: inline; }
+
 /* ── 底部区块刻度轴（主轴：区块高度，副行：对应≈日期） ── */
 .block-axis {
   position: relative;
@@ -431,6 +464,7 @@ body {
 
   .toolbar::-webkit-scrollbar { display: none; }
   .seg button { padding: 4px 9px; font-size: 11.5px; }
+  .toggle-btn { padding: 0 9px; font-size: 11.5px; }
   .legend { font-size: 10px; }
   .foot span:nth-child(n+2) { display: none; }
 }

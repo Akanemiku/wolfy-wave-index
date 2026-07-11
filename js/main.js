@@ -372,6 +372,7 @@ async function init() {
 
   // K线 / 折线 / 狼波着色切换：迁移标注宿主并保留缩放
   const styleButtons = [...document.querySelectorAll('#style-group button')];
+  const scaleButtons = [...document.querySelectorAll('#scale-group button')];
   styleButtons.forEach((btn) => btn.addEventListener('click', () => {
     if (btn.dataset.style === chartStyle) return;
     chartStyle = btn.dataset.style;
@@ -391,8 +392,8 @@ async function init() {
     tfButtons.forEach((b) => { b.textContent = t(TF_KEYS[b.dataset.tf]); });
     styleButtons.forEach((b) => { b.textContent = t(STYLE_KEYS[b.dataset.style]); });
     $('stat-wave-label').textContent = t('waveLabel');
-    $('scale-toggle').textContent = logOn ? t('log') : t('linear');
-    $('annot-toggle').textContent = t('marks');
+    scaleButtons.forEach((b) => { b.textContent = t(b.dataset.scale === 'log' ? 'log' : 'linear'); });
+    $('annot-label').textContent = t('marks');
     document.querySelectorAll('.lang-opt').forEach((b) => {
       b.classList.toggle('active', b.dataset.lang === I18N.lang);
     });
@@ -411,12 +412,13 @@ async function init() {
     render(null); // 重建标注/标签轴/读数以套用新语言（保留当前缩放）
   }));
 
-  $('scale-toggle').addEventListener('click', () => {
-    logOn = !logOn;
+  scaleButtons.forEach((btn) => btn.addEventListener('click', () => {
+    const useLog = btn.dataset.scale === 'log';
+    if (useLog === logOn) return;
+    logOn = useLog;
     setLogScale(chart, logOn);
-    $('scale-toggle').textContent = logOn ? t('log') : t('linear');
-    $('scale-toggle').classList.toggle('active', logOn);
-  });
+    scaleButtons.forEach((b) => b.classList.toggle('active', b === btn));
+  }));
 
   $('annot-toggle').addEventListener('click', () => {
     annotOn = !annotOn;
