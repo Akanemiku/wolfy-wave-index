@@ -64,7 +64,7 @@ export function drawTag(ctx, x, y, text, { bg, color, anchor = 'tl' }) {
   else if (anchor === 'bl') { by = y - h; }
   else if (anchor === 'center') { bx = x - w / 2; by = y - h / 2; }
   ctx.beginPath();
-  roundedRectPath(ctx, bx, by, w, h, 4);
+  ctx.rect(bx, by, w, h);
   ctx.fillStyle = bg;
   ctx.fill();
   ctx.save();
@@ -77,21 +77,6 @@ export function drawTag(ctx, x, y, text, { bg, color, anchor = 'tl' }) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(text, bx + w / 2, by + h / 2 + 0.5);
-}
-
-// 圆角矩形路径：旧版 Safari(<16)/Firefox(<112) 没有 ctx.roundRect，
-// 直接调用会抛 TypeError 中断整个 primitive 绘制过程
-export function roundedRectPath(ctx, x, y, w, h, r) {
-  if (ctx.roundRect) {
-    ctx.roundRect(x, y, w, h, r);
-    return;
-  }
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
 }
 
 export class Primitive {
