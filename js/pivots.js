@@ -53,9 +53,11 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
   const bearBlocks = Math.round(bearSpans.reduce((a, b) => a + b, 0) / bearSpans.length);
   const predictedEnd = lastTop.pos + bearBlocks;
 
-  // 「今日」分隔线：实际数据与未来推演的分界（标签钉在线顶）
+  // 「今日」标签：实际数据与未来推演的分界。竖线本体是常驻的当前区块
+  // 引导线（DOM，见 main.js updateNowGuide，与 y 轴价格引导线对称），
+  // 这里只挂随标注开关显隐的顶部标签
   primitives.push(new VertLine({
-    time: todayPos, color: COLORS.today, dashed: true,
+    time: todayPos, color: COLORS.today, labelOnly: true,
     label: t('today'), labelColor: COLORS.todayLabel,
   }));
 

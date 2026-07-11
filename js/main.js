@@ -154,6 +154,28 @@ async function init() {
       date.style.left = `${x}px`;
       blockAxis.append(tick, label, date);
     }
+    updateNowGuide();
+  }
+
+  // 当前区块引导线 + 底轴高度数值牌（与 y 轴价格引导线对称，常驻显示）
+  const nowLine = $('now-line');
+  const bxNow = $('bx-now');
+  function updateNowGuide() {
+    const h = meta?.todayPos;
+    const width = paneWidth();
+    const x = h != null ? logicalToX(chart, timeToLogical(h)) : null;
+    if (x === null || x < 0 || x > width) {
+      nowLine.hidden = true;
+      bxNow.hidden = true;
+      return;
+    }
+    nowLine.style.left = `${x}px`;
+    nowLine.style.borderColor = COLORS.today;
+    nowLine.hidden = false;
+    bxNow.textContent = fmtInt(h);
+    bxNow.title = `≈${fmtDMY(timeAtHeight(h))}`;
+    bxNow.style.left = `${x}px`;
+    bxNow.hidden = false;
   }
 
   // 十字线在底轴上的浮标：高度 · ≈日期（负高度不存在，不显示）

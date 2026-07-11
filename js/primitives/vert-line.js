@@ -7,7 +7,8 @@ import { COLORS } from '../config.js';
 const TAG_TOP = 32; // 标签纵向位置（px）：贴住面板顶部、避开 OHLC 读数行
 
 export class VertLine extends Primitive {
-  constructor({ time, color, width = 1.5, dashed = false, label, labelColor }) {
+  // labelOnly：只画顶部标签、不画线（线由别处负责，如「今日」的持久引导线）
+  constructor({ time, color, width = 1.5, dashed = false, label, labelColor, labelOnly = false }) {
     super('normal');
     this._time = time;
     this._color = color;
@@ -15,6 +16,7 @@ export class VertLine extends Primitive {
     this._dashed = dashed;
     this._label = label;
     this._labelColor = labelColor;
+    this._labelOnly = labelOnly;
     if (label) {
       this._views.push(this._makeView('top', (ctx, media) => this._drawLabel(ctx, media)));
     }
@@ -27,6 +29,7 @@ export class VertLine extends Primitive {
   }
 
   _draw(ctx, media) {
+    if (this._labelOnly) return;
     const x = this._x(media);
     if (x === null) return;
     ctx.strokeStyle = this._color;
