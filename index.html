@@ -17,9 +17,13 @@
           <span id="stat-price" class="price">—</span>
           <span id="stat-chg" class="chg">—</span>
         </div>
-        <div class="price-block">
-          <span id="stat-wave" class="price wave-value">—</span>
-          <span id="stat-wave-label" class="wave-label">狼波指数</span>
+        <div class="wave-gauge" title="0 = 熊底 Bottom · 1 = 牛顶 Top">
+          <svg viewBox="0 0 132 72" width="79" height="43" aria-hidden="true">
+            <g id="wg-segs"></g>
+            <circle id="wg-dot" class="wg-dot" r="6.5" style="display:none"></circle>
+            <text id="stat-wave" x="66" y="46" text-anchor="middle" class="wg-value">—</text>
+            <text id="stat-wave-label" x="66" y="64" text-anchor="middle" class="wg-label">狼波指数</text>
+          </svg>
         </div>
         <div class="chip" id="stat-cycle">—</div>
         <div class="chip" id="stat-bottom">—</div>

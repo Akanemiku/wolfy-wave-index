@@ -78,6 +78,30 @@ async function init() {
     WAVE_COLOR_STOPS.map(([p, c]) => `rgb(${c[0]}, ${c[1]}, ${c[2]}) ${p * 100}%`).join(', ')
   })`;
 
+  // 顶栏狼波指数表盘：五段彩弧（颜色取自同一份色谱），圆点指针由
+  // updateStats 钉到当前值位置。角度制：180° = 左端（0），0° = 右端（1）
+  const WG = { x: 66, y: 62, r: 50, segDeg: 29.6, gapDeg: 8 };
+  const wgPoint = (deg) => [
+    WG.x + WG.r * Math.cos((deg * Math.PI) / 180),
+    WG.y - WG.r * Math.sin((deg * Math.PI) / 180),
+  ];
+  {
+    const NS = 'http://www.w3.org/2000/svg';
+    const segs = $('wg-segs');
+    const SAMPLE = [0.06, 0.28, 0.5, 0.72, 0.94]; // 各段代表色的取样点
+    for (let i = 0; i < 5; i++) {
+      const a0 = 180 - i * (WG.segDeg + WG.gapDeg);
+      const [x0, y0] = wgPoint(a0);
+      const [x1, y1] = wgPoint(a0 - WG.segDeg);
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', `M ${x0.toFixed(2)} ${y0.toFixed(2)} A ${WG.r} ${WG.r} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`);
+      p.setAttribute('stroke', waveColor(SAMPLE[i]));
+      p.setAttribute('stroke-width', '10');
+      p.setAttribute('fill', 'none');
+      segs.appendChild(p);
+    }
+  }
+
   // ── 状态 ──
   let attached = [];       // 当前挂载的标注 primitive（主图）
   let built = [];          // 最近一次构建的标注 primitive（主图）
@@ -324,6 +348,13 @@ async function init() {
       el.className = `chg ${chg >= 0 ? 'up' : 'down'}`;
     }
     $('stat-wave').textContent = waveNow !== null ? waveNow.toFixed(2) : '—';
+    const dot = $('wg-dot');
+    if (waveNow !== null) {
+      const [cx, cy] = wgPoint(180 - waveNow * 180);
+      dot.setAttribute('cx', cx.toFixed(2));
+      dot.setAttribute('cy', cy.toFixed(2));
+      dot.style.display = '';
+    }
     const marker = $('ws-marker');
     if (waveNow !== null) {
       marker.hidden = false;
