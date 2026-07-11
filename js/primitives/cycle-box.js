@@ -82,15 +82,19 @@ export class CycleBox extends Primitive {
   _drawLabel(ctx, media) {
     const r = this._rect(media);
     if (!r) return;
-    // 框缘滚出屏幕时标签贴住视口边缘，保持可见（上缘避开置顶的竖线标签带）
-    const lx = Math.max(r.cx1, 0) + 8;
-    if (r.cx2 - lx < 64) return; // 框太窄/基本滚出视口时不画标签
+    // 标签钉在区域可见部分的水平中点：区域局部滚出屏幕时取与视口的
+    // 交集中心，保证标签始终可见
+    const vx1 = Math.max(r.x1, 0);
+    const vx2 = Math.min(r.x2, media.width);
+    if (vx2 - vx1 < 64) return; // 可见部分太窄时不画标签
+    const cx = (vx1 + vx2) / 2;
     const opts = { bg: COLORS.tagBg, color: this._labelColor };
     if (this._labelPos === 'top') {
-      // 贴住面板顶缘时下移到 OHLC 读数行之下
-      drawTag(ctx, lx, r.cy1 <= 0 ? 32 : r.cy1 + 8, this._label, { ...opts, anchor: 'tl' });
+      // 贴住面板顶缘时钉在第二行：第一行留给减半日/今日等事件标签——
+      // 减半恰在牛市正中，同行必然重叠
+      drawTag(ctx, cx, r.cy1 <= 0 ? 58 : r.cy1 + 8, this._label, { ...opts, anchor: 'tc' });
     } else {
-      drawTag(ctx, lx, Math.min(r.cy2, media.height) - 8, this._label, { ...opts, anchor: 'bl' });
+      drawTag(ctx, cx, Math.min(r.cy2, media.height) - 8, this._label, { ...opts, anchor: 'bc' });
     }
   }
 }
