@@ -79,6 +79,7 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
     if (to <= 0 || from > extendTo) continue;
     const isBull = bandAnchors[i].bull;
     const base = {
+      borderColor: isBull ? COLORS.bullBorder : COLORS.bearBorder,
       labelColor: isBull ? COLORS.bullLabel : COLORS.bearLabel,
       labelPos: isBull ? 'top' : 'bottom',
       fullHeight: true,
@@ -87,20 +88,20 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
     const fill = isBull ? COLORS.bandFillBull : COLORS.bandFillBear;
     const fillProjected = isBull ? COLORS.bandFillBullProjected : COLORS.bandFillBearProjected;
     // 主图带标签；副图（狼波指数面板）画同位置的无标签副本，视觉贯穿两个面板
-    const addBand = (bFrom, bTo, bFill, bLabel) => {
-      primitives.push(new CycleBox({ ...base, from: bFrom, to: bTo, fill: bFill, label: bLabel }));
-      phasePrimitives.push(new CycleBox({ ...base, from: bFrom, to: bTo, fill: bFill }));
+    const addBand = (bFrom, bTo, bFill, bLabel, dashed = false) => {
+      primitives.push(new CycleBox({ ...base, from: bFrom, to: bTo, fill: bFill, label: bLabel, dashed }));
+      phasePrimitives.push(new CycleBox({ ...base, from: bFrom, to: bTo, fill: bFill, dashed }));
     };
-    // 未来段：浅色填充即可表达推演；牛市直接标「牛市」，
+    // 未来段：浅色 + 虚线边表达推演；牛市直接标「牛市」，
     // 熊市保留（预测）后缀（进行中熊市的未走完部分）
     const futureLabel = isBull ? label : t('proj', label);
     if (to <= todayPos) {
       addBand(from, to, fill, label);
     } else if (from >= todayPos) {
-      addBand(from, to, fillProjected, futureLabel);
+      addBand(from, to, fillProjected, futureLabel, true);
     } else {
       addBand(from, todayPos, fill, label);
-      addBand(todayPos, to, fillProjected, futureLabel);
+      addBand(todayPos, to, fillProjected, futureLabel, true);
     }
   }
 
