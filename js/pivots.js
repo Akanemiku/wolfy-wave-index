@@ -92,13 +92,16 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
       primitives.push(new CycleBox({ ...base, from: bFrom, to: bTo, fill: bFill, label: bLabel, dashed }));
       phasePrimitives.push(new CycleBox({ ...base, from: bFrom, to: bTo, fill: bFill, dashed }));
     };
+    // 未来段：浅色 + 虚线边即可表达推演；牛市直接标「牛市」，
+    // 熊市保留（预测）后缀（进行中熊市的未走完部分）
+    const futureLabel = isBull ? label : t('proj', label);
     if (to <= todayPos) {
       addBand(from, to, fill, label);
     } else if (from >= todayPos) {
-      addBand(from, to, fillProjected, t('proj', label), true);
+      addBand(from, to, fillProjected, futureLabel, true);
     } else {
       addBand(from, todayPos, fill, label);
-      addBand(todayPos, to, fillProjected, t('proj', label), true);
+      addBand(todayPos, to, fillProjected, futureLabel, true);
     }
   }
 
