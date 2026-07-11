@@ -39,7 +39,6 @@ export function computePivots(candles) {
 export function buildAnnotations(pivots, candles, todayH, horizon = null) {
   const primitives = [];
   const phasePrimitives = []; // 挂在副图（狼波指数面板）上的标注
-  const axisMarks = []; // 顶部标签轴条目：{ time, label, color }
 
   // 枢轴坐标：区块高度
   const pts = pivots.map((p) => ({ ...p, pos: heightAt(p.time) }));
@@ -54,9 +53,11 @@ export function buildAnnotations(pivots, candles, todayH, horizon = null) {
   const bearBlocks = Math.round(bearSpans.reduce((a, b) => a + b, 0) / bearSpans.length);
   const predictedEnd = lastTop.pos + bearBlocks;
 
-  // 「今日」分隔线：实际数据与未来推演的分界
-  primitives.push(new VertLine({ time: todayPos, color: COLORS.today, dashed: true }));
-  axisMarks.push({ time: todayPos, label: t('today'), color: COLORS.todayLabel });
+  // 「今日」分隔线：实际数据与未来推演的分界（标签钉在线顶）
+  primitives.push(new VertLine({
+    time: todayPos, color: COLORS.today, dashed: true,
+    label: t('today'), labelColor: COLORS.todayLabel,
+  }));
 
   // 预测终点已过时仍保留右侧留白（以「今日」为准）；有未来视界时延伸到视界
   const extendTo = Math.max(
@@ -103,19 +104,20 @@ export function buildAnnotations(pivots, candles, todayH, horizon = null) {
   }
 
   // 减半竖线：按 210,000 块网格铺到视界为止（高度是协议常量，全部实线）。
-  // 主图与狼波指数副图各挂一条，视觉上贯穿两个面板
+  // 主图与狼波指数副图各挂一条，视觉上贯穿两个面板；标签钉在主图线顶
   for (let i = 0; i < 10; i++) {
     const hgt = HALVING_HEIGHTS[0] + i * HALVING_INTERVAL;
     if (hgt > extendTo) break;
-    primitives.push(new VertLine({ time: hgt, color: COLORS.halving }));
+    primitives.push(new VertLine({
+      time: hgt, color: COLORS.halving,
+      label: t('halving'), labelColor: COLORS.halvingLabel,
+    }));
     phasePrimitives.push(new VertLine({ time: hgt, color: COLORS.halving }));
-    axisMarks.push({ time: hgt, label: t('halving'), color: COLORS.halvingLabel });
   }
 
   return {
     primitives,
     phasePrimitives,
-    axisMarks,
     extendTo,
     meta: { topPos: lastTop.pos, todayPos, predictedEnd },
   };

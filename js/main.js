@@ -62,7 +62,6 @@ async function init() {
   let bars = [];           // 按块分桶的 bars + whitespace（图表数据源，time=桶起始高度）
   let pivots = [];
   let meta = null;         // { topPos, todayPos, predictedEnd }（单位：高度）
-  let axisMarks = [];      // 顶部标签轴条目（含 DOM 元素）
   let idxCache = null;
   let tipHeight = null;    // 当前链上高度（后台获取）
   let watermark = null;
@@ -72,9 +71,6 @@ async function init() {
   const LWC = window.LightweightCharts;
   const { chart, series, phaseSolid, phaseDashed } = createChartAndSeries($('chart'));
 
-  // ── 顶部标签轴 ──
-  const topAxis = $('top-axis');
-
   // 绘图区宽度。不能用 timeScale().width()：内置时间轴已隐藏，它返回 0
   function paneWidth() {
     try {
@@ -82,36 +78,6 @@ async function init() {
     } catch {
       return $('chart').clientWidth;
     }
-  }
-
-  function positionAxisMarks() {
-    const width = paneWidth();
-    for (const m of axisMarks) {
-      const x = logicalToX(chart, timeToLogical(m.time));
-      const show = x !== null && x >= 0 && x <= width;
-      m.el.hidden = !show;
-      m.tick.hidden = !show;
-      if (show) {
-        m.el.style.left = `${x}px`;
-        m.tick.style.left = `${x}px`;
-      }
-    }
-  }
-
-  function renderAxisMarks(marks) {
-    topAxis.textContent = '';
-    axisMarks = marks.map((m) => {
-      const el = document.createElement('span');
-      el.className = 'ax-label';
-      el.textContent = m.label;
-      el.style.color = m.color;
-      const tick = document.createElement('i');
-      tick.className = 'ax-tick';
-      tick.style.background = m.color;
-      topAxis.append(el, tick);
-      return { ...m, el, tick };
-    });
-    positionAxisMarks();
   }
 
   // ── 底部区块刻度轴（主行：高度；副行：对应≈日期） ──
@@ -174,14 +140,8 @@ async function init() {
     bxCursor.hidden = false;
   }
 
-  chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
-    positionAxisMarks();
-    renderBlockAxis();
-  });
-  window.addEventListener('resize', () => {
-    positionAxisMarks();
-    renderBlockAxis();
-  });
+  chart.timeScale().subscribeVisibleLogicalRangeChange(renderBlockAxis);
+  window.addEventListener('resize', renderBlockAxis);
 
   function makeWatermark() {
     try {
@@ -263,12 +223,10 @@ async function init() {
     attachedPhase = annotOn ? ann.phasePrimitives : [];
     for (const p of attachedPhase) phaseSolid.attachPrimitive(p);
     idxCache = null;
-    renderAxisMarks(ann.axisMarks);
     if (fit) {
       // 等一帧，确保 autoSize 已应用真实容器尺寸
       requestAnimationFrame(() => {
         focusCurrent();
-        positionAxisMarks();
         renderBlockAxis();
       });
     } else {
@@ -409,7 +367,6 @@ async function init() {
       for (const p of attachedPhase) phaseSolid.detachPrimitive(p);
       attachedPhase = [];
     }
-    topAxis.style.visibility = annotOn ? '' : 'hidden';
     $('annot-toggle').classList.toggle('active', annotOn);
   });
 
