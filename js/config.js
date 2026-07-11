@@ -51,10 +51,10 @@ export const THEMES = {
     bearLabel: '#f7525f',
 
     // 狼波周期指数推导的牛熊区间底色（「今日」之后的推演段用浅色）
-    bandFillBull: 'rgba(8, 153, 129, 0.09)',
-    bandFillBullProjected: 'rgba(8, 153, 129, 0.05)',
-    bandFillBear: 'rgba(242, 54, 69, 0.14)',
-    bandFillBearProjected: 'rgba(242, 54, 69, 0.08)',
+    bandFillBull: 'rgba(11, 189, 154, 0.20)',
+    bandFillBullProjected: 'rgba(11, 189, 154, 0.11)',
+    bandFillBear: 'rgba(246, 70, 93, 0.24)',
+    bandFillBearProjected: 'rgba(246, 70, 93, 0.13)',
 
     halving: 'rgba(46, 107, 255, 0.55)',
     halvingLabel: '#7da3ff',
@@ -80,10 +80,10 @@ export const THEMES = {
     bearLabel: '#e02a3a',
 
     // 狼波周期指数推导的牛熊区间底色（「今日」之后的推演段用浅色）
-    bandFillBull: 'rgba(8, 153, 129, 0.08)',
-    bandFillBullProjected: 'rgba(8, 153, 129, 0.05)',
-    bandFillBear: 'rgba(242, 54, 69, 0.10)',
-    bandFillBearProjected: 'rgba(242, 54, 69, 0.06)',
+    bandFillBull: 'rgba(8, 153, 129, 0.15)',
+    bandFillBullProjected: 'rgba(8, 153, 129, 0.08)',
+    bandFillBear: 'rgba(242, 54, 69, 0.15)',
+    bandFillBearProjected: 'rgba(242, 54, 69, 0.08)',
 
     halving: 'rgba(41, 98, 255, 0.50)',
     halvingLabel: '#2962ff',
