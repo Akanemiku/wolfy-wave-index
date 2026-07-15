@@ -21,7 +21,6 @@
   --accent: #2e6bff;
   --up: #089981;
   --down: #f23645;
-  --wave: #eab04d;
 }
 
 :root[data-theme="light"] {
@@ -36,7 +35,6 @@
   --accent: #2962ff;
   --up: #089981;
   --down: #e02a3a;
-  --wave: #c88a2d;
 }
 
 :root {
@@ -219,10 +217,8 @@ body {
 .chg.up { color: var(--up); }
 .chg.down { color: var(--down); }
 
-/* 狼波指数值：全站统一的狼波金 */
-.wave-value {
-  color: var(--wave);
-}
+/* 狼波指数读数的颜色由 JS 按 waveColor(值) 动态设置——
+   与折线/色标同一色谱，同一数值同一颜色 */
 
 /* 次级数值单元（周期状态）：比价格小一号；纯展示，不用边框盒
    ——细边框小盒的视觉语言专属可交互控件 */
@@ -410,7 +406,7 @@ body {
   padding: 3px 8px;
   background: var(--sub);
   color: var(--bg);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -426,7 +422,7 @@ body {
   padding: 3px 8px;
   background: var(--panel-2);
   border: 1px solid var(--border);
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--text);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -466,7 +462,7 @@ body {
 }
 
 .ws-label {
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--sub);
   white-space: nowrap;
 }
@@ -491,7 +487,7 @@ body {
   flex-direction: column;
   justify-content: space-between;
   margin: -4px 0;
-  font-size: 9.5px;
+  font-size: 10px;
   color: var(--faint);
   font-variant-numeric: tabular-nums;
 }
@@ -551,7 +547,7 @@ body {
   z-index: 10;
   pointer-events: none;
   user-select: none;
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--sub);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -573,7 +569,6 @@ body {
 /* 副图标题行：与主图 OHLC 读数完全同一套排版（字体/字号/左距/留白），
    纵向位置由 JS 跟随副图面板顶部 */
 .phase-legend .wave-text {
-  color: var(--wave);
   font-weight: 600;
   margin-left: 12px;
 }
@@ -592,14 +587,14 @@ body {
   max-width: calc(100% - 28px);
   background: var(--panel);
   border: 1px solid var(--border);
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--text);
 }
 
 .notice button {
   border: none;
   background: none;
-  font-size: 16px;
+  font-size: 18px;
   cursor: pointer;
   color: var(--sub);
   padding: 0 6px;
@@ -675,7 +670,7 @@ body {
     padding: 8px 12px;
   }
 
-  .price { font-size: 16px; }
+  .price { font-size: 18px; }
 
   .toolbar { padding: 6px 12px; }
   .seg button { padding: 0 9px; }

@@ -59,6 +59,16 @@ function waveColor(v) {
   return 'rgb(236, 38, 38)';
 }
 
+// 读数文字用的狼波色：与折线/色标同一色谱（同一数值同一颜色）；
+// 浅色主题下压暗一档——色谱中段的黄绿在白底上几乎不可读
+function waveTextColor(v) {
+  const c = waveColor(v);
+  if (document.documentElement.dataset.theme !== 'light') return c;
+  const [r, g, b] = c.match(/\d+/g).map(Number);
+  const k = 0.72;
+  return `rgb(${Math.round(r * k)}, ${Math.round(g * k)}, ${Math.round(b * k)})`;
+}
+
 function showNotice(text) {
   $('notice-text').textContent = text;
   $('notice').hidden = false;
@@ -316,7 +326,7 @@ async function init() {
       return;
     }
     phaseLegend.innerHTML =
-      `${t('paneTitleName')}<b class="wave-text">${v.toFixed(2)}</b>`;
+      `${t('paneTitleName')}<b class="wave-text" style="color: ${waveTextColor(v)}">${v.toFixed(2)}</b>`;
   }
 
   // ── 渲染管线 ──
@@ -403,7 +413,9 @@ async function init() {
       el.textContent = fmtPct(chg);
       el.className = `chg ${chg >= 0 ? 'up' : 'down'}`;
     }
-    $('stat-wave').textContent = waveNow !== null ? waveNow.toFixed(2) : '—';
+    const waveEl = $('stat-wave');
+    waveEl.textContent = waveNow !== null ? waveNow.toFixed(2) : '—';
+    waveEl.style.color = waveNow !== null ? waveTextColor(waveNow) : '';
     const marker = $('ws-marker');
     if (waveNow !== null) {
       marker.hidden = false;
