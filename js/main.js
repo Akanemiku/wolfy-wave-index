@@ -165,7 +165,7 @@ async function init() {
       label.style.left = `${x}px`;
       const date = document.createElement('span');
       date.className = 'bx-date';
-      date.textContent = `≈${fmtTickDate(timeAtHeight(h))}`;
+      date.textContent = `≈ ${fmtTickDate(timeAtHeight(h))}`;
       date.style.left = `${x}px`;
       blockAxis.append(tick, label, date);
     }
@@ -188,7 +188,7 @@ async function init() {
     nowLine.style.borderColor = COLORS.today;
     nowLine.hidden = false;
     bxNow.textContent = fmtInt(h);
-    bxNow.title = `≈${fmtDMY(timeAtHeight(h))}`;
+    bxNow.title = `≈ ${fmtDMY(timeAtHeight(h))}`;
     bxNow.style.left = `${x}px`;
     bxNow.hidden = false;
   }
@@ -205,7 +205,7 @@ async function init() {
       bxCursor.hidden = true;
       return;
     }
-    bxCursor.textContent = `${fmtInt(h)} · ≈${fmtDMY(timeAtHeight(h))}`;
+    bxCursor.textContent = `${fmtInt(h)} · ≈ ${fmtDMY(timeAtHeight(h))}`;
     bxCursor.style.left = `${x}px`;
     bxCursor.hidden = false;
   }
