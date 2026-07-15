@@ -512,10 +512,6 @@ body {
   font-weight: 600;
 }
 
-.phase-legend .hint {
-  color: var(--faint);
-}
-
 /* ── 提示与加载 ── */
 .notice {
   position: absolute;

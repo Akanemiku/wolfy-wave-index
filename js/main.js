@@ -303,7 +303,7 @@ async function init() {
     }
   }
 
-  // 副图标题行（DOM，与主图 OHLC 读数同一套排版）：名称 + 实时读数 + 图例。
+  // 副图标题行（DOM，与主图 OHLC 读数同一套排版）：名称 + 实时读数。
   // 读数跟随十字线，移开时回落为当前值
   function updateWaveTitle(v = waveNow) {
     if (v === null) {
@@ -311,8 +311,7 @@ async function init() {
       return;
     }
     phaseLegend.innerHTML =
-      `${t('paneTitleName')}　<b class="wave-text">${v.toFixed(2)}</b>　`
-      + `<span class="hint">${t('paneTitleHint')}</span>`;
+      `${t('paneTitleName')}　<b class="wave-text">${v.toFixed(2)}</b>`;
   }
 
   // ── 渲染管线 ──
