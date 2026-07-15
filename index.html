@@ -14,13 +14,18 @@
     </div>
     <div class="topbar-right">
       <div class="stats">
-        <div class="price-block">
-          <span id="stat-price" class="price">—</span>
-          <span id="stat-chg" class="chg">—</span>
+        <div class="stat">
+          <span class="stat-label" id="label-price">比特币价格</span>
+          <div class="stat-value">
+            <span id="stat-price" class="price">—</span>
+            <span id="stat-chg" class="chg">—</span>
+          </div>
         </div>
-        <div class="price-block" title="0 = 熊底 Bottom · 1 = 牛顶 Top">
-          <span id="stat-wave" class="price wave-value">—</span>
-          <span id="stat-wave-label" class="wave-label">狼波指数</span>
+        <div class="stat" title="0 = 熊底 Bottom · 1 = 牛顶 Top">
+          <span class="stat-label" id="stat-wave-label">狼波指数</span>
+          <div class="stat-value">
+            <span id="stat-wave" class="price wave-value">—</span>
+          </div>
         </div>
         <div class="chip" id="stat-cycle">—</div>
         <div class="chip" id="stat-bottom">—</div>

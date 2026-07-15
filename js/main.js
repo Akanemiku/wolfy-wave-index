@@ -500,6 +500,7 @@ async function init() {
     $('brand-name').textContent = t('brand');
     tfButtons.forEach((b) => { b.textContent = t(TF_KEYS[b.dataset.tf]); });
     styleButtons.forEach((b) => { b.textContent = t(STYLE_KEYS[b.dataset.style]); });
+    $('label-price').textContent = t('priceLabel');
     $('stat-wave-label').textContent = t('waveLabel');
     scaleButtons.forEach((b) => { b.textContent = t(b.dataset.scale === 'log' ? 'log' : 'linear'); });
     $('annot-label').textContent = t('marks');
