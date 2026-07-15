@@ -53,16 +53,16 @@ export const THEMES = {
     line: '#2e6bff',
 
     // 牛=翡翠绿、熊=玫瑰红：都带较高蓝分量，叠在深藏青底上混出干净的
-    // 冷青绿/酒红，避免旧配色的沼泽绿与酱褐色
-    bullBorder: 'rgba(0, 208, 132, 0.55)',
+    // 冷青绿/酒红，避免旧配色的沼泽绿与酱褐色。
+    // 整体刻意压低存在感：色带是背景语境，视觉重心留给 K 线
+    bullBorder: 'rgba(0, 208, 132, 0.30)',
     bullLabel: '#34d399',
-    bearBorder: 'rgba(255, 82, 119, 0.55)',
+    bearBorder: 'rgba(255, 82, 119, 0.30)',
     bearLabel: '#fb7185',
 
-    // 狼波周期指数推导的牛熊区间底色（过去/当前/未来同一套）；
-    // 有高饱和边界线兜底，填充保持轻量
-    bandFillBull: 'rgba(0, 208, 132, 0.10)',
-    bandFillBear: 'rgba(255, 82, 119, 0.13)',
+    // 狼波周期指数推导的牛熊区间底色（过去/当前/未来同一套）
+    bandFillBull: 'rgba(0, 208, 132, 0.06)',
+    bandFillBear: 'rgba(255, 82, 119, 0.08)',
 
     halving: 'rgba(46, 107, 255, 0.55)',
     halvingLabel: '#7da3ff',
@@ -89,16 +89,16 @@ export const THEMES = {
     // 折线模式的中性线色（绿色留给「涨」语义）
     line: '#2962ff',
 
-    // 与深色主题同一色相：白底上呈清爽的薄荷绿/玫瑰粉
-    bullBorder: 'rgba(0, 168, 107, 0.50)',
+    // 与深色主题同一色相：白底上呈清爽的薄荷绿/玫瑰粉。
+    // 同样压低存在感，视觉重心留给 K 线
+    bullBorder: 'rgba(0, 168, 107, 0.28)',
     bullLabel: '#059669',
-    bearBorder: 'rgba(228, 35, 91, 0.45)',
+    bearBorder: 'rgba(228, 35, 91, 0.25)',
     bearLabel: '#e11d48',
 
-    // 狼波周期指数推导的牛熊区间底色（过去/当前/未来同一套）；
-    // 有高饱和边界线兜底，填充保持轻量
-    bandFillBull: 'rgba(0, 168, 107, 0.08)',
-    bandFillBear: 'rgba(228, 35, 91, 0.08)',
+    // 狼波周期指数推导的牛熊区间底色（过去/当前/未来同一套）
+    bandFillBull: 'rgba(0, 168, 107, 0.05)',
+    bandFillBear: 'rgba(228, 35, 91, 0.05)',
 
     halving: 'rgba(41, 98, 255, 0.50)',
     halvingLabel: '#2962ff',
