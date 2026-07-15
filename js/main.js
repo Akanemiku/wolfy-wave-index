@@ -12,7 +12,6 @@ import {
   aggregateByBlocks, extendBlocks, prependBlocks, waveIndexAt, waveHorizonHeight,
 } from './blocks.js';
 import { computePivots, buildAnnotations } from './pivots.js';
-import { BlockGrid } from './primitives/grid-lines.js';
 import { t, setLang, I18N } from './i18n.js';
 import { setSeriesData, timeToLogical, logicalToX } from './primitives/base.js';
 
@@ -214,16 +213,6 @@ async function init() {
   chart.timeScale().subscribeVisibleLogicalRangeChange(renderBlockAxis);
   window.addEventListener('resize', renderBlockAxis);
 
-  // 图内垂直网格线（与 y 轴水平网格对称）：主图/副图各挂一条 pane primitive，
-  // 刻度与底部区块轴严格同源
-  const gridTicks = () => computeAxisTicks()?.ticks ?? [];
-  const gridMain = new BlockGrid(gridTicks);
-  const gridPhase = new BlockGrid(gridTicks);
-  try {
-    chart.panes()[0].attachPrimitive(gridMain);
-    chart.panes()[1].attachPrimitive(gridPhase);
-  } catch (e) { console.warn('垂直网格线挂载失败（不影响功能）：', e); }
-
   // ── 狼波指数副图窗格的显隐 ──
   // 隐藏 = 把两条指数系列移到主面板并设不可见（空面板被 LWC 自动移除，
   // 主图占满全高）；显示 = 移回面板 1 并恢复线性坐标、留白与 4:1 高度。
@@ -271,7 +260,6 @@ async function init() {
         panes[1].setStretchFactor(1);
       } catch (e) { console.warn('副图高度设置失败（不影响功能）：', e); }
       makeWatermark(); // 副图标题随面板销毁，重建
-      try { chart.panes()[1].attachPrimitive(gridPhase); } catch { /* 网格线缺失不影响功能 */ }
       if (annotOn) {
         for (const p of builtPhase) phaseSolid.attachPrimitive(p);
         attachedPhase = builtPhase;
