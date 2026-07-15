@@ -21,7 +21,7 @@ export const STRINGS = {
     today: '今日',
     bull: '牛市',
     bear: '熊市',
-    paneTitleName: '狼波周期指数 Wolfy Wave Index',
+    paneTitleName: '狼波周期指数',
     watermark: ['狼波周期指数', 'Wolfy Wave Index'],
     cycleLabel: '本轮熊市进度',
     cycleValue: (x, y) => `第 <b>${x}</b> / ${y} 区块`,

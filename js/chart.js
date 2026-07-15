@@ -25,7 +25,7 @@ function themeOptions() {
       vertLines: { visible: false },
       horzLines: { color: COLORS.grid },
     },
-    rightPriceScale: { borderColor: COLORS.scaleBorder },
+    leftPriceScale: { borderColor: COLORS.scaleBorder },
   };
 }
 
@@ -56,7 +56,10 @@ export function createChartAndSeries(container) {
   const chart = LWC.createChart(container, {
     autoSize: true,
     ...themeOptions(),
-    rightPriceScale: {
+    // 价格轴在左侧；右缘不留轴
+    rightPriceScale: { visible: false },
+    leftPriceScale: {
+      visible: true,
       mode: LWC.PriceScaleMode.Logarithmic,
       borderColor: COLORS.scaleBorder,
       scaleMargins: { top: 0.06, bottom: 0.04 },
@@ -69,11 +72,15 @@ export function createChartAndSeries(container) {
     localization: { locale: 'zh-CN' },
   });
 
-  const series = chart.addSeries(LWC.CandlestickSeries, seriesThemeOptions());
+  const series = chart.addSeries(LWC.CandlestickSeries, {
+    ...seriesThemeOptions(),
+    priceScaleId: 'left',
+  });
 
-  // 折线模式的价格系列（收盘价），与 K 线切换显示、共用右轴
+  // 折线模式的价格系列（收盘价），与 K 线切换显示、共用左轴
   const lineSeries = chart.addSeries(LWC.LineSeries, {
     ...lineThemeOptions(),
+    priceScaleId: 'left',
     lineWidth: 1.5,
     visible: false,
     priceFormat: { type: 'custom', formatter: priceFormatter, minMove: 0.01 },
@@ -84,6 +91,7 @@ export function createChartAndSeries(container) {
   // 狼波着色模式：折线逐点着色（颜色 = 该处狼波指数，蓝 0 → 红 1），
   // 颜色随数据点传入，不走主题
   const waveLine = chart.addSeries(LWC.LineSeries, {
+    priceScaleId: 'left',
     lineWidth: 2.5,
     visible: false,
     priceFormat: { type: 'custom', formatter: priceFormatter, minMove: 0.01 },
@@ -92,10 +100,11 @@ export function createChartAndSeries(container) {
   });
 
   // 狼波周期指数副图区（TradingView 风格的下方独立面板）：
-  // 实线 = 已发生，虚线 = 预测段；右轴显示 0~1 小数读数
+  // 实线 = 已发生，虚线 = 预测段；左轴显示 0~1 小数读数
   const phaseFormat = { type: 'custom', formatter: (v) => v.toFixed(2), minMove: 0.01 };
   const phaseSolid = chart.addSeries(LWC.LineSeries, {
     ...phaseThemeOptions(),
+    priceScaleId: 'left',
     lineWidth: 1.5,
     priceFormat: phaseFormat,
     priceLineVisible: false,
@@ -103,6 +112,7 @@ export function createChartAndSeries(container) {
   }, 1);
   const phaseDashed = chart.addSeries(LWC.LineSeries, {
     ...phaseThemeOptions(),
+    priceScaleId: 'left',
     lineWidth: 1.5,
     lineStyle: LWC.LineStyle.Dashed,
     priceFormat: phaseFormat,
@@ -141,7 +151,7 @@ export function applyChartTheme(chart, series, lineSeries, phaseSolid, phaseDash
 // 对数/线性切换
 export function setLogScale(chart, useLog) {
   const LWC = window.LightweightCharts;
-  chart.priceScale('right').applyOptions({
+  chart.priceScale('left').applyOptions({
     mode: useLog ? LWC.PriceScaleMode.Logarithmic : LWC.PriceScaleMode.Normal,
   });
 }

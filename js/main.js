@@ -126,6 +126,16 @@ async function init() {
     }
   }
 
+  // 价格轴在左侧：logicalToX 给出的是面板内坐标，所有 DOM 覆盖元素
+  //（底轴刻度/浮标、引导线、读数行）定位时都要加上左轴宽度
+  function paneLeft() {
+    try {
+      return chart.priceScale('left').width() || 0;
+    } catch {
+      return 0;
+    }
+  }
+
   // ── 底部区块刻度轴（主行：高度；副行：对应≈日期） ──
   const blockAxis = $('block-axis');
   const bxCursor = $('bx-cursor');
@@ -161,21 +171,22 @@ async function init() {
     const res = computeAxisTicks();
     if (!res) return;
     const fmtTickDate = res.step >= 20000 ? fmtMY : fmtDMY; // 粗刻度只标到月
+    const pl = paneLeft();
     for (const el of [...blockAxis.querySelectorAll('.bx-label, .bx-date, .bx-tick')]) el.remove();
     for (const h of res.ticks) {
       const x = logicalToX(chart, timeToLogical(h));
       if (x === null || x < 0 || x > width) continue;
       const tick = document.createElement('i');
       tick.className = 'bx-tick';
-      tick.style.left = `${x}px`;
+      tick.style.left = `${pl + x}px`;
       const label = document.createElement('span');
       label.className = 'bx-label';
       label.textContent = fmtInt(h);
-      label.style.left = `${x}px`;
+      label.style.left = `${pl + x}px`;
       const date = document.createElement('span');
       date.className = 'bx-date';
       date.textContent = `≈ ${fmtTickDate(timeAtHeight(h))}`;
-      date.style.left = `${x}px`;
+      date.style.left = `${pl + x}px`;
       blockAxis.append(tick, label, date);
     }
     updateNowGuide();
@@ -193,7 +204,8 @@ async function init() {
       bxNow.hidden = true;
       return;
     }
-    nowLine.style.left = `${x}px`;
+    const pl = paneLeft();
+    nowLine.style.left = `${pl + x}px`;
     nowLine.style.borderColor = COLORS.today;
     nowLine.hidden = false;
     // 与十字线浮标同格式（高度 · ≈日期）；不用 title——
@@ -202,7 +214,7 @@ async function init() {
     bxNow.hidden = false;
     // 贴近左右边缘时钳制在可视范围内，不被拦腰裁掉
     const bw = bxNow.offsetWidth;
-    bxNow.style.left = `${Math.max(bw / 2, Math.min(width - bw / 2, x))}px`;
+    bxNow.style.left = `${pl + Math.max(bw / 2, Math.min(width - bw / 2, x))}px`;
   }
 
   // 十字线在底轴上的浮标：高度 · ≈日期（负高度不存在，不显示）
@@ -221,7 +233,7 @@ async function init() {
     bxCursor.hidden = false;
     // 贴近左右边缘时钳制在可视范围内，不被拦腰裁掉
     const cw = bxCursor.offsetWidth;
-    bxCursor.style.left = `${Math.max(cw / 2, Math.min(width - cw / 2, x))}px`;
+    bxCursor.style.left = `${paneLeft() + Math.max(cw / 2, Math.min(width - cw / 2, x))}px`;
   }
 
   chart.timeScale().subscribeVisibleLogicalRangeChange(renderBlockAxis);
@@ -235,9 +247,7 @@ async function init() {
   const phaseLegend = $('phase-legend');
   function positionPhaseToggle() {
     const hostH = $('chart').clientHeight;
-    let scaleW = 70;
-    try { scaleW = chart.priceScale('right').width() || 70; } catch { /* 布局未就绪 */ }
-    phaseBtn.style.right = `${scaleW + 8}px`;
+    phaseBtn.style.right = '8px'; // 价格轴在左侧，右缘无轴
     let top = hostH - 28; // 收起态：贴图表右下角
     if (phaseOn) {
       try {
@@ -247,7 +257,10 @@ async function init() {
       } catch { /* 布局未就绪 */ }
     }
     phaseBtn.style.top = `${top}px`;
-    // 副图标题与主图读数同样距面板顶 10px（top 已含 +5）
+    // 读数行贴面板左缘（左侧价格轴之右），与面板顶保持 10px（top 已含 +5）
+    const inset = paneLeft() + 14;
+    $('legend').style.left = `${inset}px`;
+    phaseLegend.style.left = `${inset}px`;
     phaseLegend.hidden = !phaseOn;
     if (phaseOn) phaseLegend.style.top = `${top + 5}px`;
   }
