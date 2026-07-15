@@ -21,23 +21,29 @@
             <span id="stat-chg" class="chg">—</span>
           </div>
         </div>
-        <div class="stat" title="0 = 熊底 Bottom · 1 = 牛顶 Top">
+        <div class="stat" id="stat-wave-cell" title="0 = 熊底 · 1 = 牛顶">
           <span class="stat-label" id="stat-wave-label">狼波指数</span>
           <div class="stat-value">
             <span id="stat-wave" class="price wave-value">—</span>
           </div>
         </div>
-        <div class="chip" id="stat-cycle">—</div>
-        <div class="chip" id="stat-bottom">—</div>
+        <div class="stat" id="stat-cycle-cell" title="自实际牛顶（价格最高点）起算；总长 = 历史熊市区块数均值">
+          <span class="stat-label" id="label-cycle">本轮熊市进度</span>
+          <div class="stat-value stat-sub" id="stat-cycle">—</div>
+        </div>
+        <div class="stat" id="stat-bottom-cell">
+          <span class="stat-label" id="label-bottom">距预测见底</span>
+          <div class="stat-value stat-sub" id="stat-bottom">—</div>
+        </div>
       </div>
       <div class="top-actions">
-        <div class="lang-switch" title="语言 / Language">
+        <div class="lang-switch" id="lang-switch" title="语言">
           <button class="lang-opt" data-lang="zh">中</button>
           <button class="lang-opt" data-lang="en">EN</button>
         </div>
-        <button class="icon-btn" id="theme-toggle" title="主题 / Theme">
-          <svg class="icon-sun" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
-          <svg class="icon-moon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20.5 14.4A8.5 8.5 0 0 1 9.6 3.5a8.5 8.5 0 1 0 10.9 10.9z"/></svg>
+        <button class="icon-btn" id="theme-toggle" title="深/浅主题">
+          <svg class="icon-sun" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20.5 14.4A8.5 8.5 0 0 1 9.6 3.5a8.5 8.5 0 1 0 10.9 10.9z"/></svg>
         </button>
       </div>
     </div>
@@ -45,19 +51,19 @@
 
   <div class="toolbar">
     <div class="toolbar-group">
-      <div class="seg" id="tf-group">
+      <div class="seg" id="tf-group" title="分桶粒度（每根 K 线的区块数）">
         <button data-tf="day" class="active">144 区块（日）</button>
         <button data-tf="week">1,008 区块（周）</button>
         <button data-tf="month">4,368 区块（月）</button>
       </div>
-      <div class="seg" id="style-group">
+      <div class="seg" id="style-group" title="图表类型">
         <button data-style="candles">K线</button>
         <button data-style="line">折线</button>
         <button data-style="wave" class="active">狼波着色</button>
       </div>
     </div>
     <div class="toolbar-group">
-      <div class="seg" id="scale-group" title="坐标模式">
+      <div class="seg" id="scale-group" title="价格坐标">
         <button data-scale="log" class="active">对数</button>
         <button data-scale="linear">线性</button>
       </div>
@@ -75,14 +81,14 @@
       <div id="now-line" class="now-line" hidden></div>
       <div id="legend" class="legend"></div>
       <div id="phase-legend" class="legend phase-legend" hidden></div>
-      <button id="phase-toggle" class="phase-toggle active" title="隐藏/显示狼波指数窗格 · Hide/Show pane">
+      <button id="phase-toggle" class="phase-toggle active" title="显示/隐藏狼波指数窗格">
         <svg class="icon-collapse" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         <svg class="icon-expand" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"/></svg>
         <span id="phase-label">隐藏</span>
       </button>
     </div>
 
-    <aside class="wave-scale" title="狼波指数色标 / Wave index color scale">
+    <aside class="wave-scale" id="wave-scale" title="狼波指数色标">
       <div class="ws-label" id="ws-top">牛顶</div>
       <div class="ws-body">
         <div class="ws-bar" id="ws-bar">
@@ -107,15 +113,16 @@
   </main>
 
   <div id="block-axis" class="block-axis">
+    <span id="bx-name" class="bx-name">区块高度</span>
     <div id="bx-now" class="bx-now" hidden></div>
     <div id="bx-cursor" class="bx-cursor" hidden></div>
   </div>
 
   <footer class="foot">
     <span id="foot-data">数据来源：Bitstamp / Coinbase Exchange</span>
-    <span class="foot-sep">·</span>
-    <span id="foot-theory">牛市 157,500 块 / 熊市 52,500 块，减半在牛市正中</span>
-    <span class="foot-sep">·</span>
+    <span class="foot-sep" id="foot-sep-1">·</span>
+    <span id="foot-theory">牛市 157,500 区块 / 熊市 52,500 区块，减半在牛市正中</span>
+    <span class="foot-sep" id="foot-sep-2">·</span>
     <span id="foot-disclaimer">周期理论仅供参考，不构成投资建议</span>
   </footer>
 
@@ -124,7 +131,8 @@
     // 模块内的检测代码是死代码
     if (location.protocol === 'file:') {
       document.getElementById('loading-text').textContent =
-        '不能直接双击打开本页面，请在项目目录运行 python3 -m http.server 8080 后访问 http://localhost:8080';
+        '不能直接双击打开本页面，请在项目目录运行 python3 -m http.server 8080 后访问 http://localhost:8080 '
+        + '/ This page cannot be opened via file:// — run "python3 -m http.server 8080" in the project folder, then visit http://localhost:8080';
       document.querySelector('.loading-spinner').style.display = 'none';
     }
   </script>

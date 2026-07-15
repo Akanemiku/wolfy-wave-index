@@ -34,7 +34,7 @@ let _anchors = []; // [ts, height] 升序
 
 export async function loadHeightAnchors() {
   const res = await fetch('./data/btc-heights.json', { signal: timeoutSignal(15000) });
-  if (!res.ok) throw new Error(`高度锚点加载失败：HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`btc-heights.json HTTP ${res.status}`);
   _anchors = (await res.json()).anchors;
 }
 

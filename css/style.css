@@ -39,8 +39,18 @@
   --wave: #c88a2d;
 }
 
+:root {
+  --ctl-h: 28px; /* 顶栏/工具栏所有控件的统一总高 */
+}
+
 [hidden] {
   display: none !important;
+}
+
+/* 键盘导航焦点环：替代与深色行情风格冲突的浏览器默认样式 */
+:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
 }
 
 * {
@@ -103,18 +113,21 @@ body {
   display: flex;
   gap: 2px;
   padding: 2px;
+  height: var(--ctl-h);
   background: var(--panel);
   border: 1px solid var(--border);
 }
 
 .lang-opt {
+  display: flex;
+  align-items: center;
   border: none;
   background: none;
   color: var(--sub);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   font-family: inherit;
-  padding: 3px 9px;
+  padding: 0 10px;
   cursor: pointer;
 }
 
@@ -132,7 +145,7 @@ body {
   align-items: center;
   justify-content: center;
   width: 30px;
-  height: 28px;
+  height: var(--ctl-h);
   padding: 0;
   background: var(--panel);
   border: 1px solid var(--border);
@@ -211,18 +224,17 @@ body {
   color: var(--wave);
 }
 
-.chip {
-  padding: 4px 10px;
-  border: 1px solid var(--border);
-  font-size: 11.5px;
+/* 次级数值单元（周期状态）：比价格小一号；纯展示，不用边框盒
+   ——细边框小盒的视觉语言专属可交互控件 */
+.stat-value.stat-sub {
+  font-size: 13px;
   color: var(--sub);
-  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
-.chip b {
+.stat-sub b {
   color: var(--text);
-  font-weight: 600;
+  font-weight: 620;
 }
 
 /* ── 工具栏（分段控件） ── */
@@ -234,32 +246,44 @@ body {
   padding: 8px 20px;
   border-bottom: 1px solid var(--border);
   flex: none;
+  /* 任何宽度下都不允许两组控件互相叠压：放不下就横向滚动 */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.toolbar::-webkit-scrollbar {
+  display: none;
 }
 
 .toolbar-group {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 0;
+  /* 不允许分组收缩到比内容窄：否则控件溢出组框互相叠压，
+     工具栏也因“未溢出”而永远触发不了横向滚动兜底 */
+  flex: none;
 }
 
 .seg {
   display: flex;
   gap: 2px;
   padding: 2px;
+  height: var(--ctl-h);
   background: var(--panel);
   border: 1px solid var(--border);
   flex: none;
 }
 
 .seg button {
+  display: flex;
+  align-items: center;
   border: none;
   background: none;
   color: var(--sub);
   font-size: 12px;
   font-weight: 500;
   font-family: inherit;
-  padding: 4px 12px;
+  padding: 0 12px;
   cursor: pointer;
   white-space: nowrap;
   transition: color 0.1s ease, background-color 0.1s ease;
@@ -269,10 +293,10 @@ body {
   color: var(--text);
 }
 
+/* 选中态只靠底色+文字色表达：字重变化会让文字变宽、整组按钮抖动 */
 .seg button.active {
   background: var(--panel-2);
   color: var(--text);
-  font-weight: 600;
 }
 
 /* 独立开关按钮（标注显隐）：与分段控件分开，睁眼/闭眼表达开关状态 */
@@ -280,11 +304,11 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 24px;
-  padding: 0 11px;
+  height: var(--ctl-h);
+  padding: 0 12px;
   background: var(--panel);
   border: 1px solid var(--border);
-  color: var(--faint);
+  color: var(--sub);
   font-size: 12px;
   font-weight: 500;
   font-family: inherit;
@@ -301,7 +325,6 @@ body {
 .toggle-btn.active {
   background: var(--panel-2);
   color: var(--text);
-  font-weight: 600;
 }
 
 .toggle-btn .icon-eye-off { display: none; }
@@ -316,6 +339,24 @@ body {
   background: var(--bg);
   overflow: hidden;
   flex: none;
+}
+
+/* 轴名标签：钉在区块轴左端，说明这根非常规主轴是什么 */
+.bx-name {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 10px 0 14px;
+  background: var(--bg);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--faint);
+  letter-spacing: 0.3px;
+  z-index: 1;
+  user-select: none;
 }
 
 .bx-label {
@@ -469,19 +510,20 @@ body {
   pointer-events: none;
 }
 
-/* 副图（狼波指数窗格）显隐开关：浮在窗格右上角；窗格收起后退到图表右下角 */
+/* 副图（狼波指数窗格）显隐开关：浮在窗格右上角；窗格收起后退到图表右下角。
+   高度 24px 是刻意的例外：浮在数据上方的迷你控件，比栏区控件紧凑一档 */
 .phase-toggle {
   position: absolute;
   z-index: 12;
   display: flex;
   align-items: center;
   gap: 5px;
-  height: 22px;
+  height: 24px;
   padding: 0 8px;
   background: var(--panel);
   border: 1px solid var(--border);
   color: var(--sub);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
@@ -491,6 +533,11 @@ body {
 .phase-toggle:hover {
   color: var(--text);
   background: var(--hover);
+}
+
+.phase-toggle.active {
+  background: var(--panel-2);
+  color: var(--text);
 }
 
 .phase-toggle .icon-expand { display: none; }
@@ -515,6 +562,11 @@ body {
   font-weight: 600;
 }
 
+/* 读数行内的分项间距（不用全角空格排版——其宽度取决于 CJK 回退字体） */
+.legend .li {
+  margin-right: 12px;
+}
+
 .legend .up { color: var(--up); }
 .legend .down { color: var(--down); }
 
@@ -523,12 +575,13 @@ body {
 .phase-legend .wave-text {
   color: var(--wave);
   font-weight: 600;
+  margin-left: 12px;
 }
 
 /* ── 提示与加载 ── */
 .notice {
   position: absolute;
-  top: 0;
+  top: 38px; /* 避开左上角 OHLC 读数行，窄窗口下不互相覆盖 */
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
@@ -536,9 +589,9 @@ body {
   align-items: center;
   gap: 10px;
   padding: 8px 14px;
+  max-width: calc(100% - 28px);
   background: var(--panel);
   border: 1px solid var(--border);
-  border-top: none;
   font-size: 12.5px;
   color: var(--text);
 }
@@ -549,7 +602,11 @@ body {
   font-size: 16px;
   cursor: pointer;
   color: var(--sub);
-  padding: 0 2px;
+  padding: 0 6px;
+}
+
+.notice button:hover {
+  color: var(--text);
 }
 
 .loading {
@@ -598,6 +655,18 @@ body {
   opacity: 0.6;
 }
 
+/* ── 窄屏降级 ── */
+/* 页脚：先收起理论参数，再收起数据来源；免责声明始终保留 */
+@media (max-width: 960px) {
+  #foot-theory,
+  #foot-sep-2 { display: none; }
+}
+
+@media (max-width: 540px) {
+  #foot-data,
+  #foot-sep-1 { display: none; }
+}
+
 /* ── 移动端 ── */
 @media (max-width: 720px) {
   .topbar {
@@ -608,16 +677,13 @@ body {
 
   .price { font-size: 16px; }
 
-  .toolbar {
-    padding: 6px 12px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .toolbar::-webkit-scrollbar { display: none; }
-  .seg button { padding: 4px 9px; font-size: 11.5px; }
-  .toggle-btn { padding: 0 9px; font-size: 11.5px; }
+  .toolbar { padding: 6px 12px; }
+  .seg button { padding: 0 9px; }
+  .toggle-btn { padding: 0 9px; }
   .wave-scale { display: none; }
-  .legend { font-size: 10px; }
-  .foot span:nth-child(n+2) { display: none; }
+
+  .legend {
+    font-size: 10px;
+    left: 12px;
+  }
 }

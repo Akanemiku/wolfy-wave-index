@@ -9,7 +9,7 @@ const timeoutSignal = (ms) => {
 
 export async function loadSnapshot() {
   const res = await fetch('./data/btc-daily.json', { signal: timeoutSignal(15000) });
-  if (!res.ok) throw new Error(`快照加载失败：HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`btc-daily.json HTTP ${res.status}`);
   const json = await res.json();
   return json.candles.map(([time, open, high, low, close]) => ({ time, open, high, low, close }));
 }

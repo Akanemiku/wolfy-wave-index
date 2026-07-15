@@ -44,8 +44,13 @@ export const THEMES = {
     chartText: '#8b93a1',
     grid: 'rgba(139, 147, 161, 0.13)',
     scaleBorder: '#323c4d',
+    // 面板分隔条 hover 高亮：可拖拽调高的唯一视觉暗示
+    paneSepHover: 'rgba(46, 107, 255, 0.28)',
+    // up/down 须与 style.css 的 --up/--down 保持同值（同一语义一种颜色）
     up: '#089981',
     down: '#f23645',
+    // 折线模式的中性线色（绿色留给「涨」语义）
+    line: '#2e6bff',
 
     // 牛=翡翠绿、熊=玫瑰红：都带较高蓝分量，叠在深藏青底上混出干净的
     // 冷青绿/酒红，避免旧配色的沼泽绿与酱褐色
@@ -78,8 +83,13 @@ export const THEMES = {
     chartText: '#767d8a',
     grid: 'rgba(70, 80, 96, 0.12)',
     scaleBorder: '#c6cedb',
+    // 面板分隔条 hover 高亮：可拖拽调高的唯一视觉暗示
+    paneSepHover: 'rgba(41, 98, 255, 0.22)',
+    // up/down 须与 style.css 的 --up/--down 保持同值（同一语义一种颜色）
     up: '#089981',
-    down: '#f23645',
+    down: '#e02a3a',
+    // 折线模式的中性线色（绿色留给「涨」语义）
+    line: '#2962ff',
 
     // 与深色主题同一色相：白底上呈清爽的薄荷绿/玫瑰粉
     bullBorder: 'rgba(0, 168, 107, 0.50)',

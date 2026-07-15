@@ -186,10 +186,13 @@ async function init() {
     nowLine.style.left = `${x}px`;
     nowLine.style.borderColor = COLORS.today;
     nowLine.hidden = false;
-    bxNow.textContent = fmtInt(h);
-    bxNow.title = `≈ ${fmtDMY(timeAtHeight(h))}`;
-    bxNow.style.left = `${x}px`;
+    // 与十字线浮标同格式（高度 · ≈日期）；不用 title——
+    // pointer-events:none 的元素 tooltip 永远弹不出来
+    bxNow.textContent = `${fmtInt(h)} · ≈ ${fmtDMY(timeAtHeight(h))}`;
     bxNow.hidden = false;
+    // 贴近左右边缘时钳制在可视范围内，不被拦腰裁掉
+    const bw = bxNow.offsetWidth;
+    bxNow.style.left = `${Math.max(bw / 2, Math.min(width - bw / 2, x))}px`;
   }
 
   // 十字线在底轴上的浮标：高度 · ≈日期（负高度不存在，不显示）
@@ -205,8 +208,10 @@ async function init() {
       return;
     }
     bxCursor.textContent = `${fmtInt(h)} · ≈ ${fmtDMY(timeAtHeight(h))}`;
-    bxCursor.style.left = `${x}px`;
     bxCursor.hidden = false;
+    // 贴近左右边缘时钳制在可视范围内，不被拦腰裁掉
+    const cw = bxCursor.offsetWidth;
+    bxCursor.style.left = `${Math.max(cw / 2, Math.min(width - cw / 2, x))}px`;
   }
 
   chart.timeScale().subscribeVisibleLogicalRangeChange(renderBlockAxis);
@@ -311,7 +316,7 @@ async function init() {
       return;
     }
     phaseLegend.innerHTML =
-      `${t('paneTitleName')}　<b class="wave-text">${v.toFixed(2)}</b>`;
+      `${t('paneTitleName')}<b class="wave-text">${v.toFixed(2)}</b>`;
   }
 
   // ── 渲染管线 ──
@@ -374,9 +379,11 @@ async function init() {
       requestAnimationFrame(() => {
         focusCurrent();
         renderBlockAxis();
+        positionPhaseToggle(); // 面板尺寸就绪后校正副图按钮/标题位置
       });
     } else {
       renderBlockAxis();
+      positionPhaseToggle();
     }
     updateStats();
     updateLegend(null);
@@ -401,7 +408,6 @@ async function init() {
     if (waveNow !== null) {
       marker.hidden = false;
       marker.style.bottom = `calc(${(waveNow * 100).toFixed(2)}% - 1px)`;
-      marker.title = waveNow.toFixed(2);
     }
     if (!meta) return;
 
@@ -409,11 +415,12 @@ async function init() {
     const total = meta.predictedEnd - meta.topPos;
     const remain = meta.predictedEnd - meta.todayPos;
     $('stat-cycle').innerHTML = elapsed >= 0
-      ? t('statCycle', fmtInt(elapsed), fmtInt(total))
+      ? t('cycleValue', fmtInt(elapsed), fmtInt(total))
       : '—';
     $('stat-bottom').innerHTML = remain >= 0
-      ? t('statBottom', fmtInt(remain), fmtInt(meta.predictedEnd))
-      : t('statBottomOver', fmtInt(-remain));
+      ? t('bottomValue', fmtInt(remain))
+      : t('bottomOverValue', fmtInt(-remain));
+    $('stat-bottom-cell').title = t('bottomTitle', fmtInt(meta.predictedEnd));
   }
 
   // ── 十字线 OHLC 读数（基于当前 bars） ──
@@ -434,10 +441,15 @@ async function init() {
     const chg = prevClose ? (c.close - prevClose) / prevClose : null;
     const dir = chg !== null && chg < 0 ? 'down' : 'up';
     const [o, h, l, cl] = t('legendOHLC');
+    // 系列标识（品种 · 粒度）+ OHLC；分项间距用 span+margin 排版
+    //（全角空格的宽度取决于 CJK 回退字体，EN 界面下忽宽忽窄）
     $('legend').innerHTML =
-      `${o} <b>${fmtPrice(c.open)}</b>　${h} <b>${fmtPrice(c.high)}</b>　`
-      + `${l} <b>${fmtPrice(c.low)}</b>　${cl} <b>${fmtPrice(c.close)}</b>`
-      + (chg !== null ? `　<span class="${dir}">${fmtPct(chg)}</span>` : '');
+      `<span class="li"><b>BTC/USD</b> · ${t(TF_KEYS[timeframe])}</span>`
+      + `<span class="li">${o} <b>${fmtPrice(c.open)}</b></span>`
+      + `<span class="li">${h} <b>${fmtPrice(c.high)}</b></span>`
+      + `<span class="li">${l} <b>${fmtPrice(c.low)}</b></span>`
+      + `<span class="li">${cl} <b>${fmtPrice(c.close)}</b></span>`
+      + (chg !== null ? `<span class="${dir}">${fmtPct(chg)}</span>` : '');
   }
 
   chart.subscribeCrosshairMove((param) => {
@@ -502,6 +514,21 @@ async function init() {
     styleButtons.forEach((b) => { b.textContent = t(STYLE_KEYS[b.dataset.style]); });
     $('label-price').textContent = t('priceLabel');
     $('stat-wave-label').textContent = t('waveLabel');
+    $('label-cycle').textContent = t('cycleLabel');
+    $('label-bottom').textContent = t('bottomLabel');
+    $('bx-name').textContent = t('axisName');
+    // tooltip / aria 文案同样随语言刷新（否则切 EN 后悬停仍弹中文）
+    $('lang-switch').title = t('titleLang');
+    $('theme-toggle').title = t('titleTheme');
+    $('stat-wave-cell').title = t('titleWaveStat');
+    $('stat-cycle-cell').title = t('cycleTitle');
+    $('tf-group').title = t('titleTf');
+    $('style-group').title = t('titleStyle');
+    $('scale-group').title = t('titleScale');
+    $('annot-toggle').title = t('titleAnnot');
+    $('phase-toggle').title = t('titlePhase');
+    $('wave-scale').title = t('titleWaveScale');
+    $('notice-close').setAttribute('aria-label', t('closeLabel'));
     scaleButtons.forEach((b) => { b.textContent = t(b.dataset.scale === 'log' ? 'log' : 'linear'); });
     $('annot-label').textContent = t('marks');
     $('phase-label').textContent = t(phaseOn ? 'phaseHide' : 'phaseShow');

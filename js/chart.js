@@ -14,7 +14,11 @@ function themeOptions() {
       textColor: COLORS.chartText,
       fontFamily: FONT,
       fontSize: 11,
-      panes: { separatorColor: COLORS.scaleBorder, enableResize: true },
+      panes: {
+        separatorColor: COLORS.scaleBorder,
+        separatorHoverColor: COLORS.paneSepHover, // hover 高亮暗示分隔条可拖拽
+        enableResize: true,
+      },
     },
     grid: {
       // 只保留极淡的横向网格：纵向网格与减半日/今日竖线视觉冲突
@@ -43,7 +47,7 @@ function phaseThemeOptions() {
 }
 
 function lineThemeOptions() {
-  return { color: COLORS.up };
+  return { color: COLORS.line }; // 中性线色：整条线用「涨」的绿会违背色彩语义
 }
 
 export function createChartAndSeries(container) {
