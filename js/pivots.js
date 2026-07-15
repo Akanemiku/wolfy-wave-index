@@ -83,7 +83,6 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
     const base = {
       borderColor: isBull ? COLORS.bullBorder : COLORS.bearBorder,
       labelColor: isBull ? COLORS.bullLabel : COLORS.bearLabel,
-      labelPos: isBull ? 'top' : 'bottom',
       fullHeight: true,
     };
     const label = isBull ? t('bull') : t('bear');

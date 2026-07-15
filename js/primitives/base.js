@@ -52,8 +52,8 @@ export function logicalToX(chart, logical) {
 export const clamp = (v, max) => Math.max(-100, Math.min(max + 100, v));
 
 // 统一的标签胶囊：全站所有浮动文字（牛市/熊市、减半日/今日、时长）共用一种
-// 视觉语言——主题底色 + 细彩边 + 单色文字。anchor: 'tl' 左上 / 'bl' 左下 /
-// 'tc' 顶部居中 / 'bc' 底部居中 / 'center' 完全居中（相对传入的 x,y）
+// 视觉语言——主题底色 + 细彩边 + 单色文字。anchor: 'tl' 左上 /
+// 'tc' 顶部居中 / 'center' 完全居中（相对传入的 x,y）
 export function drawTag(ctx, x, y, text, { bg, color, anchor = 'tl' }) {
   ctx.font = `600 11px ${FONT}`;
   const w = Math.ceil(ctx.measureText(text).width) + 16;
@@ -61,8 +61,6 @@ export function drawTag(ctx, x, y, text, { bg, color, anchor = 'tl' }) {
   let bx = x;
   let by = y;
   if (anchor === 'tc') { bx = x - w / 2; }
-  else if (anchor === 'bl') { by = y - h; }
-  else if (anchor === 'bc') { bx = x - w / 2; by = y - h; }
   else if (anchor === 'center') { bx = x - w / 2; by = y - h / 2; }
   ctx.beginPath();
   ctx.rect(bx, by, w, h);

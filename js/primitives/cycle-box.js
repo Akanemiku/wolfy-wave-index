@@ -4,10 +4,9 @@ import { Primitive, clamp, drawTag } from './base.js';
 import { COLORS } from '../config.js';
 
 export class CycleBox extends Primitive {
-  // labelPos: 'top' 标签在框内左上角，'bottom' 在框内左下角
   // fullHeight: 进行中的周期底部未知，只画时间区间——贯穿全高的竖向色带，
   //             仅画左右边界线，不参与价格自动缩放
-  constructor({ from, to, priceLow, priceHigh, fill, borderColor, label, labelColor, labelPos = 'top', dashed = false, fullHeight = false }) {
+  constructor({ from, to, priceLow, priceHigh, fill, borderColor, label, labelColor, dashed = false, fullHeight = false }) {
     super('bottom');
     this._from = from;
     this._to = to;
@@ -17,7 +16,6 @@ export class CycleBox extends Primitive {
     this._borderColor = borderColor;
     this._label = label;
     this._labelColor = labelColor;
-    this._labelPos = labelPos;
     this._dashed = dashed;
     this._fullHeight = fullHeight;
     if (label) {
@@ -82,19 +80,15 @@ export class CycleBox extends Primitive {
   _drawLabel(ctx, media) {
     const r = this._rect(media);
     if (!r) return;
-    // 标签钉在区域可见部分的水平中点：区域局部滚出屏幕时取与视口的
-    // 交集中心，保证标签始终可见
-    const vx1 = Math.max(r.x1, 0);
-    const vx2 = Math.min(r.x2, media.width);
-    if (vx2 - vx1 < 64) return; // 可见部分太窄时不画标签
-    const cx = (vx1 + vx2) / 2;
-    const opts = { bg: COLORS.tagBg, color: this._labelColor };
-    if (this._labelPos === 'top') {
-      // 贴住面板顶缘时钉在第二行：第一行留给减半日/今日等事件标签——
-      // 减半恰在牛市正中，同行必然重叠
-      drawTag(ctx, cx, r.cy1 <= 0 ? 58 : r.cy1 + 8, this._label, { ...opts, anchor: 'tc' });
-    } else {
-      drawTag(ctx, cx, Math.min(r.cy2, media.height) - 8, this._label, { ...opts, anchor: 'bc' });
-    }
+    // 框缘滚出屏幕时标签贴住视口边缘，保持可见
+    const lx = Math.max(r.cx1, 0) + 8;
+    if (r.cx2 - lx < 64) return; // 框太窄/基本滚出视口时不画标签
+    // 牛市/熊市统一钉在区域左上角、第二行：第一行留给减半日/今日等
+    // 事件标签（熊市推演段起点恰在「今日」线上，同行必然重叠）
+    drawTag(ctx, lx, r.cy1 <= 0 ? 58 : r.cy1 + 8, this._label, {
+      bg: COLORS.tagBg,
+      color: this._labelColor,
+      anchor: 'tl',
+    });
   }
 }
