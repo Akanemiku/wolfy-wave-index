@@ -69,7 +69,8 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
 
   // 牛熊区间：由狼波周期指数（纯区块制）推导——牛市 = 减半 ± 78,750 区块
   //（指数上行段），其余为熊市（下行段）；从区块 0 铺满全轴含未来推演
-  //（负高度不存在，区间起点钳制在 0），「今日」之后浅色 + 虚线边 +（预测）
+  //（负高度不存在，区间起点钳制在 0）。过去/当前/未来统一同一套设计：
+  // 同色填充 + 实线边，不在「今日」处切分（今日位置由引导线表达）
   const bandAnchors = [];
   for (let k = 0; k <= 12; k++) {
     bandAnchors.push({ h: k * HALVING_INTERVAL - WAVE_BULL_HALF, bull: true });
@@ -81,29 +82,16 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
     if (to <= 0 || from > extendTo) continue;
     const isBull = bandAnchors[i].bull;
     const base = {
+      from,
+      to,
+      fill: isBull ? COLORS.bandFillBull : COLORS.bandFillBear,
       borderColor: isBull ? COLORS.bullBorder : COLORS.bearBorder,
       labelColor: isBull ? COLORS.bullLabel : COLORS.bearLabel,
       fullHeight: true,
     };
-    const label = isBull ? t('bull') : t('bear');
-    const fill = isBull ? COLORS.bandFillBull : COLORS.bandFillBear;
-    const fillProjected = isBull ? COLORS.bandFillBullProjected : COLORS.bandFillBearProjected;
     // 主图带标签；副图（狼波指数面板）画同位置的无标签副本，视觉贯穿两个面板
-    const addBand = (bFrom, bTo, bFill, bLabel, dashed = false) => {
-      primitives.push(new CycleBox({ ...base, from: bFrom, to: bTo, fill: bFill, label: bLabel, dashed }));
-      phasePrimitives.push(new CycleBox({ ...base, from: bFrom, to: bTo, fill: bFill, dashed }));
-    };
-    // 未来段：浅色 + 虚线边表达推演；牛市直接标「牛市」，
-    // 熊市保留（预测）后缀（进行中熊市的未走完部分）
-    const futureLabel = isBull ? label : t('proj', label);
-    if (to <= todayPos) {
-      addBand(from, to, fill, label);
-    } else if (from >= todayPos) {
-      addBand(from, to, fillProjected, futureLabel, true);
-    } else {
-      addBand(from, todayPos, fill, label);
-      addBand(todayPos, to, fillProjected, futureLabel, true);
-    }
+    primitives.push(new CycleBox({ ...base, label: isBull ? t('bull') : t('bear') }));
+    phasePrimitives.push(new CycleBox(base));
   }
 
   // 减半竖线：按 210,000 区块网格从首次减半（210,000）铺到视界为止
