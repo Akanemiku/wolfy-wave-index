@@ -15,6 +15,8 @@
   --panel-2: #1a2130;
   --border: #323c4d;
   --hover: #1c2432;
+  --ctl-active: #2a3448; /* 控件选中态底色（比 panel 明显亮一档） */
+  --ctl-press: #10151f;  /* 控件按压反馈底色 */
   --text: #e4e8f0;
   --sub: #8b93a1;
   --faint: #5c6470;
@@ -29,6 +31,8 @@
   --panel-2: #eef1f6;
   --border: #c6cedb;
   --hover: #edf0f5;
+  --ctl-active: #ffffff; /* 控件选中态底色（白色凸起片，iOS 分段控件惯例） */
+  --ctl-press: #e3e8f0;  /* 控件按压反馈底色 */
   --text: #161a22;
   --sub: #767d8a;
   --faint: #a2a9b6;
@@ -108,7 +112,10 @@ body {
 }
 
 .lang-switch {
-  display: flex;
+  /* 组内选项等宽（自动宽度 grid 的 1fr 列会统一到最宽项） */
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 2px;
   padding: 2px;
   height: var(--ctl-h);
@@ -119,6 +126,7 @@ body {
 .lang-opt {
   display: flex;
   align-items: center;
+  justify-content: center;
   border: none;
   background: none;
   color: var(--sub);
@@ -127,14 +135,20 @@ body {
   font-family: inherit;
   padding: 0 10px;
   cursor: pointer;
+  transition: color 0.12s ease, background-color 0.12s ease;
 }
 
-.lang-opt:hover {
+.lang-opt:not(.active):hover {
   color: var(--text);
+  background: var(--hover);
+}
+
+.lang-opt:active {
+  background: var(--ctl-press);
 }
 
 .lang-opt.active {
-  background: var(--panel-2);
+  background: var(--ctl-active);
   color: var(--text);
 }
 
@@ -151,9 +165,17 @@ body {
   cursor: pointer;
 }
 
+.icon-btn {
+  transition: color 0.12s ease, background-color 0.12s ease;
+}
+
 .icon-btn:hover {
   color: var(--text);
   background: var(--hover);
+}
+
+.icon-btn:active {
+  background: var(--ctl-press);
 }
 
 /* 主题按钮显示当前状态：深色 = 月亮，浅色 = 太阳 */
@@ -261,7 +283,11 @@ body {
 }
 
 .seg {
-  display: flex;
+  /* 组内选项等宽（自动宽度 grid 的 1fr 列会统一到最宽项）：
+     按钮宽度不随文字长短变化，Log 与 Linear 一样宽 */
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 2px;
   padding: 2px;
   height: var(--ctl-h);
@@ -273,6 +299,7 @@ body {
 .seg button {
   display: flex;
   align-items: center;
+  justify-content: center;
   border: none;
   background: none;
   color: var(--sub);
@@ -282,16 +309,21 @@ body {
   padding: 0 12px;
   cursor: pointer;
   white-space: nowrap;
-  transition: color 0.1s ease, background-color 0.1s ease;
+  transition: color 0.12s ease, background-color 0.12s ease;
 }
 
-.seg button:hover {
+.seg button:not(.active):hover {
   color: var(--text);
+  background: var(--hover);
+}
+
+.seg button:active {
+  background: var(--ctl-press);
 }
 
 /* 选中态只靠底色+文字色表达：字重变化会让文字变宽、整组按钮抖动 */
 .seg button.active {
-  background: var(--panel-2);
+  background: var(--ctl-active);
   color: var(--text);
 }
 
@@ -311,6 +343,7 @@ body {
   cursor: pointer;
   white-space: nowrap;
   flex: none;
+  transition: color 0.12s ease, background-color 0.12s ease;
 }
 
 .toggle-btn:hover {
@@ -318,9 +351,17 @@ body {
   background: var(--hover);
 }
 
+.toggle-btn:active {
+  background: var(--ctl-press);
+}
+
 .toggle-btn.active {
-  background: var(--panel-2);
+  background: var(--ctl-active);
   color: var(--text);
+}
+
+.toggle-btn.active:hover {
+  background: var(--ctl-active);
 }
 
 .toggle-btn .icon-eye-off { display: none; }
@@ -526,14 +567,26 @@ body {
   white-space: nowrap;
 }
 
+.phase-toggle {
+  transition: color 0.12s ease, background-color 0.12s ease;
+}
+
 .phase-toggle:hover {
   color: var(--text);
   background: var(--hover);
 }
 
+.phase-toggle:active {
+  background: var(--ctl-press);
+}
+
 .phase-toggle.active {
-  background: var(--panel-2);
+  background: var(--ctl-active);
   color: var(--text);
+}
+
+.phase-toggle.active:hover {
+  background: var(--ctl-active);
 }
 
 .phase-toggle .icon-expand { display: none; }
@@ -600,8 +653,16 @@ body {
   padding: 0 6px;
 }
 
+.notice button {
+  transition: color 0.12s ease;
+}
+
 .notice button:hover {
   color: var(--text);
+}
+
+.notice button:active {
+  color: var(--faint);
 }
 
 .loading {
