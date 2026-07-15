@@ -2,9 +2,9 @@
 export const STRINGS = {
   zh: {
     brand: '狼波周期指数',
-    tfDay: '144 区块',
-    tfWeek: '1,008 区块',
-    tfMonth: '4,368 区块',
+    tfDay: '144 区块（日）',
+    tfWeek: '1,008 区块（周）',
+    tfMonth: '4,368 区块（月）',
     styleCandles: 'K线',
     styleLine: '折线',
     styleWave: '狼波着色',
@@ -37,9 +37,9 @@ export const STRINGS = {
   },
   en: {
     brand: 'Wolfy Wave Index',
-    tfDay: '144 blk',
-    tfWeek: '1,008 blk',
-    tfMonth: '4,368 blk',
+    tfDay: '144 blk (D)',
+    tfWeek: '1,008 blk (W)',
+    tfMonth: '4,368 blk (M)',
     styleCandles: 'Candles',
     styleLine: 'Line',
     styleWave: 'Wave Color',
