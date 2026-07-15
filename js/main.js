@@ -96,7 +96,6 @@ async function init() {
   let idxCache = null;
   let tipHeight = null;    // 当前链上高度（后台获取）
   let watermark = null;
-  let paneTitle = null;    // 副图区标题（狼波周期指数，含跟随十字线的读数）
   let waveNow = null;      // 当前（今日）狼波指数值，十字线移开时回落显示
 
   const LWC = window.LightweightCharts;
@@ -218,6 +217,7 @@ async function init() {
   // 主图占满全高）；显示 = 移回面板 1 并恢复线性坐标、留白与 4:1 高度。
   // 开关按钮浮在窗格右上角，收起后退到图表右下角。
   const phaseBtn = $('phase-toggle');
+  const phaseLegend = $('phase-legend');
   function positionPhaseToggle() {
     const hostH = $('chart').clientHeight;
     let scaleW = 70;
@@ -232,6 +232,9 @@ async function init() {
       } catch { /* 布局未就绪 */ }
     }
     phaseBtn.style.top = `${top}px`;
+    // 副图标题与主图读数同样距面板顶 10px（top 已含 +5）
+    phaseLegend.hidden = !phaseOn;
+    if (phaseOn) phaseLegend.style.top = `${top + 5}px`;
   }
   // 面板高度变化（拖分隔条/窗口缩放/显隐切换）都会引起画布尺寸变化
   const paneObserver = new ResizeObserver(() => positionPhaseToggle());
@@ -259,7 +262,6 @@ async function init() {
         panes[0].setStretchFactor(4);
         panes[1].setStretchFactor(1);
       } catch (e) { console.warn('副图高度设置失败（不影响功能）：', e); }
-      makeWatermark(); // 副图标题随面板销毁，重建
       if (annotOn) {
         for (const p of builtPhase) phaseSolid.attachPrimitive(p);
         attachedPhase = builtPhase;
@@ -267,8 +269,6 @@ async function init() {
     } else {
       for (const p of attachedPhase) phaseSolid.detachPrimitive(p);
       attachedPhase = [];
-      try { paneTitle?.detach(); } catch { /* 面板已随隐藏销毁 */ }
-      paneTitle = null;
       phaseSolid.applyOptions({ visible: false });
       phaseDashed.applyOptions({ visible: false });
       phaseSolid.moveToPane(0);
@@ -276,6 +276,7 @@ async function init() {
     }
     phaseBtn.classList.toggle('active', on);
     $('phase-label').textContent = t(on ? 'phaseHide' : 'phaseShow');
+    phaseLegend.hidden = !on; // 同步隐藏，不等下面的重定位回调
     requestAnimationFrame(() => {
       observePaneCanvases(); // 面板画布重建后重新观察
       positionPhaseToggle();
@@ -296,35 +297,22 @@ async function init() {
           ...(small ? [{ text: small, color: COLORS.watermark, fontSize: 18 }] : []),
         ],
       });
-      paneTitle?.detach();
-      paneTitle = null;
-      // 副图窗格收起时不重建它的标题（面板不存在）
-      if (phaseOn) {
-        paneTitle = LWC.createTextWatermark(chart.panes()[1], {
-          horzAlign: 'left',
-          vertAlign: 'top',
-          lines: [{ text: '狼波周期指数 Wolfy Wave Index', color: COLORS.phase, fontSize: 11 }],
-        });
-        updateWaveTitle();
-      }
     } catch (e) {
       console.warn('水印创建失败（不影响功能）：', e);
       watermark = null;
     }
   }
 
-  // 副图区标题行的实时读数：十字线指向的位置值，或当前值
+  // 副图标题行（DOM，与主图 OHLC 读数同一套排版）：名称 + 实时读数 + 图例。
+  // 读数跟随十字线，移开时回落为当前值
   function updateWaveTitle(v = waveNow) {
-    if (!paneTitle || v === null) return;
-    try {
-      paneTitle.applyOptions({
-        lines: [{
-          text: t('paneTitle', v.toFixed(2)),
-          color: COLORS.phase,
-          fontSize: 11,
-        }],
-      });
-    } catch { /* 面板重建瞬间可能失效，忽略 */ }
+    if (v === null) {
+      phaseLegend.textContent = t('paneTitleName');
+      return;
+    }
+    phaseLegend.innerHTML =
+      `${t('paneTitleName')}　<b class="wave-text">${v.toFixed(2)}</b>　`
+      + `<span class="hint">${t('paneTitleHint')}</span>`;
   }
 
   // ── 渲染管线 ──

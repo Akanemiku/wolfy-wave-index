@@ -505,6 +505,17 @@ body {
 .legend .up { color: var(--up); }
 .legend .down { color: var(--down); }
 
+/* 副图标题行：与主图 OHLC 读数完全同一套排版（字体/字号/左距/留白），
+   纵向位置由 JS 跟随副图面板顶部 */
+.phase-legend .wave-text {
+  color: var(--wave);
+  font-weight: 600;
+}
+
+.phase-legend .hint {
+  color: var(--faint);
+}
+
 /* ── 提示与加载 ── */
 .notice {
   position: absolute;
