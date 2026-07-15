@@ -1,3 +1,14 @@
+/* Inter 可变字体（vendor 内置，100–900 全字重，含 opsz 光学尺寸轴）。
+   此前字体栈首选 Inter 却从未加载字体文件，Windows 上拉丁字母与数字
+   全部跌到 Microsoft YaHei。中文仍回退系统字体（苹方/雅黑）。 */
+@font-face {
+  font-family: "Inter";
+  src: url("../vendor/fonts/InterVariable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root[data-theme="dark"] {
   --bg: #0e1117;
   --panel: #151b26;
@@ -44,8 +55,9 @@ html, body {
   overflow: hidden;
   background: var(--bg);
   color: var(--text);
-  font-family: "Inter", -apple-system, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "Inter", -apple-system, "SF Pro Text", "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 13px;
+  font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -159,9 +171,9 @@ body {
 }
 
 .price {
-  font-size: 21px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
+  font-size: 22px;
+  font-weight: 680; /* 可变字重：大号数字略收窄更显精密 */
+  letter-spacing: -0.2px;
   font-variant-numeric: tabular-nums;
 }
 

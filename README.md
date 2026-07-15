@@ -76,4 +76,5 @@ node scripts/fetch-history.mjs   # 需 Node ≥ 18
 
 [TradingView Lightweight Charts](https://github.com/tradingview/lightweight-charts) v5.2.0
 （已内置于 `vendor/`，Apache-2.0），标注用 series primitives 实现（纯 Canvas 渲染，
-无交互命中，天然只读）。无框架、无依赖、无构建。
+无交互命中，天然只读）。界面字体为 [Inter](https://rsms.me/inter/) 可变字体
+（已内置于 `vendor/fonts/`，OFL-1.1，中文回退系统苹方/雅黑）。无框架、无依赖、无构建。

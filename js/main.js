@@ -540,6 +540,10 @@ async function init() {
   }
   applyStaticLang();
 
+  // Inter 就绪后重绘一次：画布标签（drawTag）按绘制时的字体测宽，
+  // 首帧可能用回退字体，字体加载完成后校正
+  document.fonts?.ready?.then(() => { if (daily.length) render(null); });
+
   document.querySelectorAll('.lang-opt').forEach((btn) => btn.addEventListener('click', () => {
     if (btn.dataset.lang === I18N.lang) return;
     setLang(btn.dataset.lang);
