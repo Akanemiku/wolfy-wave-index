@@ -491,8 +491,7 @@ async function init() {
     const dir = chg !== null && chg < 0 ? 'down' : 'up';
     const [o, h, l, cl] = t('legendOHLC');
     $('legend').innerHTML =
-      `${t('legendHead', fmtInt(c.time), fmtDMY(timeAtHeight(c.time)))}　`
-      + `${o} <b>${fmtPrice(c.open)}</b>　${h} <b>${fmtPrice(c.high)}</b>　`
+      `${o} <b>${fmtPrice(c.open)}</b>　${h} <b>${fmtPrice(c.high)}</b>　`
       + `${l} <b>${fmtPrice(c.low)}</b>　${cl} <b>${fmtPrice(c.close)}</b>`
       + (chg !== null ? `　<span class="${dir}">${fmtPct(chg)}</span>` : '');
   }
