@@ -47,17 +47,19 @@ export const THEMES = {
     up: '#089981',
     down: '#f23645',
 
-    bullBorder: 'rgba(11, 189, 154, 0.60)',
-    bullLabel: '#27bd9b',
-    bearBorder: 'rgba(246, 70, 93, 0.60)',
-    bearLabel: '#f7525f',
+    // 牛=翡翠绿、熊=玫瑰红：都带较高蓝分量，叠在深藏青底上混出干净的
+    // 冷青绿/酒红，避免旧配色的沼泽绿与酱褐色
+    bullBorder: 'rgba(0, 208, 132, 0.55)',
+    bullLabel: '#34d399',
+    bearBorder: 'rgba(255, 82, 119, 0.55)',
+    bearLabel: '#fb7185',
 
     // 狼波周期指数推导的牛熊区间底色（「今日」之后的推演段用浅色）；
     // 有高饱和边界线兜底，填充保持轻量
-    bandFillBull: 'rgba(11, 189, 154, 0.12)',
-    bandFillBullProjected: 'rgba(11, 189, 154, 0.06)',
-    bandFillBear: 'rgba(246, 70, 93, 0.15)',
-    bandFillBearProjected: 'rgba(246, 70, 93, 0.08)',
+    bandFillBull: 'rgba(0, 208, 132, 0.10)',
+    bandFillBullProjected: 'rgba(0, 208, 132, 0.05)',
+    bandFillBear: 'rgba(255, 82, 119, 0.13)',
+    bandFillBearProjected: 'rgba(255, 82, 119, 0.07)',
 
     halving: 'rgba(46, 107, 255, 0.55)',
     halvingLabel: '#7da3ff',
@@ -79,17 +81,18 @@ export const THEMES = {
     up: '#089981',
     down: '#f23645',
 
-    bullBorder: 'rgba(8, 153, 129, 0.55)',
-    bullLabel: '#079076',
-    bearBorder: 'rgba(242, 54, 69, 0.50)',
-    bearLabel: '#e02a3a',
+    // 与深色主题同一色相：白底上呈清爽的薄荷绿/玫瑰粉
+    bullBorder: 'rgba(0, 168, 107, 0.50)',
+    bullLabel: '#059669',
+    bearBorder: 'rgba(228, 35, 91, 0.45)',
+    bearLabel: '#e11d48',
 
     // 狼波周期指数推导的牛熊区间底色（「今日」之后的推演段用浅色）；
     // 有高饱和边界线兜底，填充保持轻量
-    bandFillBull: 'rgba(8, 153, 129, 0.09)',
-    bandFillBullProjected: 'rgba(8, 153, 129, 0.05)',
-    bandFillBear: 'rgba(242, 54, 69, 0.09)',
-    bandFillBearProjected: 'rgba(242, 54, 69, 0.05)',
+    bandFillBull: 'rgba(0, 168, 107, 0.08)',
+    bandFillBullProjected: 'rgba(0, 168, 107, 0.04)',
+    bandFillBear: 'rgba(228, 35, 91, 0.08)',
+    bandFillBearProjected: 'rgba(228, 35, 91, 0.04)',
 
     halving: 'rgba(41, 98, 255, 0.50)',
     halvingLabel: '#2962ff',
