@@ -67,8 +67,7 @@ export const THEMES = {
     halving: 'rgba(46, 107, 255, 0.55)',
     halvingLabel: '#7da3ff',
 
-    today: 'rgba(139, 147, 161, 0.65)',
-    todayLabel: '#aeb5c0',
+    today: 'rgba(139, 147, 161, 0.65)', // 当前区块引导线
 
     phase: '#eab04d', // 狼波周期指数折线（0=熊底 → 1=牛顶）
 
@@ -103,8 +102,7 @@ export const THEMES = {
     halving: 'rgba(41, 98, 255, 0.50)',
     halvingLabel: '#2962ff',
 
-    today: 'rgba(118, 125, 138, 0.70)',
-    todayLabel: '#6a7180',
+    today: 'rgba(118, 125, 138, 0.70)', // 当前区块引导线
 
     phase: '#c88a2d', // 狼波周期指数折线（0=熊底 → 1=牛顶）
 
