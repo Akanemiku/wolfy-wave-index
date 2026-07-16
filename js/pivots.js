@@ -6,7 +6,6 @@ import {
   EXTEND_MARGIN_BLOCKS, COLORS,
 } from './config.js';
 import { heightAt } from './blocks.js';
-import { t } from './i18n.js';
 import { CycleBox } from './primitives/cycle-box.js';
 import { VertLine } from './primitives/vert-line.js';
 
@@ -71,41 +70,43 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
     bandAnchors.push({ h: k * HALVING_INTERVAL - WAVE_BULL_HALF, bull: true });
     bandAnchors.push({ h: k * HALVING_INTERVAL + WAVE_BULL_HALF, bull: false });
   }
+  // 图内只画色带本体，全部文本收纳到图表上方的周期轴条
+  //（见 main.js renderCycleAxis）；bands 几何随 meta 交给轴条渲染
+  const bands = [];
   for (let i = 0; i + 1 < bandAnchors.length; i++) {
     const from = Math.max(bandAnchors[i].h, 0);
     const to = bandAnchors[i + 1].h;
     if (to <= 0 || from > extendTo) continue;
     const isBull = bandAnchors[i].bull;
-    const base = {
+    const box = {
       from,
       to,
       fill: isBull ? COLORS.bandFillBull : COLORS.bandFillBear,
       borderColor: isBull ? COLORS.bullBorder : COLORS.bearBorder,
-      labelColor: isBull ? COLORS.bullLabel : COLORS.bearLabel,
       fullHeight: true,
     };
-    // 主图带标签；副图（狼波指数面板）画同位置的无标签副本，视觉贯穿两个面板
-    primitives.push(new CycleBox({ ...base, label: isBull ? t('bull') : t('bear') }));
-    phasePrimitives.push(new CycleBox(base));
+    // 主图与副图（狼波指数面板）各挂一份，视觉贯穿两个面板
+    primitives.push(new CycleBox(box));
+    phasePrimitives.push(new CycleBox(box));
+    bands.push({ from, to, bull: isBull });
   }
 
   // 减半竖线：按 210,000 区块网格从首次减半（210,000）铺到视界为止
   //（高度是协议常量，全部实线）。主图与狼波指数副图各挂一条，
-  // 视觉上贯穿两个面板；标签钉在主图线顶
+  // 视觉上贯穿两个面板；「减半」文本同样收纳到周期轴条
+  const halvings = [];
   for (let i = 0; i < 10; i++) {
     const hgt = (i + 1) * HALVING_INTERVAL;
     if (hgt > extendTo) break;
-    primitives.push(new VertLine({
-      time: hgt, color: COLORS.halving,
-      label: t('halving'), labelColor: COLORS.halvingLabel,
-    }));
+    primitives.push(new VertLine({ time: hgt, color: COLORS.halving }));
     phasePrimitives.push(new VertLine({ time: hgt, color: COLORS.halving }));
+    halvings.push(hgt);
   }
 
   return {
     primitives,
     phasePrimitives,
     extendTo,
-    meta: { topPos: lastTop.pos, todayPos, predictedEnd },
+    meta: { topPos: lastTop.pos, todayPos, predictedEnd, bands, halvings },
   };
 }

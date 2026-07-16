@@ -71,8 +71,6 @@ export const THEMES = {
 
     phase: '#eab04d', // 狼波周期指数折线（0=熊底 → 1=牛顶）
 
-    tagBg: 'rgba(14, 17, 23, 0.92)', // 标签胶囊统一底色
-
     watermark: 'rgba(228, 232, 240, 0.04)',
   },
   light: {
@@ -105,8 +103,6 @@ export const THEMES = {
     today: 'rgba(118, 125, 138, 0.70)', // 当前区块引导线
 
     phase: '#c88a2d', // 狼波周期指数折线（0=熊底 → 1=牛顶）
-
-    tagBg: 'rgba(255, 255, 255, 0.94)', // 标签胶囊统一底色
 
     watermark: 'rgba(22, 26, 34, 0.04)',
   },
