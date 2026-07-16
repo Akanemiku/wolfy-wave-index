@@ -1,7 +1,9 @@
 // 入口编排：内置快照立即上屏 → 后台拉实时尾部 → 原地升级；
 // 页面 UI（区块主轴 + 底部「高度/≈日期」双行刻度轴、分桶/主题/坐标/标注开关、
 // OHLC 读数、周期状态栏、顶部标签轴）
-import { DAY, BLOCK_BUCKETS, COLORS, setTheme } from './config.js';
+import {
+  DAY, BLOCK_BUCKETS, HALVING_INTERVAL, WAVE_BULL_HALF, COLORS, setTheme,
+} from './config.js';
 import { createChartAndSeries, applyChartTheme, setLogScale } from './chart.js';
 import {
   loadSnapshot, fetchBitstampLive, fetchCoinbaseFallback,
@@ -477,6 +479,74 @@ async function init() {
       + (chg !== null ? `<span class="${dir}">${fmtPct(chg)}</span>` : '');
   }
 
+  // ── 悬停信息卡：跟随光标，聚合该位置的全部读数 ──
+  // 头部 = 区块高度 + ≈日期；行 = 色条 + 名称 + 右对齐数值
+  //（开/高/低/收/涨跌幅 + 狼波指数 + 周期阶段）；
+  // 悬停在未来推演区（无价格数据）时只显示区块/指数/阶段
+  const tooltip = $('tooltip');
+  let mouseX = 0;
+  let mouseY = 0;
+  // 捕获阶段监听：先于图表库内部处理更新坐标，十字线回调里拿到的
+  // 一定是本次事件的位置；随移动同步重定位，避免一帧滞后
+  $('chart').addEventListener('mousemove', (e) => {
+    const r = $('chart').getBoundingClientRect();
+    mouseX = e.clientX - r.left;
+    mouseY = e.clientY - r.top;
+    if (!tooltip.hidden) placeTooltip();
+  }, { capture: true });
+  $('chart').addEventListener('mouseleave', () => { tooltip.hidden = true; });
+
+  // 贴着光标放置：默认右下方，越界时翻到另一侧
+  function placeTooltip() {
+    const host = $('chart');
+    const tw = tooltip.offsetWidth;
+    const th = tooltip.offsetHeight;
+    let left = mouseX + 18;
+    if (left + tw > host.clientWidth - 8) left = mouseX - 18 - tw;
+    let top = mouseY + 18;
+    if (top + th > host.clientHeight - 8) top = mouseY - 18 - th;
+    tooltip.style.left = `${Math.max(8, left)}px`;
+    tooltip.style.top = `${Math.max(8, top)}px`;
+  }
+
+  function updateTooltip(param, bar) {
+    if (param?.time === undefined) {
+      tooltip.hidden = true;
+      return;
+    }
+    const h = param.time;
+    const row = (chip, label, val) =>
+      `<div class="tt-row"><i class="tt-chip" style="background:${chip}"></i>`
+      + `<span class="tt-label">${label}</span><span class="tt-val">${val}</span></div>`;
+    let rows = '';
+    if (bar) {
+      const i = idxCache?.get(bar.time);
+      const prevClose = i !== undefined ? prevRealClose(i) : null;
+      const chg = prevClose ? (bar.close - prevClose) / prevClose : null;
+      const dirColor = chg !== null && chg < 0 ? COLORS.down : COLORS.up;
+      const [o, hi, lo, cl] = t('legendOHLC');
+      rows += row(dirColor, o, fmtPrice(bar.open));
+      rows += row(dirColor, hi, fmtPrice(bar.high));
+      rows += row(dirColor, lo, fmtPrice(bar.low));
+      rows += row(dirColor, cl, fmtPrice(bar.close));
+      if (chg !== null) rows += row(dirColor, t('ttChange'), fmtPct(chg));
+    }
+    const v = waveIndexAt(h);
+    rows += row(waveTextColor(v), t('waveLabel'), v.toFixed(2));
+    // 周期阶段：狼波上行段 = 牛市，下行段 = 熊市
+    const s = (((h + WAVE_BULL_HALF) % HALVING_INTERVAL) + HALVING_INTERVAL) % HALVING_INTERVAL;
+    const isBull = s < 2 * WAVE_BULL_HALF;
+    rows += row(
+      isBull ? COLORS.bullLabel : COLORS.bearLabel,
+      t('ttPhase'),
+      isBull ? t('bull') : t('bear'),
+    );
+    tooltip.innerHTML =
+      `<div class="tt-head"><b>${t('ttBlock', fmtInt(h))}</b> · ≈ ${fmtDMY(timeAtHeight(h))}</div>${rows}`;
+    tooltip.hidden = false;
+    placeTooltip();
+  }
+
   chart.subscribeCrosshairMove((param) => {
     // 读数直接按时间键查 bars，不依赖价格系列（K线/折线切换均可用）
     let hovered = null;
@@ -486,6 +556,7 @@ async function init() {
       if (b && b.open !== undefined) hovered = b;
     }
     updateLegend(hovered);
+    updateTooltip(param, hovered);
     // 狼波指数读数跟随十字线（未来虚线段也有值），移开时回落到当前值
     const w = param?.time !== undefined
       ? (param.seriesData.get(phaseSolid) ?? param.seriesData.get(phaseDashed))

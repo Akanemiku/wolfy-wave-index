@@ -626,6 +626,69 @@ body {
   margin-left: 12px;
 }
 
+/* ── 悬停信息卡：跟随十字线，聚合该位置的全部读数 ── */
+.chart-tooltip {
+  position: absolute;
+  z-index: 15;
+  min-width: 200px;
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+  pointer-events: none;
+  user-select: none;
+}
+
+:root[data-theme="light"] .chart-tooltip {
+  box-shadow: 0 4px 18px rgba(22, 26, 34, 0.14);
+}
+
+.tt-head {
+  padding-bottom: 7px;
+  margin-bottom: 7px;
+  border-bottom: 1px solid var(--border);
+  color: var(--sub);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tt-head b {
+  color: var(--text);
+  font-weight: 620;
+}
+
+.tt-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.tt-row:first-of-type {
+  margin-top: 0;
+}
+
+.tt-chip {
+  width: 3px;
+  height: 12px;
+  flex: none;
+}
+
+.tt-label {
+  color: var(--sub);
+  white-space: nowrap;
+}
+
+.tt-val {
+  margin-left: auto;
+  padding-left: 18px;
+  color: var(--text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 /* ── 提示与加载 ── */
 .notice {
   position: absolute;
