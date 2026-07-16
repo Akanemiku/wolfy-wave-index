@@ -63,6 +63,7 @@ export function createChartAndSeries(container) {
       mode: LWC.PriceScaleMode.Logarithmic,
       borderColor: COLORS.scaleBorder,
       scaleMargins: { top: 0.06, bottom: 0.04 },
+      tickMarkDensity: 4, // 刻度间距 = 字号 × 系数；默认 2.5 太密
     },
     timeScale: {
       visible: false, // 底部刻度轴由自绘的区块轴条接管
