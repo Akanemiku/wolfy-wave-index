@@ -452,7 +452,7 @@ async function init() {
     const marker = $('ws-marker');
     if (waveNow !== null) {
       marker.hidden = false;
-      marker.style.bottom = `calc(${(waveNow * 100).toFixed(2)}% - 1px)`;
+      marker.style.bottom = `calc(${(waveNow * 100).toFixed(2)}% - 5px)`; // 10px 圆钮取中
     }
     if (!meta) return;
 

@@ -47,6 +47,9 @@
 
 :root {
   --ctl-h: 28px; /* 顶栏/工具栏所有控件的统一总高 */
+  /* 圆角体系：控件微圆角、浮层卡片略大一档；指示灯/滑块拇指类用全圆 */
+  --r-s: 4px;
+  --r-m: 6px;
 }
 
 [hidden] {
@@ -156,6 +159,7 @@ html[lang="en"] .glyph-zh { display: none; }
 html:not([lang="en"]) .glyph-en { display: none; }
 
 .icon-btn {
+  border-radius: var(--r-s);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -223,11 +227,12 @@ html:not([lang="en"]) .glyph-en { display: none; }
   letter-spacing: 0.3px;
 }
 
-/* 实时数据指示：常驻脉动方点（直角设计），暗示该数值在动态更新 */
+/* 实时数据指示：常驻脉动圆点（指示灯语义），暗示该数值在动态更新 */
 .live-dot {
   width: 5px;
   height: 5px;
   flex: none;
+  border-radius: 50%;
   background: var(--up);
   animation: live-pulse 2.4s ease-in-out infinite;
 }
@@ -244,6 +249,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
   /* 负外边距 + 内边距：闪烁底色向外渗出一圈，不挤动布局 */
   padding: 1px 5px;
   margin: -1px -5px;
+  border-radius: var(--r-s);
 }
 
 /* 数值更新闪烁：变化瞬间底色亮起后淡出（价格按涨跌方向着色） */
@@ -328,6 +334,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 }
 
 .seg {
+  border-radius: var(--r-s);
   /* 组内选项等宽（自动宽度 grid 的 1fr 列会统一到最宽项）：
      按钮宽度不随文字长短变化，Log 与 Linear 一样宽 */
   display: grid;
@@ -342,6 +349,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 }
 
 .seg button {
+  border-radius: calc(var(--r-s) - 2px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -374,6 +382,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 
 /* 独立开关按钮（标注显隐）：与分段控件分开，睁眼/闭眼表达开关状态 */
 .toggle-btn {
+  border-radius: var(--r-s);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -486,6 +495,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 
 /* 底轴上的当前区块高度数值牌（常驻，反色高亮） */
 .bx-now {
+  border-radius: var(--r-s);
   position: absolute;
   top: 7px;
   transform: translateX(-50%);
@@ -502,6 +512,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 
 /* 十字线在轴上的浮标：高度 · 日期 */
 .bx-cursor {
+  border-radius: var(--r-s);
   position: absolute;
   top: 7px;
   transform: translateX(-50%);
@@ -561,6 +572,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 }
 
 .ws-bar {
+  border-radius: 3px;
   position: relative;
   width: 12px;
   height: 100%;
@@ -583,18 +595,23 @@ html:not([lang="en"]) .glyph-en { display: none; }
 }
 
 /* 当前指数游标：横线钉在色条上对应位置 */
+/* 当前指数游标：圆形滑块拇指扣在渐变条上 */
 .ws-marker {
   position: absolute;
-  left: -4px;
-  right: -4px;
-  height: 0;
-  border-top: 2px solid var(--text);
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  border-radius: 50%;
+  background: var(--text);
+  border: 2px solid var(--bg);
   pointer-events: none;
 }
 
 /* 副图（狼波指数窗格）显隐开关：浮在窗格右上角；窗格收起后退到图表右下角。
    高度 24px 是刻意的例外：浮在数据上方的迷你控件，比栏区控件紧凑一档 */
 .phase-toggle {
+  border-radius: var(--r-s);
   position: absolute;
   z-index: 12;
   display: flex;
@@ -665,6 +682,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 
 /* ── 悬停信息卡：跟随十字线，聚合该位置的全部读数 ── */
 .chart-tooltip {
+  border-radius: var(--r-m);
   position: absolute;
   z-index: 15;
   min-width: 200px;
@@ -712,6 +730,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
   width: 3px;
   height: 12px;
   flex: none;
+  border-radius: 999px; /* 两端全圆的胶囊形 */
 }
 
 .tt-label {
@@ -730,6 +749,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 
 /* ── 提示与加载 ── */
 .notice {
+  border-radius: var(--r-m);
   position: absolute;
   top: 38px; /* 避开左上角 OHLC 读数行，窄窗口下不互相覆盖 */
   left: 50%;
@@ -746,21 +766,29 @@ html:not([lang="en"]) .glyph-en { display: none; }
   color: var(--text);
 }
 
+/* 关闭按钮：圆形热区（关闭钮的通用形态） */
 .notice button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
   border: none;
+  border-radius: 50%;
   background: none;
   font-size: 18px;
   cursor: pointer;
   color: var(--sub);
-  padding: 0 6px;
+  padding: 0;
 }
 
 .notice button {
-  transition: color 0.12s ease;
+  transition: color 0.12s ease, background-color 0.12s ease;
 }
 
 .notice button:hover {
   color: var(--text);
+  background: var(--hover);
 }
 
 .notice button:active {

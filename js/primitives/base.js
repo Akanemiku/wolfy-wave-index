@@ -63,7 +63,9 @@ export function drawTag(ctx, x, y, text, { bg, color, anchor = 'tl' }) {
   if (anchor === 'tc') { bx = x - w / 2; }
   else if (anchor === 'center') { bx = x - w / 2; by = y - h / 2; }
   ctx.beginPath();
-  ctx.rect(bx, by, w, h);
+  // 与页面控件同体系的微圆角；旧浏览器无 roundRect 时退化为直角
+  if (ctx.roundRect) ctx.roundRect(bx, by, w, h, 4);
+  else ctx.rect(bx, by, w, h);
   ctx.fillStyle = bg;
   ctx.fill();
   ctx.save();
