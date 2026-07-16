@@ -14,6 +14,7 @@ function themeOptions() {
       textColor: COLORS.chartText,
       fontFamily: FONT,
       fontSize: 11,
+      attributionLogo: false, // 库署名已在 README/页脚层面保留
       panes: {
         separatorColor: COLORS.scaleBorder,
         separatorHoverColor: COLORS.paneSepHover, // hover 高亮暗示分隔条可拖拽
