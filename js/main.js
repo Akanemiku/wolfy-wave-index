@@ -210,16 +210,16 @@ async function init() {
     nowLine.style.left = `${pl + x}px`;
     nowLine.style.borderColor = COLORS.today;
     nowLine.hidden = false;
-    // 与十字线浮标同格式（高度 · ≈日期）；不用 title——
+    // 与十字线浮标同格式（高度 ≈ 日期）；不用 title——
     // pointer-events:none 的元素 tooltip 永远弹不出来
-    bxNow.textContent = `${fmtInt(h)} · ≈ ${fmtDMY(timeAtHeight(h))}`;
+    bxNow.textContent = `${fmtInt(h)} ≈ ${fmtDMY(timeAtHeight(h))}`;
     bxNow.hidden = false;
     // 贴近左右边缘时钳制在可视范围内，不被拦腰裁掉
     const bw = bxNow.offsetWidth;
     bxNow.style.left = `${pl + Math.max(bw / 2, Math.min(width - bw / 2, x))}px`;
   }
 
-  // 十字线在底轴上的浮标：高度 · ≈日期（负高度不存在，不显示）
+  // 十字线在底轴上的浮标：高度 ≈ 日期（负高度不存在，不显示）
   function updateAxisCursor(h) {
     if (h === null || h < 0) {
       bxCursor.hidden = true;
@@ -231,7 +231,7 @@ async function init() {
       bxCursor.hidden = true;
       return;
     }
-    bxCursor.textContent = `${fmtInt(h)} · ≈ ${fmtDMY(timeAtHeight(h))}`;
+    bxCursor.textContent = `${fmtInt(h)} ≈ ${fmtDMY(timeAtHeight(h))}`;
     bxCursor.hidden = false;
     // 贴近左右边缘时钳制在可视范围内，不被拦腰裁掉
     const cw = bxCursor.offsetWidth;
@@ -542,7 +542,7 @@ async function init() {
       isBull ? t('bull') : t('bear'),
     );
     tooltip.innerHTML =
-      `<div class="tt-head"><b>${t('ttBlock', fmtInt(h))}</b> · ≈ ${fmtDMY(timeAtHeight(h))}</div>${rows}`;
+      `<div class="tt-head"><b>${t('ttBlock', fmtInt(h))}</b> ≈ ${fmtDMY(timeAtHeight(h))}</div>${rows}`;
     tooltip.hidden = false;
     placeTooltip();
   }
