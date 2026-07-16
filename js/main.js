@@ -583,6 +583,10 @@ async function init() {
   function applyStaticLang() {
     document.documentElement.lang = I18N.lang === 'zh' ? 'zh-CN' : 'en';
     $('brand-name').textContent = t('brand');
+    const sub = t('brandSub');
+    $('brand-sub').textContent = sub;
+    $('brand-sub').hidden = !sub;
+    $('loading-brand').textContent = t('brand');
     tfButtons.forEach((b) => { b.textContent = t(TF_KEYS[b.dataset.tf]); });
     styleButtons.forEach((b) => { b.textContent = t(STYLE_KEYS[b.dataset.style]); });
     $('label-price').textContent = t('priceLabel');

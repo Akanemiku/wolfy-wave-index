@@ -2,6 +2,7 @@
 export const STRINGS = {
   zh: {
     brand: '狼波周期指数',
+    brandSub: 'WOLFY WAVE INDEX',
     tfDay: '144 区块（日）',
     tfWeek: '1,008 区块（周）',
     tfMonth: '4,368 区块（月）',
@@ -54,6 +55,7 @@ export const STRINGS = {
   },
   en: {
     brand: 'Wolfy Wave Index',
+    brandSub: '', // 英文界面主名即英文，副标题隐藏
     tfDay: '144 blocks (D)',
     tfWeek: '1,008 blocks (W)',
     tfMonth: '4,368 blocks (M)',

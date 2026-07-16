@@ -11,6 +11,8 @@
 
 :root[data-theme="dark"] {
   --bg: #0e1117;
+  --chrome: #12161f;               /* 顶栏/工具栏/页脚的镶边底色：略浮于图表区 */
+  --panel-glass: rgba(21, 27, 38, 0.88); /* 悬停信息卡毛玻璃底 */
   --panel: #151b26;
   --panel-2: #1a2130;
   --border: #323c4d;
@@ -27,6 +29,8 @@
 
 :root[data-theme="light"] {
   --bg: #ffffff;
+  --chrome: #f7f9fc;               /* 顶栏/工具栏/页脚的镶边底色：略浮于图表区 */
+  --panel-glass: rgba(245, 247, 250, 0.88); /* 悬停信息卡毛玻璃底 */
   --panel: #f5f7fa;
   --panel-2: #eef1f6;
   --border: #c6cedb;
@@ -53,6 +57,10 @@
 :focus-visible {
   outline: 1px solid var(--accent);
   outline-offset: -1px;
+}
+
+::selection {
+  background: rgba(46, 107, 255, 0.35);
 }
 
 * {
@@ -85,8 +93,21 @@ body {
   justify-content: space-between;
   gap: 20px;
   padding: 10px 20px;
+  background: var(--chrome);
   border-bottom: 1px solid var(--border);
   flex: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-mark {
+  flex: none;
+  display: block;
 }
 
 .brand-name {
@@ -94,6 +115,17 @@ body {
   font-weight: 700;
   letter-spacing: 0.2px;
   white-space: nowrap;
+  line-height: 1.15;
+}
+
+/* 副标题：字距拉开的小号大写，交易台风格；英文界面下隐藏（与主名重复） */
+.brand-sub {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--faint);
+  white-space: nowrap;
+  margin-top: 1px;
 }
 
 .topbar-right {
@@ -233,8 +265,10 @@ html:not([lang="en"]) .glyph-en { display: none; }
   justify-content: space-between;
   gap: 12px;
   padding: 8px 20px;
+  background: var(--chrome);
   border-bottom: 1px solid var(--border);
   flex: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
   /* 任何宽度下都不允许两组控件互相叠压：放不下就横向滚动 */
   overflow-x: auto;
   scrollbar-width: none;
@@ -595,7 +629,9 @@ html:not([lang="en"]) .glyph-en { display: none; }
   z-index: 15;
   min-width: 200px;
   padding: 10px 12px;
-  background: var(--panel);
+  background: var(--panel-glass);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   border: 1px solid var(--border);
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
   font-size: 12px;
@@ -705,6 +741,13 @@ html:not([lang="en"]) .glyph-en { display: none; }
   color: var(--sub);
 }
 
+.loading-brand {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: var(--text);
+}
+
 .loading-spinner {
   width: 26px;
   height: 26px;
@@ -725,12 +768,14 @@ html:not([lang="en"]) .glyph-en { display: none; }
   justify-content: center;
   gap: 10px;
   padding: 6px 20px;
+  background: var(--chrome);
   border-top: 1px solid var(--border);
   font-size: 11px;
   color: var(--faint);
   flex: none;
   white-space: nowrap;
   overflow: hidden;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .foot-sep {

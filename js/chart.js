@@ -26,6 +26,10 @@ function themeOptions() {
       vertLines: { visible: false },
       horzLines: { color: COLORS.grid },
     },
+    crosshair: {
+      vertLine: { color: COLORS.crosshairLine, labelBackgroundColor: COLORS.crosshairLabelBg },
+      horzLine: { color: COLORS.crosshairLine, labelBackgroundColor: COLORS.crosshairLabelBg },
+    },
     leftPriceScale: { borderColor: COLORS.scaleBorder },
   };
 }

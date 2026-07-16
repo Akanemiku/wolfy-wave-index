@@ -69,6 +69,10 @@ export const THEMES = {
 
     today: 'rgba(139, 147, 161, 0.65)', // 当前区块引导线
 
+    // 十字线：中性灰线 + 面板色数值牌（默认蓝灰与全站配色不搭）
+    crosshairLine: 'rgba(139, 147, 161, 0.45)',
+    crosshairLabelBg: '#2a3448',
+
     phase: '#eab04d', // 狼波周期指数折线（0=熊底 → 1=牛顶）
 
     tagBg: 'rgba(14, 17, 23, 0.92)', // 标签胶囊统一底色
@@ -103,6 +107,10 @@ export const THEMES = {
     halvingLabel: '#2962ff',
 
     today: 'rgba(118, 125, 138, 0.70)', // 当前区块引导线
+
+    // 十字线：中性灰线 + 深灰数值牌（十字线标签文字为白色，浅色主题也需深底）
+    crosshairLine: 'rgba(118, 125, 138, 0.50)',
+    crosshairLabelBg: '#5b6472',
 
     phase: '#c88a2d', // 狼波周期指数折线（0=熊底 → 1=牛顶）
 
