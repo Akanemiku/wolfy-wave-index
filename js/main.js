@@ -731,10 +731,11 @@ async function init() {
     showNotice(t('noticeStale', fmtDMY(sinceTs)));
   }
 
-  // ── 轻量实时轮询：让顶栏数据保持活性 ──
-  // 价格 30s（Bitstamp ticker，仅更新顶栏读数）；链上高度 60s
-  //（新区块 ≈ 每 10 分钟），高度前移时走完整 render——引导线、
-  // 周期统计、狼波指数随之同步更新并触发闪烁
+  // ── 轻量实时轮询 ──
+  // 价格 30s（Bitstamp ticker）：写进最后一根日线蜡烛后整体重绘，
+  // K 线尾部、坐标轴价格牌、价格引导线与顶栏一起跳动；
+  // 链上高度 60s（新区块 ≈ 每 10 分钟）：高度前移同样走完整 render；
+  // K 线尾部 5 分钟重取一次（跨 UTC 零点时长出新的一根日线）
   async function pollPrice() {
     try {
       const res = await fetch('https://www.bitstamp.net/api/v2/ticker/btcusd/', {
@@ -742,8 +743,16 @@ async function init() {
       });
       if (!res.ok) return;
       const p = parseFloat((await res.json()).last);
-      if (Number.isFinite(p)) {
-        livePrice = p;
+      if (!Number.isFinite(p) || p === livePrice) return;
+      livePrice = p;
+      const lastC = dailyReal.at(-1);
+      if (lastC) {
+        // daily 与 dailyReal 共享对象引用，改这里即改数据源
+        lastC.close = p;
+        if (p > lastC.high) lastC.high = p;
+        if (p < lastC.low) lastC.low = p;
+        render(null); // 视图不动，仅数据/标注/统计原地刷新
+      } else {
         updateStats();
       }
     } catch { /* 单次失败静默，下一轮再试 */ }
@@ -757,8 +766,20 @@ async function init() {
       }
     } catch { /* 单次失败静默，下一轮再试 */ }
   }
+  let candleRefreshBusy = false;
+  async function pollCandles() {
+    if (candleRefreshBusy || !dailyReal.length) return;
+    candleRefreshBusy = true;
+    try {
+      const tail = await fetchBitstampLive(dailyReal.at(-1).time - DAY);
+      if (tail.length) render(mergeCandles(daily, tail));
+    } catch { /* 单次失败静默，下一轮再试 */ } finally {
+      candleRefreshBusy = false;
+    }
+  }
   setInterval(pollPrice, 30000);
   setInterval(pollHeight, 60000);
+  setInterval(pollCandles, 300000);
   pollPrice();
   console.table(pivots.map((p) => ({ 类型: p.type === 'top' ? '牛顶' : '熊底', 日期: fmtDate(p.time), 价格: p.price, 高度: heightAt(p.time) })));
 }
