@@ -411,7 +411,6 @@ async function init() {
       positionPhaseToggle();
     }
     updateStats();
-    updateLegend(null);
     window.wolfy = { chart, series, phaseSolid, phaseDashed, pivots, candles: daily, bars, meta }; // 调试用
   }
 
@@ -456,27 +455,6 @@ async function init() {
       if (bars[j].open !== undefined) return bars[j].close;
     }
     return null;
-  }
-
-  function updateLegend(bar) {
-    let c = bar;
-    if (!c) c = [...bars].reverse().find((x) => x.open !== undefined);
-    if (!c || c.open === undefined) return;
-    if (!idxCache) idxCache = new Map(bars.map((x, i) => [x.time, i]));
-    const i = idxCache.get(c.time);
-    const prevClose = i !== undefined ? prevRealClose(i) : null;
-    const chg = prevClose ? (c.close - prevClose) / prevClose : null;
-    const dir = chg !== null && chg < 0 ? 'down' : 'up';
-    const [o, h, l, cl] = t('legendOHLC');
-    // 系列标识（品种 · 粒度）+ OHLC；分项间距用 span+margin 排版
-    //（全角空格的宽度取决于 CJK 回退字体，EN 界面下忽宽忽窄）
-    $('legend').innerHTML =
-      `<span class="li"><b>BTC/USD</b> · ${t(TF_KEYS[timeframe])}</span>`
-      + `<span class="li">${o} <b>${fmtPrice(c.open)}</b></span>`
-      + `<span class="li">${h} <b>${fmtPrice(c.high)}</b></span>`
-      + `<span class="li">${l} <b>${fmtPrice(c.low)}</b></span>`
-      + `<span class="li">${cl} <b>${fmtPrice(c.close)}</b></span>`
-      + (chg !== null ? `<span class="${dir}">${fmtPct(chg)}</span>` : '');
   }
 
   // ── 悬停信息卡：跟随光标，聚合该位置的全部读数 ──
@@ -555,7 +533,6 @@ async function init() {
       const b = bars[idxCache.get(param.time)];
       if (b && b.open !== undefined) hovered = b;
     }
-    updateLegend(hovered);
     updateTooltip(param, hovered);
     // 狼波指数读数跟随十字线（未来虚线段也有值），移开时回落到当前值
     const w = param?.time !== undefined

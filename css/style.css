@@ -582,15 +582,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
   font-weight: 600;
 }
 
-/* 读数行内的分项间距（不用全角空格排版——其宽度取决于 CJK 回退字体） */
-.legend .li {
-  margin-right: 12px;
-}
-
-.legend .up { color: var(--up); }
-.legend .down { color: var(--down); }
-
-/* 副图标题行：与主图 OHLC 读数完全同一套排版（字体/字号/左距/留白），
+/* 副图标题行：与主图系列标识完全同一套排版（字体/字号/左距/留白），
    纵向位置由 JS 跟随副图面板顶部 */
 .phase-legend .wave-text {
   font-weight: 600;
