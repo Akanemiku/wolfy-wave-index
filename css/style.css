@@ -214,17 +214,57 @@ html:not([lang="en"]) .glyph-en { display: none; }
 }
 
 .stat-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   font-size: 10px;
   font-weight: 500;
   color: var(--faint);
   letter-spacing: 0.3px;
 }
 
+/* 实时数据指示：常驻脉动方点（直角设计），暗示该数值在动态更新 */
+.live-dot {
+  width: 5px;
+  height: 5px;
+  flex: none;
+  background: var(--up);
+  animation: live-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
 .stat-value {
   display: flex;
   align-items: baseline;
   gap: 7px;
+  /* 负外边距 + 内边距：闪烁底色向外渗出一圈，不挤动布局 */
+  padding: 1px 5px;
+  margin: -1px -5px;
 }
+
+/* 数值更新闪烁：变化瞬间底色亮起后淡出（价格按涨跌方向着色） */
+@keyframes flash-neutral {
+  0% { background: rgba(46, 107, 255, 0.30); }
+  100% { background: transparent; }
+}
+
+@keyframes flash-up {
+  0% { background: rgba(8, 153, 129, 0.32); }
+  100% { background: transparent; }
+}
+
+@keyframes flash-down {
+  0% { background: rgba(242, 54, 69, 0.32); }
+  100% { background: transparent; }
+}
+
+.flash { animation: flash-neutral 0.9s ease-out; }
+.flash-up { animation: flash-up 0.9s ease-out; }
+.flash-down { animation: flash-down 0.9s ease-out; }
 
 .price {
   font-size: 18px;

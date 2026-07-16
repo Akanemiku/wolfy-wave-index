@@ -106,7 +106,8 @@ async function init() {
   let pivots = [];
   let meta = null;         // { topPos, todayPos, predictedEnd }（单位：高度）
   let idxCache = null;
-  let tipHeight = null;    // 当前链上高度（后台获取）
+  let tipHeight = null;    // 当前链上高度（后台获取 + 轮询）
+  let livePrice = null;    // 实时价格（轮询 Bitstamp ticker，仅供顶栏）
   let watermark = null;
   let waveNow = null;      // 当前（今日）狼波指数值，十字线移开时回落显示
 
@@ -415,27 +416,51 @@ async function init() {
   }
 
   // ── 顶栏统计 ──
+  // 数值更新闪烁：对比上一次显示值，真正变化时底色亮起后淡出
+  const lastShown = { price: NaN, height: NaN, wave: null };
+  function flashValue(el, dir = null) {
+    el.classList.remove('flash', 'flash-up', 'flash-down');
+    void el.offsetWidth; // 强制重排以重启动画
+    el.classList.add(dir === 'up' ? 'flash-up' : dir === 'down' ? 'flash-down' : 'flash');
+  }
+
   function updateStats() {
     const last = dailyReal.at(-1);
     const prev = dailyReal.at(-2);
     if (!last) return;
 
-    $('stat-price').textContent = `$${fmtPrice(last.close)}`;
+    const priceNow = livePrice ?? last.close;
+    $('stat-price').textContent = `$${fmtPrice(priceNow)}`;
+    if (Number.isFinite(lastShown.price) && fmtPrice(priceNow) !== fmtPrice(lastShown.price)) {
+      flashValue($('stat-price').closest('.stat-value'), priceNow >= lastShown.price ? 'up' : 'down');
+    }
+    lastShown.price = priceNow;
     if (prev) {
-      const chg = (last.close - prev.close) / prev.close;
+      const chg = (priceNow - prev.close) / prev.close;
       const el = $('stat-chg');
       el.textContent = fmtPct(chg);
       el.className = `chg ${chg >= 0 ? 'up' : 'down'}`;
     }
     const waveEl = $('stat-wave');
-    waveEl.textContent = waveNow !== null ? waveNow.toFixed(2) : '—';
+    const waveText = waveNow !== null ? waveNow.toFixed(2) : '—';
+    waveEl.textContent = waveText;
     waveEl.style.color = waveNow !== null ? waveTextColor(waveNow) : '';
+    if (lastShown.wave !== null && waveNow !== null && waveText !== lastShown.wave) {
+      flashValue(waveEl.closest('.stat-value'));
+    }
+    if (waveNow !== null) lastShown.wave = waveText;
     const marker = $('ws-marker');
     if (waveNow !== null) {
       marker.hidden = false;
       marker.style.bottom = `calc(${(waveNow * 100).toFixed(2)}% - 1px)`;
     }
     if (!meta) return;
+
+    $('stat-height').textContent = fmtInt(meta.todayPos);
+    if (Number.isFinite(lastShown.height) && Math.round(meta.todayPos) !== Math.round(lastShown.height)) {
+      flashValue($('stat-height').closest('.stat-value'));
+    }
+    lastShown.height = meta.todayPos;
 
     const elapsed = meta.todayPos - meta.topPos;
     const total = meta.predictedEnd - meta.topPos;
@@ -587,6 +612,7 @@ async function init() {
     $('brand-sub').textContent = sub;
     $('brand-sub').hidden = !sub;
     $('loading-brand').textContent = t('brand');
+    $('label-height').textContent = t('axisName');
     tfButtons.forEach((b) => { b.textContent = t(TF_KEYS[b.dataset.tf]); });
     styleButtons.forEach((b) => { b.textContent = t(STYLE_KEYS[b.dataset.style]); });
     $('label-price').textContent = t('priceLabel');
@@ -704,6 +730,36 @@ async function init() {
     render(null); // 至少套用 tipHeight
     showNotice(t('noticeStale', fmtDMY(sinceTs)));
   }
+
+  // ── 轻量实时轮询：让顶栏数据保持活性 ──
+  // 价格 30s（Bitstamp ticker，仅更新顶栏读数）；链上高度 60s
+  //（新区块 ≈ 每 10 分钟），高度前移时走完整 render——引导线、
+  // 周期统计、狼波指数随之同步更新并触发闪烁
+  async function pollPrice() {
+    try {
+      const res = await fetch('https://www.bitstamp.net/api/v2/ticker/btcusd/', {
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!res.ok) return;
+      const p = parseFloat((await res.json()).last);
+      if (Number.isFinite(p)) {
+        livePrice = p;
+        updateStats();
+      }
+    } catch { /* 单次失败静默，下一轮再试 */ }
+  }
+  async function pollHeight() {
+    try {
+      const tip = await fetchTipAnchor();
+      if (Number.isFinite(tip) && tip !== tipHeight) {
+        tipHeight = tip;
+        render(null);
+      }
+    } catch { /* 单次失败静默，下一轮再试 */ }
+  }
+  setInterval(pollPrice, 30000);
+  setInterval(pollHeight, 60000);
+  pollPrice();
   console.table(pivots.map((p) => ({ 类型: p.type === 'top' ? '牛顶' : '熊底', 日期: fmtDate(p.time), 价格: p.price, 高度: heightAt(p.time) })));
 }
 
