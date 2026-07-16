@@ -4,16 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>狼波周期指数 · Wolfy Wave Index</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23eab04d'/%3E%3Cpath d='M4 25L21 7v18l7-11' stroke='%230e1117' stroke-width='3' fill='none'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23EC2626'/%3E%3Cstop offset='.15' stop-color='%23F69C1C'/%3E%3Cstop offset='.3' stop-color='%23D6DF38'/%3E%3Cstop offset='.5' stop-color='%2348BE50'/%3E%3Cstop offset='.75' stop-color='%233EC4E9'/%3E%3Cstop offset='1' stop-color='%23263CDB'/%3E%3C/linearGradient%3E%3Crect width='32' height='32' fill='url(%23g)'/%3E%3C/svg%3E">
   <link rel="preload" href="vendor/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
+      <!-- 品牌标记：狼波色谱六个主色锚点的垂直渐变（1=牛顶红在上，0=熊底蓝在下），
+           渐变位置 = 1 - 指数值，与右侧色标同一映射 -->
       <svg class="brand-mark" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
-        <rect width="32" height="32" fill="#eab04d"/>
-        <path d="M4 25L21 7v18l7-11" stroke="#0e1117" stroke-width="3" fill="none"/>
+        <defs>
+          <linearGradient id="brand-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#EC2626"/>
+            <stop offset="0.15" stop-color="#F69C1C"/>
+            <stop offset="0.30" stop-color="#D6DF38"/>
+            <stop offset="0.50" stop-color="#48BE50"/>
+            <stop offset="0.75" stop-color="#3EC4E9"/>
+            <stop offset="1" stop-color="#263CDB"/>
+          </linearGradient>
+        </defs>
+        <rect width="32" height="32" fill="url(#brand-grad)"/>
       </svg>
       <div class="brand-text">
         <div class="brand-name" id="brand-name">狼波周期指数</div>
