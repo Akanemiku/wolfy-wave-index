@@ -527,11 +527,17 @@ async function init() {
       const prevClose = i !== undefined ? prevRealClose(i) : null;
       const chg = prevClose ? (bar.close - prevClose) / prevClose : null;
       const dirColor = chg !== null && chg < 0 ? COLORS.down : COLORS.up;
-      const [o, hi, lo, cl] = t('legendOHLC');
-      rows += row(dirColor, o, fmtPrice(bar.open));
-      rows += row(dirColor, hi, fmtPrice(bar.high));
-      rows += row(dirColor, lo, fmtPrice(bar.low));
-      rows += row(dirColor, cl, fmtPrice(bar.close));
+      if (chartStyle === 'candles') {
+        // K 线模式：一根蜡烛有四个价格，逐项展示
+        const [o, hi, lo, cl] = t('legendOHLC');
+        rows += row(dirColor, o, fmtPrice(bar.open));
+        rows += row(dirColor, hi, fmtPrice(bar.high));
+        rows += row(dirColor, lo, fmtPrice(bar.low));
+        rows += row(dirColor, cl, fmtPrice(bar.close));
+      } else {
+        // 折线/狼波着色：线本体取收盘价，只展示这一个价格
+        rows += row(dirColor, t('ttPrice'), fmtPrice(bar.close));
+      }
       if (chg !== null) rows += row(dirColor, t('ttChange'), fmtPct(chg));
     }
     const v = waveIndexAt(h);
