@@ -5,7 +5,7 @@ import {
   PIVOT_WINDOWS, HALVING_INTERVAL, WAVE_BULL_HALF,
   EXTEND_MARGIN_BLOCKS, COLORS,
 } from './config.js';
-import { heightAt, timeAtHeight } from './blocks.js';
+import { heightAt } from './blocks.js';
 import { t } from './i18n.js';
 import { CycleBox } from './primitives/cycle-box.js';
 import { VertLine } from './primitives/vert-line.js';
@@ -95,11 +95,9 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
   for (let i = 0; i < 10; i++) {
     const hgt = (i + 1) * HALVING_INTERVAL;
     if (hgt > extendTo) break;
-    // 标签带年份（未来减半按当前出块速度估算），缩小视图同屏多次减半时可区分
-    const year = new Date(timeAtHeight(hgt) * 1000).getUTCFullYear();
     primitives.push(new VertLine({
       time: hgt, color: COLORS.halving,
-      label: t('halving', year), labelColor: COLORS.halvingLabel,
+      label: t('halving'), labelColor: COLORS.halvingLabel,
     }));
     phasePrimitives.push(new VertLine({ time: hgt, color: COLORS.halving }));
   }
