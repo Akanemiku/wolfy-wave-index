@@ -368,47 +368,6 @@ body {
 .toggle-btn:not(.active) .icon-eye { display: none; }
 .toggle-btn:not(.active) .icon-eye-off { display: inline; }
 
-/* ── 顶部周期轴（与底部区块轴对称的 40px 双行轴条）：收纳牛市/熊市/减半
-   文本，图内不放任何文字。第一行 = 牛熊标签（钉在区域可见部分的水平中点），
-   第二行 = 减半标签（减半恰在牛市正中，天然落在牛市标签正下方，永不打架） ── */
-.cycle-axis {
-  position: relative;
-  height: 40px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
-  overflow: hidden;
-  flex: none;
-}
-
-.cx-band {
-  position: absolute;
-  top: 7px;
-  transform: translateX(-50%);
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-  user-select: none;
-}
-
-.cx-halving {
-  position: absolute;
-  top: 23px;
-  transform: translateX(-50%);
-  font-size: 10px;
-  font-weight: 500;
-  white-space: nowrap;
-  user-select: none;
-}
-
-.cx-tick {
-  position: absolute;
-  bottom: 0;
-  width: 1px;
-  height: 4px;
-  background: var(--sub);
-  opacity: 0.8;
-}
-
 /* ── 底部区块刻度轴（主轴：区块高度，副行：对应≈日期） ── */
 .block-axis {
   position: relative;

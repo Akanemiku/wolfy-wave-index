@@ -168,46 +168,7 @@ async function init() {
     return { ticks, step };
   }
 
-  // ── 顶部周期轴：牛市/熊市/减半文本收纳于此，图内不放文字 ──
-  // 与底部区块轴共用同一套坐标管线（logicalToX + 左轴宽度偏移），像素级对齐
-  const cycleAxis = $('cycle-axis');
-  function renderCycleAxis() {
-    const width = paneWidth();
-    const pl = paneLeft();
-    for (const el of [...cycleAxis.querySelectorAll('.cx-band, .cx-halving, .cx-tick')]) el.remove();
-    if (!meta?.bands || !width) return;
-    for (const b of meta.bands) {
-      const x1 = logicalToX(chart, timeToLogical(b.from));
-      const x2 = logicalToX(chart, timeToLogical(b.to));
-      if (x1 === null || x2 === null) continue;
-      // 标签钉在区域可见部分的水平中点；可见部分太窄不放
-      const vx1 = Math.max(x1, 0);
-      const vx2 = Math.min(x2, width);
-      if (vx2 - vx1 < 48) continue;
-      const el = document.createElement('span');
-      el.className = 'cx-band';
-      el.textContent = t(b.bull ? 'bull' : 'bear');
-      el.style.color = b.bull ? COLORS.bullLabel : COLORS.bearLabel;
-      el.style.left = `${pl + (vx1 + vx2) / 2}px`;
-      cycleAxis.appendChild(el);
-    }
-    for (const h of meta.halvings) {
-      const x = logicalToX(chart, timeToLogical(h));
-      if (x === null || x < 0 || x > width) continue;
-      const lab = document.createElement('span');
-      lab.className = 'cx-halving';
-      lab.textContent = t('halving');
-      lab.style.color = COLORS.halvingLabel;
-      lab.style.left = `${pl + x}px`;
-      const tick = document.createElement('i');
-      tick.className = 'cx-tick';
-      tick.style.left = `${pl + x}px`;
-      cycleAxis.append(lab, tick);
-    }
-  }
-
   function renderBlockAxis() {
-    renderCycleAxis();
     const width = paneWidth();
     const res = computeAxisTicks();
     if (!res) return;
@@ -652,7 +613,6 @@ async function init() {
     $('label-cycle').textContent = t('cycleLabel');
     $('label-bottom').textContent = t('bottomLabel');
     $('bx-name').textContent = t('axisName');
-    $('cx-name').textContent = t('cycleAxisName');
     // tooltip / aria 文案同样随语言刷新（否则切 EN 后悬停仍弹中文）
     $('lang-switch').title = t('titleLang');
     $('theme-toggle').title = t('titleTheme');
@@ -716,7 +676,6 @@ async function init() {
       attachedPhase = [];
     }
     $('annot-toggle').classList.toggle('active', annotOn);
-    $('cycle-axis').hidden = !annotOn; // 周期轴条随标注一起显隐
   });
 
   $('theme-toggle').addEventListener('click', () => {

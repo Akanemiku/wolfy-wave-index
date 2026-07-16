@@ -1,14 +1,23 @@
-// 全高竖线：减半（蓝）。线画在 'normal' 层（网格之上）；
-// 文本不在图内——「减半」标签收纳在图表上方的周期轴条（main.js）。
-import { Primitive } from './base.js';
+// 全高竖线：减半日（蓝）、今日分隔（灰虚线）。
+// 线画在 'normal' 层（网格之上）；可选标签用图内胶囊（与牛熊市标签同款）
+// 钉在竖线顶端、OHLC 读数行之下，画在 'top' 层保持可读。
+import { Primitive, drawTag } from './base.js';
+import { COLORS } from '../config.js';
+
+const TAG_TOP = 32; // 标签纵向位置（px）：贴住面板顶部、避开 OHLC 读数行
 
 export class VertLine extends Primitive {
-  constructor({ time, color, width = 1.5, dashed = false }) {
+  constructor({ time, color, width = 1.5, dashed = false, label, labelColor }) {
     super('normal');
     this._time = time;
     this._color = color;
     this._width = width;
     this._dashed = dashed;
+    this._label = label;
+    this._labelColor = labelColor;
+    if (label) {
+      this._views.push(this._makeView('top', (ctx, media) => this._drawLabel(ctx, media)));
+    }
   }
 
   _x(media) {
@@ -28,5 +37,15 @@ export class VertLine extends Primitive {
     ctx.lineTo(x, media.height);
     ctx.stroke();
     ctx.setLineDash([]);
+  }
+
+  _drawLabel(ctx, media) {
+    const x = this._x(media);
+    if (x === null) return;
+    drawTag(ctx, x, TAG_TOP, this._label, {
+      bg: COLORS.tagBg,
+      color: this._labelColor,
+      anchor: 'tc',
+    });
   }
 }
