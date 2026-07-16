@@ -111,46 +111,17 @@ body {
   flex: none;
 }
 
-.lang-switch {
-  /* 组内选项等宽（自动宽度 grid 的 1fr 列会统一到最宽项） */
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  gap: 2px;
-  padding: 2px;
-  height: var(--ctl-h);
-  background: var(--panel);
-  border: 1px solid var(--border);
-}
-
-.lang-opt {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: none;
-  color: var(--sub);
+/* 语言按钮：与主题按钮同款方形图标按钮，字形显示当前语言
+  （中文态「中」/ 英文态「EN」，与月亮/太阳的“显示当前态”一致） */
+.icon-btn .glyph-zh,
+.icon-btn .glyph-en {
   font-size: 12px;
   font-weight: 600;
-  font-family: inherit;
-  padding: 0 10px;
-  cursor: pointer;
-  transition: color 0.12s ease, background-color 0.12s ease;
+  line-height: 1;
 }
 
-.lang-opt:not(.active):hover {
-  color: var(--text);
-  background: var(--hover);
-}
-
-.lang-opt:active {
-  background: var(--ctl-press);
-}
-
-.lang-opt.active {
-  background: var(--ctl-active);
-  color: var(--text);
-}
+html[lang="en"] .glyph-zh { display: none; }
+html:not([lang="en"]) .glyph-en { display: none; }
 
 .icon-btn {
   display: flex;

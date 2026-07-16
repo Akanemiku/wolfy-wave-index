@@ -614,7 +614,7 @@ async function init() {
     $('label-bottom').textContent = t('bottomLabel');
     $('bx-name').textContent = t('axisName');
     // tooltip / aria 文案同样随语言刷新（否则切 EN 后悬停仍弹中文）
-    $('lang-switch').title = t('titleLang');
+    $('lang-toggle').title = t('titleLang');
     $('theme-toggle').title = t('titleTheme');
     $('stat-wave-cell').title = t('titleWaveStat');
     $('stat-cycle-cell').title = t('cycleTitle');
@@ -630,9 +630,6 @@ async function init() {
     $('phase-label').textContent = t(phaseOn ? 'phaseHide' : 'phaseShow');
     $('ws-top').textContent = t('scaleTop');
     $('ws-bottom').textContent = t('scaleBottom');
-    document.querySelectorAll('.lang-opt').forEach((b) => {
-      b.classList.toggle('active', b.dataset.lang === I18N.lang);
-    });
     $('foot-data').textContent = t('footData');
     $('foot-theory').textContent = t('footTheory');
     $('foot-disclaimer').textContent = t('footDisclaimer');
@@ -643,14 +640,13 @@ async function init() {
   // 首帧可能用回退字体，字体加载完成后校正
   document.fonts?.ready?.then(() => { if (daily.length) render(null); });
 
-  document.querySelectorAll('.lang-opt').forEach((btn) => btn.addEventListener('click', () => {
-    if (btn.dataset.lang === I18N.lang) return;
-    setLang(btn.dataset.lang);
+  $('lang-toggle').addEventListener('click', () => {
+    setLang(I18N.lang === 'zh' ? 'en' : 'zh');
     localStorage.setItem(LANG_KEY, I18N.lang);
-    applyStaticLang();
+    applyStaticLang(); // 会同步 html.lang，按钮字形随之切换
     makeWatermark();
     render(null); // 重建标注/标签轴/读数以套用新语言（保留当前缩放）
-  }));
+  });
 
   scaleButtons.forEach((btn) => btn.addEventListener('click', () => {
     const useLog = btn.dataset.scale === 'log';
