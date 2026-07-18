@@ -342,7 +342,7 @@ async function init() {
       return;
     }
     phaseLegend.innerHTML =
-      `${t('paneTitleName')}<b class="wave-text" style="color: ${waveTextColor(v)}">${v.toFixed(2)}</b>`;
+      `${t('paneTitleName')}<b class="wave-text" style="color: ${waveTextColor(v)}">${v.toFixed(3)}</b>`;
   }
 
   // ── 渲染管线 ──
@@ -442,7 +442,7 @@ async function init() {
       el.className = `chg ${chg >= 0 ? 'up' : 'down'}`;
     }
     const waveEl = $('stat-wave');
-    const waveText = waveNow !== null ? waveNow.toFixed(2) : '—';
+    const waveText = waveNow !== null ? waveNow.toFixed(3) : '—';
     waveEl.textContent = waveText;
     waveEl.style.color = waveNow !== null ? waveTextColor(waveNow) : '';
     if (lastShown.wave !== null && waveNow !== null && waveText !== lastShown.wave) {
@@ -541,7 +541,7 @@ async function init() {
       if (chg !== null) rows += row(dirColor, t('ttChange'), fmtPct(chg));
     }
     const v = waveIndexAt(h);
-    rows += row(waveTextColor(v), t('waveLabel'), v.toFixed(2));
+    rows += row(waveTextColor(v), t('waveLabel'), v.toFixed(3));
     // 周期阶段：狼波上行段 = 牛市，下行段 = 熊市
     const s = (((h + WAVE_BULL_HALF) % HALVING_INTERVAL) + HALVING_INTERVAL) % HALVING_INTERVAL;
     const isBull = s < 2 * WAVE_BULL_HALF;

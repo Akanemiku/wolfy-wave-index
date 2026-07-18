@@ -107,7 +107,8 @@ export function createChartAndSeries(container) {
 
   // 狼波周期指数副图区（TradingView 风格的下方独立面板）：
   // 实线 = 已发生，虚线 = 预测段；左轴显示 0~1 小数读数
-  const phaseFormat = { type: 'custom', formatter: (v) => v.toFixed(2), minMove: 0.01 };
+  // 三位小数：指数按区块推进（144 区块桶 ≈ 0.001），两位小数几天不动
+  const phaseFormat = { type: 'custom', formatter: (v) => v.toFixed(3), minMove: 0.001 };
   const phaseSolid = chart.addSeries(LWC.LineSeries, {
     ...phaseThemeOptions(),
     priceScaleId: 'left',
