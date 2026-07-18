@@ -18,10 +18,11 @@ export function waveIndexAt(h) {
   return 1 - into / bearLen;
 }
 
-// 未来视界：当前高度之后的「下下个」理论熊底高度——
-// 保证图表右侧完整铺出下一轮周期（下次减半 + 下轮牛顶 + 下轮熊底）
+// 未来视界：当前高度之后第 4 个理论熊底高度——
+// 图表右侧完整铺出未来三轮周期（含 2028/2032/2036 三次减半
+// 与各自的牛熊区间），滚轮缩小即可查看
 export function waveHorizonHeight(h) {
-  return (Math.floor((h + WAVE_BULL_HALF) / HALVING_INTERVAL) + 2) * HALVING_INTERVAL - WAVE_BULL_HALF;
+  return (Math.floor((h + WAVE_BULL_HALF) / HALVING_INTERVAL) + 4) * HALVING_INTERVAL - WAVE_BULL_HALF;
 }
 
 const timeoutSignal = (ms) => {
