@@ -430,8 +430,12 @@ async function init() {
     if (!last) return;
 
     const priceNow = livePrice ?? last.close;
-    $('stat-price').textContent = `$${fmtPrice(priceNow)}`;
-    if (Number.isFinite(lastShown.price) && fmtPrice(priceNow) !== fmtPrice(lastShown.price)) {
+    // 顶栏价格显示到美分：取整到美元会把逐笔成交的跳动全部抹平
+    $('stat-price').textContent = `$${priceNow.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+    if (Number.isFinite(lastShown.price) && priceNow !== lastShown.price) {
       flashValue($('stat-price').closest('.stat-value'), priceNow >= lastShown.price ? 'up' : 'down');
     }
     lastShown.price = priceNow;
@@ -737,30 +741,70 @@ async function init() {
     showNotice(t('noticeStale', fmtDMY(sinceTs)));
   }
 
-  // ── 轻量实时轮询 ──
-  // 价格 30s（Bitstamp ticker）：写进最后一根日线蜡烛后整体重绘，
-  // K 线尾部、坐标轴价格牌、价格引导线与顶栏一起跳动；
-  // 链上高度 60s（新区块 ≈ 每 10 分钟）：高度前移同样走完整 render；
+  // ── 实时数据流 ──
+  // 价格走 Bitstamp WebSocket 逐笔成交（肉眼可见的连续跳动）：
+  // 顶栏读数逐笔即时更新；图表重绘节流到最多 2s 一次（每笔成交都
+  // 全量重绘太重）。WS 断线 5s 后自动重连，期间 30s ticker 轮询兜底。
+  // 链上高度 60s 轮询（新区块 ≈ 每 10 分钟）：高度前移走完整 render；
   // K 线尾部 5 分钟重取一次（跨 UTC 零点时长出新的一根日线）
+  let chartRenderQueued = false;
+  function applyLivePrice(p) {
+    if (!Number.isFinite(p) || p === livePrice) return;
+    livePrice = p;
+    const lastC = dailyReal.at(-1);
+    if (!lastC) {
+      updateStats();
+      return;
+    }
+    // daily 与 dailyReal 共享对象引用，改这里即改数据源
+    lastC.close = p;
+    if (p > lastC.high) lastC.high = p;
+    if (p < lastC.low) lastC.low = p;
+    updateStats(); // 顶栏即时跳动（含闪烁）
+    if (!chartRenderQueued) {
+      chartRenderQueued = true;
+      setTimeout(() => {
+        chartRenderQueued = false;
+        render(null); // 视图不动，K 线尾部/价格牌/引导线原地刷新
+      }, 2000);
+    }
+  }
+
+  let wsAlive = false;
+  function connectPriceStream() {
+    let sock;
+    try {
+      sock = new WebSocket('wss://ws.bitstamp.net');
+    } catch {
+      return; // 环境不支持时永久走轮询兜底
+    }
+    sock.onopen = () => {
+      wsAlive = true;
+      sock.send(JSON.stringify({ event: 'bts:subscribe', data: { channel: 'live_trades_btcusd' } }));
+    };
+    sock.onmessage = (ev) => {
+      try {
+        const msg = JSON.parse(ev.data);
+        if (msg.event === 'trade' && msg.data?.price) applyLivePrice(Number(msg.data.price));
+      } catch { /* 忽略坏消息 */ }
+    };
+    sock.onclose = () => {
+      wsAlive = false;
+      setTimeout(connectPriceStream, 5000);
+    };
+    sock.onerror = () => {
+      try { sock.close(); } catch { /* 已关闭 */ }
+    };
+  }
+
   async function pollPrice() {
+    if (wsAlive) return; // WS 在线时无需轮询
     try {
       const res = await fetch('https://www.bitstamp.net/api/v2/ticker/btcusd/', {
         signal: AbortSignal.timeout(10000),
       });
       if (!res.ok) return;
-      const p = parseFloat((await res.json()).last);
-      if (!Number.isFinite(p) || p === livePrice) return;
-      livePrice = p;
-      const lastC = dailyReal.at(-1);
-      if (lastC) {
-        // daily 与 dailyReal 共享对象引用，改这里即改数据源
-        lastC.close = p;
-        if (p > lastC.high) lastC.high = p;
-        if (p < lastC.low) lastC.low = p;
-        render(null); // 视图不动，仅数据/标注/统计原地刷新
-      } else {
-        updateStats();
-      }
+      applyLivePrice(parseFloat((await res.json()).last));
     } catch { /* 单次失败静默，下一轮再试 */ }
   }
   async function pollHeight() {
@@ -787,6 +831,7 @@ async function init() {
   setInterval(pollHeight, 60000);
   setInterval(pollCandles, 300000);
   pollPrice();
+  connectPriceStream();
   console.table(pivots.map((p) => ({ 类型: p.type === 'top' ? '牛顶' : '熊底', 日期: fmtDate(p.time), 价格: p.price, 高度: heightAt(p.time) })));
 }
 
