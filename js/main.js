@@ -748,20 +748,25 @@ async function init() {
   // 链上高度 60s 轮询（新区块 ≈ 每 10 分钟）：高度前移走完整 render；
   // K 线尾部 5 分钟重取一次（跨 UTC 零点时长出新的一根日线）
   let chartRenderQueued = false;
+  let statsFlushTimer = null;
   function applyLivePrice(p) {
     if (!Number.isFinite(p) || p === livePrice) return;
     livePrice = p;
     const lastC = dailyReal.at(-1);
-    if (!lastC) {
-      updateStats();
-      return;
+    if (lastC) {
+      // daily 与 dailyReal 共享对象引用，改这里即改数据源
+      lastC.close = p;
+      if (p > lastC.high) lastC.high = p;
+      if (p < lastC.low) lastC.low = p;
     }
-    // daily 与 dailyReal 共享对象引用，改这里即改数据源
-    lastC.close = p;
-    if (p > lastC.high) lastC.high = p;
-    if (p < lastC.low) lastC.low = p;
-    updateStats(); // 顶栏即时跳动（含闪烁）
-    if (!chartRenderQueued) {
+    // 顶栏刷新 250ms 合并：盘口流一秒可达多条，逐条刷 DOM 没有意义
+    if (!statsFlushTimer) {
+      statsFlushTimer = setTimeout(() => {
+        statsFlushTimer = null;
+        updateStats();
+      }, 250);
+    }
+    if (lastC && !chartRenderQueued) {
       chartRenderQueued = true;
       setTimeout(() => {
         chartRenderQueued = false;
@@ -780,12 +785,23 @@ async function init() {
     }
     sock.onopen = () => {
       wsAlive = true;
+      // 逐笔成交 = 真实成交价；盘口 = 买一/卖一每秒多次变动，
+      // 用中间价填充成交之间的空隙，价格秒级连续跳动
       sock.send(JSON.stringify({ event: 'bts:subscribe', data: { channel: 'live_trades_btcusd' } }));
+      sock.send(JSON.stringify({ event: 'bts:subscribe', data: { channel: 'order_book_btcusd' } }));
     };
     sock.onmessage = (ev) => {
       try {
         const msg = JSON.parse(ev.data);
-        if (msg.event === 'trade' && msg.data?.price) applyLivePrice(Number(msg.data.price));
+        if (msg.event === 'trade' && msg.data?.price) {
+          applyLivePrice(Number(msg.data.price));
+        } else if (msg.event === 'data' && msg.channel === 'order_book_btcusd') {
+          const bid = Number(msg.data?.bids?.[0]?.[0]);
+          const ask = Number(msg.data?.asks?.[0]?.[0]);
+          if (Number.isFinite(bid) && Number.isFinite(ask)) {
+            applyLivePrice((bid + ask) / 2);
+          }
+        }
       } catch { /* 忽略坏消息 */ }
     };
     sock.onclose = () => {
