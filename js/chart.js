@@ -114,7 +114,7 @@ export function createChartAndSeries(container) {
     priceScaleId: 'left',
     lineWidth: 1.5,
     priceFormat: phaseFormat,
-    priceLineVisible: false,
+    priceLineVisible: true, // 当前指数的水平虚线，与主图价格引导线同款
     lastValueVisible: true,
   }, 1);
   const phaseDashed = chart.addSeries(LWC.LineSeries, {

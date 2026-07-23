@@ -337,12 +337,14 @@ async function init() {
   // 副图标题行（DOM，与主图 OHLC 读数同一套排版）：名称 + 实时读数。
   // 读数跟随十字线，移开时回落为当前值
   function updateWaveTitle(v = waveNow) {
+    // 名称与主图「BTC/USD」同款系列标识样式（加粗主文字色）
+    const name = `<b>${t('paneTitleName')}</b>`;
     if (v === null) {
-      phaseLegend.textContent = t('paneTitleName');
+      phaseLegend.innerHTML = name;
       return;
     }
     phaseLegend.innerHTML =
-      `${t('paneTitleName')}<b class="wave-text" style="color: ${waveTextColor(v)}">${v.toFixed(3)}</b>`;
+      `${name}<b class="wave-text" style="color: ${waveTextColor(v)}">${v.toFixed(3)}</b>`;
   }
 
   // ── 渲染管线 ──
