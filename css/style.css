@@ -291,19 +291,6 @@ html:not([lang="en"]) .glyph-en { display: none; }
 /* 狼波指数读数的颜色由 JS 按 waveColor(值) 动态设置——
    与折线/色标同一色谱，同一数值同一颜色 */
 
-/* 次级数值单元（周期状态）：比价格小一号；纯展示，不用边框盒
-   ——细边框小盒的视觉语言专属可交互控件 */
-.stat-value.stat-sub {
-  font-size: 13px;
-  color: var(--sub);
-  font-variant-numeric: tabular-nums;
-}
-
-.stat-sub b {
-  color: var(--text);
-  font-weight: 620;
-}
-
 /* ── 工具栏（分段控件） ── */
 .toolbar {
   display: flex;
@@ -846,21 +833,6 @@ html:not([lang="en"]) .glyph-en { display: none; }
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.foot-sep {
-  opacity: 0.6;
-}
-
-/* ── 窄屏降级 ── */
-/* 页脚：先收起理论参数，再收起数据来源；免责声明始终保留 */
-@media (max-width: 960px) {
-  #foot-theory,
-  #foot-sep-2 { display: none; }
-}
-
-@media (max-width: 540px) {
-  #foot-data,
-  #foot-sep-1 { display: none; }
-}
 
 /* ── 移动端 ── */
 @media (max-width: 720px) {

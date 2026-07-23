@@ -417,7 +417,7 @@ async function init() {
 
   // ── 顶栏统计 ──
   // 数值更新闪烁：对比上一次显示值，真正变化时底色亮起后淡出
-  const lastShown = { price: NaN, height: NaN, wave: null };
+  const lastShown = { price: NaN, height: NaN };
   function flashValue(el, dir = null) {
     el.classList.remove('flash', 'flash-up', 'flash-down');
     void el.offsetWidth; // 强制重排以重启动画
@@ -445,14 +445,7 @@ async function init() {
       el.textContent = fmtPct(chg);
       el.className = `chg ${chg >= 0 ? 'up' : 'down'}`;
     }
-    const waveEl = $('stat-wave');
-    const waveText = waveNow !== null ? waveNow.toFixed(3) : '—';
-    waveEl.textContent = waveText;
-    waveEl.style.color = waveNow !== null ? waveTextColor(waveNow) : '';
-    if (lastShown.wave !== null && waveNow !== null && waveText !== lastShown.wave) {
-      flashValue(waveEl.closest('.stat-value'));
-    }
-    if (waveNow !== null) lastShown.wave = waveText;
+    // 色标游标跟随当前指数值
     const marker = $('ws-marker');
     if (waveNow !== null) {
       marker.hidden = false;
@@ -465,17 +458,6 @@ async function init() {
       flashValue($('stat-height').closest('.stat-value'));
     }
     lastShown.height = meta.todayPos;
-
-    const elapsed = meta.todayPos - meta.topPos;
-    const total = meta.predictedEnd - meta.topPos;
-    const remain = meta.predictedEnd - meta.todayPos;
-    $('stat-cycle').innerHTML = elapsed >= 0
-      ? t('cycleValue', fmtInt(elapsed), fmtInt(total))
-      : '—';
-    $('stat-bottom').innerHTML = remain >= 0
-      ? t('bottomValue', fmtInt(remain))
-      : t('bottomOverValue', fmtInt(-remain));
-    $('stat-bottom-cell').title = t('bottomTitle', fmtInt(meta.predictedEnd));
   }
 
   // ── 十字线 OHLC 读数（基于当前 bars） ──
@@ -626,15 +608,10 @@ async function init() {
     tfButtons.forEach((b) => { b.textContent = t(TF_KEYS[b.dataset.tf]); });
     styleButtons.forEach((b) => { b.textContent = t(STYLE_KEYS[b.dataset.style]); });
     $('label-price').textContent = t('priceLabel');
-    $('stat-wave-label').textContent = t('waveLabel');
-    $('label-cycle').textContent = t('cycleLabel');
-    $('label-bottom').textContent = t('bottomLabel');
     $('bx-name').textContent = t('axisName');
     // tooltip / aria 文案同样随语言刷新（否则切 EN 后悬停仍弹中文）
     $('lang-toggle').title = t('titleLang');
     $('theme-toggle').title = t('titleTheme');
-    $('stat-wave-cell').title = t('titleWaveStat');
-    $('stat-cycle-cell').title = t('cycleTitle');
     $('tf-group').title = t('titleTf');
     $('style-group').title = t('titleStyle');
     $('scale-group').title = t('titleScale');
@@ -648,8 +625,6 @@ async function init() {
     $('ws-top').textContent = t('scaleTop');
     $('ws-bottom').textContent = t('scaleBottom');
     $('foot-data').textContent = t('footData');
-    $('foot-theory').textContent = t('footTheory');
-    $('foot-disclaimer').textContent = t('footDisclaimer');
   }
   applyStaticLang();
 
