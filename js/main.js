@@ -36,6 +36,12 @@ const fmtPct = (v) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(2)}%`;
 
 const THEME_KEY = 'wolfy-theme';
 const LANG_KEY = 'wolfy-lang';
+// 界面设置持久化：用户改过的坐标/图表类型/分桶粒度/标注显隐记在
+// localStorage（与主题/语言同一机制），下次打开直接恢复个性化状态
+const SCALE_KEY = 'wolfy-scale';
+const STYLE_KEY = 'wolfy-style';
+const TF_KEY = 'wolfy-tf';
+const ANNOT_KEY = 'wolfy-annot';
 
 // 狼波着色模式的色谱（参照 RSI 彩虹渐变）：0 = 蓝（熊底）→ 1 = 红（牛顶）
 const WAVE_COLOR_STOPS = [
@@ -95,11 +101,17 @@ async function init() {
   let built = [];          // 最近一次构建的标注 primitive（主图）
   let attachedPhase = [];  // 当前挂载的副图标注（贯穿的色带与减半线）
   let builtPhase = [];     // 最近一次构建的副图标注
-  let annotOn = true;
+  // 默认初始状态：标注开启、对数坐标、狼波着色、144 区块（日）；
+  // 用户改过则从 localStorage 恢复（存的值非法时回落默认）
+  let annotOn = localStorage.getItem(ANNOT_KEY) !== '0';
   let phaseOn = true;      // 狼波指数副图窗格显示中
-  let logOn = true;
-  let chartStyle = 'wave'; // 'candles' | 'line' | 'wave'，默认狼波着色
-  let timeframe = 'day';   // 分桶粒度键：day=144区块 week=1,008区块 month=4,368区块
+  let logOn = localStorage.getItem(SCALE_KEY) !== 'linear';
+  const savedStyle = localStorage.getItem(STYLE_KEY);
+  // 'candles' | 'line' | 'wave'，默认狼波着色
+  let chartStyle = ['candles', 'line', 'wave'].includes(savedStyle) ? savedStyle : 'wave';
+  const savedTf = localStorage.getItem(TF_KEY);
+  // 分桶粒度键：day=144区块 week=1,008区块 month=4,368区块
+  let timeframe = BLOCK_BUCKETS[savedTf] ? savedTf : 'day';
   let daily = [];          // fillGaps 后的日线（枢轴/统计的数据源）
   let dailyReal = [];      // 仅真实日线
   let bars = [];           // 按块分桶的 bars + whitespace（图表数据源，time=桶起始高度）
@@ -119,6 +131,7 @@ async function init() {
   series.applyOptions({ visible: chartStyle === 'candles' });
   lineSeries.applyOptions({ visible: chartStyle === 'line' });
   waveLine.applyOptions({ visible: chartStyle === 'wave' });
+  if (!logOn) setLogScale(chart, false); // 持久化为线性时建图后立刻套用
 
   // 绘图区宽度。不能用 timeScale().width()：内置时间轴已隐藏，它返回 0
   function paneWidth() {
@@ -421,7 +434,7 @@ async function init() {
     if (fit) {
       // 等一帧，确保 autoSize 已应用真实容器尺寸
       requestAnimationFrame(() => {
-        focusCurrent();
+        fitAll();
         renderBlockAxis();
         positionPhaseToggle(); // 面板尺寸就绪后校正副图按钮/标题位置
       });
@@ -587,15 +600,15 @@ async function init() {
     updateAxisCursor(param?.time !== undefined ? param.time : null);
   });
 
-  // 默认视图聚焦当前周期：上一轮实际熊底 → 本轮预测见底
-  //（未来的完整下一轮周期已铺在右侧，滚轮缩小即可查看）
-  function focusCurrent() {
-    const lastBottom = [...pivots].reverse().find((p) => p.type === 'bottom');
-    if (!lastBottom || !meta) return;
-    chart.timeScale().setVisibleLogicalRange({
-      from: timeToLogical(heightAt(lastBottom.time)) - 15,
-      to: timeToLogical(meta.predictedEnd) + 20,
-    });
+  // 默认视图完整呈现全部价格历史：横向 [首根真实K线, 今日] 两侧各留
+  // 3% 安全留白（未来推演区在右侧，滚轮缩小/右拖即可查看）；
+  // 纵向由左轴自动缩放完成，scaleMargins 已留出上下安全边距
+  function fitAll() {
+    const first = bars.findIndex((b) => b.open !== undefined);
+    if (first < 0 || !meta) return;
+    const to = timeToLogical(meta.todayPos);
+    const pad = (to - first) * 0.03;
+    chart.timeScale().setVisibleLogicalRange({ from: first - pad, to: to + pad });
   }
 
   // ── 工具栏 ──
@@ -604,17 +617,24 @@ async function init() {
     if (btn.dataset.tf === timeframe) return;
     timeframe = btn.dataset.tf;
     tfButtons.forEach((b) => b.classList.toggle('active', b === btn));
+    localStorage.setItem(TF_KEY, timeframe);
     render(null);
-    focusCurrent();
+    fitAll();
   }));
 
   // K线 / 折线 / 狼波着色切换：迁移标注宿主并保留缩放
   const styleButtons = [...document.querySelectorAll('#style-group button')];
   const scaleButtons = [...document.querySelectorAll('#scale-group button')];
+  // HTML 里写死的是默认态；恢复持久化设置后同步按钮高亮
+  tfButtons.forEach((b) => b.classList.toggle('active', b.dataset.tf === timeframe));
+  styleButtons.forEach((b) => b.classList.toggle('active', b.dataset.style === chartStyle));
+  scaleButtons.forEach((b) => b.classList.toggle('active', (b.dataset.scale === 'log') === logOn));
+  $('annot-toggle').classList.toggle('active', annotOn);
   styleButtons.forEach((btn) => btn.addEventListener('click', () => {
     if (btn.dataset.style === chartStyle) return;
     chartStyle = btn.dataset.style;
     styleButtons.forEach((b) => b.classList.toggle('active', b === btn));
+    localStorage.setItem(STYLE_KEY, chartStyle);
     series.applyOptions({ visible: chartStyle === 'candles' });
     lineSeries.applyOptions({ visible: chartStyle === 'line' });
     waveLine.applyOptions({ visible: chartStyle === 'wave' });
@@ -671,6 +691,7 @@ async function init() {
     logOn = useLog;
     setLogScale(chart, logOn);
     scaleButtons.forEach((b) => b.classList.toggle('active', b === btn));
+    localStorage.setItem(SCALE_KEY, logOn ? 'log' : 'linear');
   }));
 
   $('annot-toggle').addEventListener('click', () => {
@@ -689,6 +710,7 @@ async function init() {
       attachedPhase = [];
     }
     $('annot-toggle').classList.toggle('active', annotOn);
+    localStorage.setItem(ANNOT_KEY, annotOn ? '1' : '0');
   });
 
   $('theme-toggle').addEventListener('click', () => {
