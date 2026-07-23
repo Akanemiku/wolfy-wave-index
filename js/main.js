@@ -417,7 +417,7 @@ async function init() {
 
   // ── 顶栏统计 ──
   // 数值更新闪烁：对比上一次显示值，真正变化时底色亮起后淡出
-  const lastShown = { price: NaN, height: NaN };
+  const lastShown = { price: NaN, height: NaN, wave: null };
   function flashValue(el, dir = null) {
     el.classList.remove('flash', 'flash-up', 'flash-down');
     void el.offsetWidth; // 强制重排以重启动画
@@ -445,6 +445,15 @@ async function init() {
       el.textContent = fmtPct(chg);
       el.className = `chg ${chg >= 0 ? 'up' : 'down'}`;
     }
+    // 顶栏狼波周期指数读数（颜色 = 该值的狼波色）+ 变化闪烁
+    const waveEl = $('stat-wave');
+    const waveText = waveNow !== null ? waveNow.toFixed(3) : '—';
+    waveEl.textContent = waveText;
+    waveEl.style.color = waveNow !== null ? waveTextColor(waveNow) : '';
+    if (lastShown.wave !== null && waveNow !== null && waveText !== lastShown.wave) {
+      flashValue(waveEl.closest('.stat-value'));
+    }
+    if (waveNow !== null) lastShown.wave = waveText;
     // 色标游标跟随当前指数值
     const marker = $('ws-marker');
     if (waveNow !== null) {
@@ -605,6 +614,8 @@ async function init() {
     $('brand-sub').hidden = !sub;
     $('loading-brand').textContent = t('brand');
     $('label-height').textContent = t('axisName');
+    $('stat-wave-label').textContent = t('paneTitleName'); // 全称：狼波周期指数 / Wolfy Wave Index
+    $('stat-wave-cell').title = t('titleWaveStat');
     tfButtons.forEach((b) => { b.textContent = t(TF_KEYS[b.dataset.tf]); });
     styleButtons.forEach((b) => { b.textContent = t(STYLE_KEYS[b.dataset.style]); });
     $('label-price').textContent = t('priceLabel');
