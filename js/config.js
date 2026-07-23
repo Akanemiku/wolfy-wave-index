@@ -80,7 +80,6 @@ export const THEMES = {
     tagBg: 'rgba(14, 17, 23, 0.92)', // 标签胶囊统一底色
 
     watermark: 'rgba(228, 232, 240, 0.05)',
-    watermarkSub: 'rgba(228, 232, 240, 0.033)', // 作者行更淡一档，形成层级
   },
   light: {
     chartBg: '#ffffff',
@@ -120,7 +119,6 @@ export const THEMES = {
     tagBg: 'rgba(255, 255, 255, 0.94)', // 标签胶囊统一底色
 
     watermark: 'rgba(22, 26, 34, 0.05)',
-    watermarkSub: 'rgba(22, 26, 34, 0.033)', // 作者行更淡一档，形成层级
   },
 };
 

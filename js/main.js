@@ -373,8 +373,8 @@ async function init() {
     try {
       watermark?.detach();
       const [big, small] = t('watermark');
-      // 视觉层级：标题行大号无衬线（界面文字），作者行小号等宽
-      //（@handle 是标识符，走数据字体）、更淡一档、行距拉开
+      // 标题行大号无衬线（界面文字），作者行小号等宽
+      //（@handle 是标识符，走数据字体）、行距拉开；两行同一透明度
       watermark = LWC.createTextWatermark(chart.panes()[0], {
         horzAlign: 'center',
         vertAlign: 'center',
@@ -388,7 +388,7 @@ async function init() {
           },
           ...(small ? [{
             text: small,
-            color: COLORS.watermarkSub,
+            color: COLORS.watermark,
             fontSize: 13,
             fontFamily: FONT_MONO,
             lineHeight: 34,
