@@ -80,7 +80,7 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
       from,
       to,
       fill: isBull ? COLORS.bandFillBull : COLORS.bandFillBear,
-      borderColor: isBull ? COLORS.bullBorder : COLORS.bearBorder,
+      borderColor: COLORS.bandBorder,
       labelColor: isBull ? COLORS.bullLabel : COLORS.bearLabel,
       fullHeight: true,
     };
