@@ -382,16 +382,16 @@ async function init() {
           {
             text: big,
             color: COLORS.watermark,
-            fontSize: 42,
+            fontSize: 58,
             fontStyle: 'bold',
             fontFamily: FONT,
           },
           ...(small ? [{
             text: small,
             color: COLORS.watermark,
-            fontSize: 13,
+            fontSize: 17,
             fontFamily: FONT_MONO,
-            lineHeight: 34,
+            lineHeight: 46,
           }] : []),
         ],
       });
