@@ -668,6 +668,10 @@ async function init() {
     $('phase-toggle').title = t('titlePhase');
     $('wave-scale').title = t('titleWaveScale');
     $('notice-close').setAttribute('aria-label', t('closeLabel'));
+    $('about-toggle').title = t('titleAbout');
+    $('about-title').textContent = t('aboutTitle');
+    $('about-body').innerHTML = t('aboutHtml');
+    $('about-close').setAttribute('aria-label', t('closeLabel'));
     scaleButtons.forEach((b) => { b.textContent = t(b.dataset.scale === 'log' ? 'log' : 'linear'); });
     $('annot-label').textContent = t('marks');
     $('phase-label').textContent = t(phaseOn ? 'phaseHide' : 'phaseShow');
@@ -676,6 +680,17 @@ async function init() {
     $('foot-data').textContent = t('footData');
   }
   applyStaticLang();
+
+  // ── 指标说明弹窗：按钮打开；点遮罩 / 关闭按钮 / Esc 关闭 ──
+  const aboutOverlay = $('about-overlay');
+  $('about-toggle').addEventListener('click', () => { aboutOverlay.hidden = false; });
+  $('about-close').addEventListener('click', () => { aboutOverlay.hidden = true; });
+  aboutOverlay.addEventListener('click', (e) => {
+    if (e.target === aboutOverlay) aboutOverlay.hidden = true;
+  });
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !aboutOverlay.hidden) aboutOverlay.hidden = true;
+  });
 
   $('lang-toggle').addEventListener('click', () => {
     setLang(I18N.lang === 'zh' ? 'en' : 'zh');

@@ -53,6 +53,9 @@
         </div>
       </div>
       <div class="top-actions">
+        <button class="icon-btn" id="about-toggle" title="指标说明">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.4 9.1a2.7 2.7 0 1 1 3.9 2.8c-.8.35-1.3.9-1.3 1.8v.3"/><path d="M12 17.1v.01"/></svg>
+        </button>
         <button class="icon-btn" id="lang-toggle" title="语言">
           <span class="glyph-zh">中</span>
           <span class="glyph-en">EN</span>
@@ -139,6 +142,19 @@
   <footer class="foot">
     <span id="foot-data">数据来源：Bitstamp / Coinbase Exchange</span>
   </footer>
+
+  <!-- 指标说明弹窗：内容由 i18n 按当前语言注入（aboutHtml） -->
+  <div id="about-overlay" class="about-overlay" hidden>
+    <div class="about-modal" role="dialog" aria-modal="true" aria-labelledby="about-title">
+      <div class="about-head">
+        <b id="about-title">狼波周期指数 · 指标说明</b>
+        <button class="icon-btn" id="about-close" aria-label="关闭">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="about-body" id="about-body"></div>
+    </div>
+  </div>
 
   <script>
     // 必须放在模块脚本之外：file:// 下浏览器根本不会加载 ES module，
