@@ -198,54 +198,6 @@ async function init() {
   // 当前区块引导线 + 底轴高度数值牌（与 y 轴价格引导线对称，常驻显示）
   const nowLine = $('now-line');
   const bxNow = $('bx-now');
-  const dotPrice = $('now-dot-price');
-  const dotWave = $('now-dot-wave');
-  // 当前坐标标记点：过去（实线）与未来（虚线）连成连续折线后，
-  // 「现在」需要一个显式视觉锚——主图钉在价格线端点，副图钉在
-  // 指数线当前值；填充色 = 当前狼波色，外圈呼吸光环表达实时
-  function updateNowDots(x, pl, width) {
-    const fill = waveNow !== null ? waveColor(waveNow) : COLORS.today;
-    // 主图：价格线末端（最后一根真实 bar 的收盘）
-    let lastB = null;
-    for (let i = bars.length - 1; i >= 0; i--) {
-      if (bars[i].open !== undefined) { lastB = bars[i]; break; }
-    }
-    let shown = false;
-    if (lastB) {
-      const bx = logicalToX(chart, timeToLogical(lastB.time));
-      let py = null;
-      try { py = styleHost().priceToCoordinate(lastB.close); } catch { py = null; }
-      if (bx !== null && bx >= 0 && bx <= width && py != null) {
-        dotPrice.style.left = `${pl + bx}px`;
-        dotPrice.style.top = `${py}px`;
-        dotPrice.style.background = fill;
-        dotPrice.style.color = fill;
-        dotPrice.hidden = false;
-        shown = true;
-      }
-    }
-    if (!shown) dotPrice.hidden = true;
-    // 副图：指数锯齿的当前位置（今日高度的精确函数值）
-    let wy = null;
-    if (phaseOn && waveNow !== null && x !== null) {
-      try {
-        const hostH = $('chart').clientHeight;
-        const p0 = chart.paneSize(0).height;
-        const p1 = chart.paneSize(1).height;
-        const yy = phaseSolid.priceToCoordinate(waveNow);
-        if (yy != null) wy = p0 + Math.max(0, hostH - p0 - p1) + yy;
-      } catch { wy = null; }
-    }
-    if (wy != null) {
-      dotWave.style.left = `${pl + x}px`;
-      dotWave.style.top = `${wy}px`;
-      dotWave.style.background = fill;
-      dotWave.style.color = fill;
-      dotWave.hidden = false;
-    } else {
-      dotWave.hidden = true;
-    }
-  }
 
   function updateNowGuide() {
     const h = meta?.todayPos;
@@ -254,8 +206,6 @@ async function init() {
     if (x === null || x < 0 || x > width) {
       nowLine.hidden = true;
       bxNow.hidden = true;
-      dotPrice.hidden = true;
-      dotWave.hidden = true;
       return;
     }
     const pl = paneLeft();
@@ -269,7 +219,6 @@ async function init() {
     // 贴近左右边缘时钳制在可视范围内，不被拦腰裁掉
     const bw = bxNow.offsetWidth;
     bxNow.style.left = `${pl + Math.max(bw / 2, Math.min(width - bw / 2, x))}px`;
-    updateNowDots(x, pl, width);
   }
 
   // 十字线在底轴上的浮标：高度 ≈ 日期（负高度不存在，不显示）

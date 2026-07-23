@@ -467,35 +467,6 @@ html:not([lang="en"]) .glyph-en { display: none; }
   opacity: 0.8;
 }
 
-/* 当前坐标标记点：钉在折线的「现在」位置（主图价格线端点、副图指数线
-   当前值），填充色 = 当前狼波色（JS 设置），外圈呼吸光环表达实时 */
-.now-dot {
-  position: absolute;
-  z-index: 6;
-  width: 9px;
-  height: 9px;
-  margin: -4.5px 0 0 -4.5px; /* 以 left/top 为圆心定位 */
-  border-radius: 50%;
-  border: 2px solid var(--bg);
-  pointer-events: none;
-}
-
-.now-dot::after {
-  content: '';
-  position: absolute;
-  inset: -5px;
-  border-radius: 50%;
-  border: 2px solid currentColor;
-  opacity: 0;
-  animation: now-halo 2.4s ease-out infinite;
-}
-
-@keyframes now-halo {
-  0% { transform: scale(0.45); opacity: 0.85; }
-  70% { transform: scale(1.15); opacity: 0; }
-  100% { transform: scale(1.15); opacity: 0; }
-}
-
 /* 当前区块引导线（与 y 轴价格引导线对称）：贯穿两个面板的竖直虚线，
    颜色由 main.js 按主题色 COLORS.today 设置 */
 .now-line {
