@@ -2,7 +2,7 @@
 // 页面 UI（区块主轴 + 底部「高度/≈日期」双行刻度轴、分桶/主题/坐标/标注开关、
 // OHLC 读数、周期状态栏、顶部标签轴）
 import {
-  DAY, BLOCK_BUCKETS, HALVING_INTERVAL, WAVE_BULL_HALF, COLORS, setTheme,
+  DAY, BLOCK_BUCKETS, HALVING_INTERVAL, WAVE_BULL_HALF, COLORS, FONT, FONT_MONO, setTheme,
 } from './config.js';
 import { createChartAndSeries, applyChartTheme, setLogScale } from './chart.js';
 import {
@@ -373,12 +373,26 @@ async function init() {
     try {
       watermark?.detach();
       const [big, small] = t('watermark');
+      // 视觉层级：标题行大号无衬线（界面文字），作者行小号等宽
+      //（@handle 是标识符，走数据字体）、更淡一档、行距拉开
       watermark = LWC.createTextWatermark(chart.panes()[0], {
         horzAlign: 'center',
         vertAlign: 'center',
         lines: [
-          { text: big, color: COLORS.watermark, fontSize: 44, fontStyle: 'bold' },
-          ...(small ? [{ text: small, color: COLORS.watermark, fontSize: 18 }] : []),
+          {
+            text: big,
+            color: COLORS.watermark,
+            fontSize: 42,
+            fontStyle: 'bold',
+            fontFamily: FONT,
+          },
+          ...(small ? [{
+            text: small,
+            color: COLORS.watermarkSub,
+            fontSize: 13,
+            fontFamily: FONT_MONO,
+            lineHeight: 34,
+          }] : []),
         ],
       });
     } catch (e) {
