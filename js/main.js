@@ -639,10 +639,6 @@ async function init() {
   }
   applyStaticLang();
 
-  // Inter 就绪后重绘一次：画布标签（drawTag）按绘制时的字体测宽，
-  // 首帧可能用回退字体，字体加载完成后校正
-  document.fonts?.ready?.then(() => { if (daily.length) render(null); });
-
   $('lang-toggle').addEventListener('click', () => {
     setLang(I18N.lang === 'zh' ? 'en' : 'zh');
     localStorage.setItem(LANG_KEY, I18N.lang);

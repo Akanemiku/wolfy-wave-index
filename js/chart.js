@@ -1,7 +1,7 @@
 // 图表创建与主题（对数坐标、中文、全范围可缩放、狼波指数副图区）。
 // 横轴以区块高度为主：内置时间轴隐藏，底部刻度（高度 + ≈日期）由
 // main.js 的自绘轴条负责。
-import { COLORS, FONT } from './config.js';
+import { COLORS, FONT_MONO } from './config.js';
 
 const priceFormatter = (p) => (p >= 100
   ? Math.round(p).toLocaleString('en-US')
@@ -12,7 +12,7 @@ function themeOptions() {
     layout: {
       background: { type: 'solid', color: COLORS.chartBg },
       textColor: COLORS.chartText,
-      fontFamily: FONT,
+      fontFamily: FONT_MONO, // 轴上只有数字：数据终端语言要求数字一律等宽
       fontSize: 11,
       attributionLogo: false, // 库署名已在 README/页脚层面保留
       panes: {

@@ -35,7 +35,9 @@ export const WAVE_BULL_HALF = 78750;
 // 横轴向预测终点之后延伸的块数（右侧留白，约 45 天）
 export const EXTEND_MARGIN_BLOCKS = 6480;
 
-export const FONT = '"Inter", -apple-system, "SF Pro Text", "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif';
+// 数据终端设计语言：不带 webfont，界面文字用系统无衬线、数字一律系统等宽
+export const FONT = 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif';
+export const FONT_MONO = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace';
 
 // 主题配色。K 线为绿涨红跌（国际惯例）；想改红涨绿跌，交换各主题的 up/down。
 export const THEMES = {

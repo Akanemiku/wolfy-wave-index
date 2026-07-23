@@ -1,64 +1,67 @@
-/* Inter 可变字体（vendor 内置，100–900 全字重，含 opsz 光学尺寸轴）。
-   此前字体栈首选 Inter 却从未加载字体文件，Windows 上拉丁字母与数字
-   全部跌到 Microsoft YaHei。中文仍回退系统字体（苹方/雅黑）。 */
-@font-face {
-  font-family: "Inter";
-  src: url("../vendor/fonts/InterVariable.woff2") format("woff2");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
 :root[data-theme="dark"] {
   --bg: #0e1117;
   --chrome: #12161f;               /* 顶栏/工具栏/页脚的镶边底色：略浮于图表区 */
-  --panel-glass: rgba(21, 27, 38, 0.88); /* 悬停信息卡毛玻璃底 */
   --panel: #151b26;
   --panel-2: #1a2130;
   --border: #323c4d;
   --hover: #1c2432;
+  --ctl-track: #151b26;  /* 分段控件轨道（暗色沿用 panel） */
   --ctl-active: #2a3448; /* 控件选中态底色（比 panel 明显亮一档） */
-  --ctl-press: #10151f;  /* 控件按压反馈底色 */
   --text: #e4e8f0;
   --sub: #8b93a1;
   --faint: #5c6470;
   --accent: #2e6bff;
   --up: #089981;
   --down: #f23645;
+  --live: #22c55e;        /* 实时圆点（亮绿，两主题共用语义） */
+  --invert-bg: #e4e8f0;   /* 图标按钮悬停反转（暗色转译：亮底翻黑） */
+  --invert-fg: #0e1117;
+  --shadow-active: none;
 }
 
 :root[data-theme="light"] {
-  --bg: #ffffff;
-  --chrome: #f7f9fc;               /* 顶栏/工具栏/页脚的镶边底色：略浮于图表区 */
-  --panel-glass: rgba(245, 247, 250, 0.88); /* 悬停信息卡毛玻璃底 */
-  --panel: #f5f7fa;
-  --panel-2: #eef1f6;
-  --border: #c6cedb;
-  --hover: #edf0f5;
-  --ctl-active: #ffffff; /* 控件选中态底色（白色凸起片，iOS 分段控件惯例） */
-  --ctl-press: #e3e8f0;  /* 控件按压反馈底色 */
-  --text: #161a22;
-  --sub: #767d8a;
-  --faint: #a2a9b6;
+  /* 数据终端语言原生 token：中性灰阶铺在白色之上 */
+  --bg: #f9fafb;          /* gray-50 页面底 */
+  --chrome: #ffffff;      /* 表面：栏、卡片 */
+  --panel: #ffffff;
+  --panel-2: #f9fafb;
+  --border: #e5e7eb;      /* gray-200 */
+  --hover: #f3f4f6;       /* gray-100 */
+  --ctl-track: #f3f4f6;   /* gray-100 分段控件轨道 */
+  --ctl-active: #ffffff;  /* 分段激活 = 白色胶囊 + shadow-sm */
+  --text: #111827;        /* gray-900 强调/数字 */
+  --sub: #6b7280;         /* gray-500 弱化文字 */
+  --faint: #9ca3af;       /* gray-400 */
   --accent: #2962ff;
-  --up: #089981;
-  --down: #e02a3a;
+  --up: #16a34a;          /* green-600 */
+  --down: #dc2626;        /* red-600 */
+  --live: #22c55e;        /* green-500 实时圆点 */
+  --invert-bg: #000000;   /* 图标按钮悬停：黑底翻白 */
+  --invert-fg: #ffffff;
+  --shadow-active: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
 
 :root {
   --ctl-h: 28px; /* 顶栏/工具栏所有控件的统一总高 */
-  /* 圆角体系：控件微圆角、浮层卡片略大一档；指示灯/滑块拇指类用全圆 */
-  --r-s: 4px;
-  --r-m: 6px;
+  /* 数据终端语言：界面文字 = 系统无衬线，数字一律 = 系统等宽 */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+               "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+               "Liberation Mono", monospace;
+  /* 圆角阶：标签/胶囊 6，按钮/分段 8，容器/浮层 12，圆点全圆 */
+  --r-s: 6px;
+  --r-m: 8px;
+  --r-l: 12px;
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 }
 
 [hidden] {
   display: none !important;
 }
 
-/* 键盘导航焦点环：替代与深色行情风格冲突的浏览器默认样式 */
+/* 焦点环：2px 中性灰（数据终端语言：无彩色焦点态） */
 :focus-visible {
-  outline: 1px solid var(--accent);
+  outline: 2px solid var(--border);
   outline-offset: -1px;
 }
 
@@ -78,10 +81,10 @@ html, body {
   overflow: hidden;
   background: var(--bg);
   color: var(--text);
-  font-family: "Inter", -apple-system, "SF Pro Text", "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: var(--font-sans);
   font-size: 13px;
-  font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -114,7 +117,7 @@ body {
 }
 
 .brand-name {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: 0.2px;
   white-space: nowrap;
@@ -159,7 +162,7 @@ html[lang="en"] .glyph-zh { display: none; }
 html:not([lang="en"]) .glyph-en { display: none; }
 
 .icon-btn {
-  border-radius: var(--r-s);
+  border-radius: var(--r-m);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -176,13 +179,11 @@ html:not([lang="en"]) .glyph-en { display: none; }
   transition: color 0.12s ease, background-color 0.12s ease;
 }
 
+/* 数据终端语言标志性交互：图标按钮悬停反转（黑底翻白 / 暗色亮底翻黑） */
 .icon-btn:hover {
-  color: var(--text);
-  background: var(--hover);
-}
-
-.icon-btn:active {
-  background: var(--ctl-press);
+  color: var(--invert-fg);
+  background: var(--invert-bg);
+  border-color: var(--invert-bg);
 }
 
 /* 主题按钮显示当前状态：深色 = 月亮，浅色 = 太阳 */
@@ -221,10 +222,11 @@ html:not([lang="en"]) .glyph-en { display: none; }
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--faint);
-  letter-spacing: 0.3px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sub);
 }
 
 /* 实时数据指示：常驻脉动圆点（指示灯语义），暗示该数值在动态更新 */
@@ -233,7 +235,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
   height: 5px;
   flex: none;
   border-radius: 50%;
-  background: var(--up);
+  background: var(--live);
   animation: live-pulse 2.4s ease-in-out infinite;
 }
 
@@ -273,15 +275,17 @@ html:not([lang="en"]) .glyph-en { display: none; }
 .flash-down { animation: flash-down 0.9s ease-out; }
 
 .price {
-  font-size: 18px;
-  font-weight: 680; /* 可变字重：大号数字略收窄更显精密 */
-  letter-spacing: -0.2px;
+  font-family: var(--font-mono);
+  font-size: 15px; /* 等宽主数值（term-data） */
+  font-weight: 700;
+  color: var(--text);
   font-variant-numeric: tabular-nums;
 }
 
 .chg {
+  font-family: var(--font-mono);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
@@ -321,7 +325,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 }
 
 .seg {
-  border-radius: var(--r-s);
+  border-radius: var(--r-m);
   /* 组内选项等宽（自动宽度 grid 的 1fr 列会统一到最宽项）：
      按钮宽度不随文字长短变化，Log 与 Linear 一样宽 */
   display: grid;
@@ -330,13 +334,13 @@ html:not([lang="en"]) .glyph-en { display: none; }
   gap: 2px;
   padding: 2px;
   height: var(--ctl-h);
-  background: var(--panel);
+  background: var(--ctl-track);
   border: 1px solid var(--border);
   flex: none;
 }
 
 .seg button {
-  border-radius: calc(var(--r-s) - 2px);
+  border-radius: var(--r-s);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -357,19 +361,16 @@ html:not([lang="en"]) .glyph-en { display: none; }
   background: var(--hover);
 }
 
-.seg button:active {
-  background: var(--ctl-press);
-}
-
-/* 选中态只靠底色+文字色表达：字重变化会让文字变宽、整组按钮抖动 */
+/* 选中态：抬起的白色胶囊（浅色带 shadow-sm；暗色以亮一档底色转译） */
 .seg button.active {
   background: var(--ctl-active);
   color: var(--text);
+  box-shadow: var(--shadow-active);
 }
 
 /* 独立开关按钮（标注显隐）：与分段控件分开，睁眼/闭眼表达开关状态 */
 .toggle-btn {
-  border-radius: var(--r-s);
+  border-radius: var(--r-m);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -390,10 +391,6 @@ html:not([lang="en"]) .glyph-en { display: none; }
 .toggle-btn:hover {
   color: var(--text);
   background: var(--hover);
-}
-
-.toggle-btn:active {
-  background: var(--ctl-press);
 }
 
 .toggle-btn.active {
@@ -438,6 +435,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 }
 
 .bx-label {
+  font-family: var(--font-mono);
   position: absolute;
   top: 6px;
   transform: translateX(-50%);
@@ -449,6 +447,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 }
 
 .bx-date {
+  font-family: var(--font-mono);
   position: absolute;
   top: 22px;
   transform: translateX(-50%);
@@ -482,6 +481,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 
 /* 底轴上的当前区块高度数值牌（常驻，反色高亮） */
 .bx-now {
+  font-family: var(--font-mono);
   border-radius: var(--r-s);
   position: absolute;
   top: 7px;
@@ -499,6 +499,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 
 /* 十字线在轴上的浮标：高度 · 日期 */
 .bx-cursor {
+  font-family: var(--font-mono);
   border-radius: var(--r-s);
   position: absolute;
   top: 7px;
@@ -568,6 +569,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 }
 
 .ws-ticks {
+  font-family: var(--font-mono);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -598,7 +600,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 /* 副图（狼波指数窗格）显隐开关：浮在窗格右上角；窗格收起后退到图表右下角。
    高度 24px 是刻意的例外：浮在数据上方的迷你控件，比栏区控件紧凑一档 */
 .phase-toggle {
-  border-radius: var(--r-s);
+  border-radius: var(--r-m);
   position: absolute;
   z-index: 12;
   display: flex;
@@ -623,10 +625,6 @@ html:not([lang="en"]) .glyph-en { display: none; }
 .phase-toggle:hover {
   color: var(--text);
   background: var(--hover);
-}
-
-.phase-toggle:active {
-  background: var(--ctl-press);
 }
 
 .phase-toggle.active {
@@ -669,23 +667,17 @@ html:not([lang="en"]) .glyph-en { display: none; }
 
 /* ── 悬停信息卡：跟随十字线，聚合该位置的全部读数 ── */
 .chart-tooltip {
-  border-radius: var(--r-m);
+  border-radius: var(--r-l);
   position: absolute;
   z-index: 15;
   min-width: 200px;
   padding: 10px 12px;
-  background: var(--panel-glass);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  background: var(--panel);
   border: 1px solid var(--border);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-xl);
   font-size: 12px;
   pointer-events: none;
   user-select: none;
-}
-
-:root[data-theme="light"] .chart-tooltip {
-  box-shadow: 0 4px 18px rgba(22, 26, 34, 0.14);
 }
 
 .tt-head {
@@ -698,8 +690,9 @@ html:not([lang="en"]) .glyph-en { display: none; }
 }
 
 .tt-head b {
+  font-family: var(--font-mono);
   color: var(--text);
-  font-weight: 620;
+  font-weight: 700;
 }
 
 .tt-row {
@@ -726,6 +719,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 }
 
 .tt-val {
+  font-family: var(--font-mono);
   margin-left: auto;
   padding-left: 18px;
   color: var(--text);
@@ -736,7 +730,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 
 /* ── 提示与加载 ── */
 .notice {
-  border-radius: var(--r-m);
+  border-radius: var(--r-l);
   position: absolute;
   top: 38px; /* 避开左上角 OHLC 读数行，窄窗口下不互相覆盖 */
   left: 50%;
@@ -797,7 +791,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 }
 
 .loading-brand {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: 0.2px;
   color: var(--text);
