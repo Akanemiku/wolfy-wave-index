@@ -18,7 +18,8 @@ export class CycleBox extends Primitive {
     this._labelColor = labelColor;
     this._fullHeight = fullHeight;
     if (label) {
-      this._views.push(this._makeView('top', (ctx, media) => this._drawLabel(ctx, media)));
+      // 标签画在数据之下（'bottom'）：价格折线永远在标签之上，不被遮挡
+      this._views.push(this._makeView('bottom', (ctx, media) => this._drawLabel(ctx, media)));
     }
   }
 
@@ -80,9 +81,9 @@ export class CycleBox extends Primitive {
     // 框缘滚出屏幕时标签贴住视口边缘，保持可见
     const lx = Math.max(r.cx1, 0) + 8;
     if (r.cx2 - lx < 64) return; // 框太窄/基本滚出视口时不画标签
-    // 牛市/熊市统一钉在区域左上角、第二行：第一行留给减半日/今日等
-    // 事件标签（熊市推演段起点恰在「今日」线上，同行必然重叠）
-    drawTag(ctx, lx, r.cy1 <= 0 ? 58 : r.cy1 + 8, this._label, {
+    // 牛市/熊市与「减半」同一水平线（TAG_TOP=32）：标签左贴边、
+    // 减半线居中于牛市正中，同行互不冲突
+    drawTag(ctx, lx, r.cy1 <= 0 ? 32 : r.cy1 + 8, this._label, {
       bg: COLORS.tagBg,
       color: this._labelColor,
       anchor: 'tl',

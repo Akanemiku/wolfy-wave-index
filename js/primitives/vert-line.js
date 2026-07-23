@@ -16,7 +16,8 @@ export class VertLine extends Primitive {
     this._label = label;
     this._labelColor = labelColor;
     if (label) {
-      this._views.push(this._makeView('top', (ctx, media) => this._drawLabel(ctx, media)));
+      // 标签画在数据之下（'bottom'）：价格折线永远在标签之上，不被遮挡
+      this._views.push(this._makeView('bottom', (ctx, media) => this._drawLabel(ctx, media)));
     }
   }
 
