@@ -6,7 +6,7 @@ import { FONT } from '../config.js';
 
 export class VertLine extends Primitive {
   constructor({ time, color, width = 1.5, dashed = false, label, labelColor }) {
-    super('normal');
+    super('bottom'); // 线画在最底层：填充与数据都在其上，不遮挡任何内容
     this._time = time;
     this._color = color;
     this._width = width;

@@ -69,6 +69,22 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
     Math.max(predictedEnd, todayPos) + EXTEND_MARGIN_BLOCKS,
   );
 
+  // 减半竖线：按 210,000 区块网格从首次减半（210,000）铺到视界为止
+  //（高度是协议常量，全部实线）。主图与狼波指数副图各挂一条，
+  // 视觉上贯穿两个面板；先于夹心填充挂载 = 画在最底层，任何内容
+  // 都不被它遮挡；沿线竖排标签
+  for (let i = 0; i < 10; i++) {
+    const hgt = (i + 1) * HALVING_INTERVAL;
+    if (hgt > extendTo) break;
+    primitives.push(new VertLine({
+      time: hgt, color: COLORS.halving,
+      // 「第 n 次减半」+ 日期（高度→日期插值，过去为真实链上时间）
+      label: t('halvingTag', i + 1, fmtDMY(timeAtHeight(hgt))),
+      labelColor: COLORS.halvingLabel,
+    }));
+    phasePrimitives.push(new VertLine({ time: hgt, color: COLORS.halving }));
+  }
+
   // 牛熊区间：由狼波周期指数（纯区块制）推导——牛市 = 减半 ± 78,750 区块
   //（指数上行段），其余为熊市（下行段）。着色为「夹心填充」：主图从价格
   // 收盘连线向下、副图从面板顶边向下到狼波指数线，两块上下拼接成
@@ -95,21 +111,6 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
       labelColor: isBull ? COLORS.bullLabel : COLORS.bearLabel,
     }));
     phasePrimitives.push(new PhaseArea({ from, to, fill, mode: 'wave' }));
-  }
-
-  // 减半竖线：按 210,000 区块网格从首次减半（210,000）铺到视界为止
-  //（高度是协议常量，全部实线）。主图与狼波指数副图各挂一条，
-  // 视觉上贯穿两个面板；标签钉在主图线顶
-  for (let i = 0; i < 10; i++) {
-    const hgt = (i + 1) * HALVING_INTERVAL;
-    if (hgt > extendTo) break;
-    primitives.push(new VertLine({
-      time: hgt, color: COLORS.halving,
-      // 「第 n 次减半」+ 日期行（高度→日期插值，过去为真实链上时间）
-      label: t('halvingTag', i + 1, fmtDMY(timeAtHeight(hgt))),
-      labelColor: COLORS.halvingLabel,
-    }));
-    phasePrimitives.push(new VertLine({ time: hgt, color: COLORS.halving }));
   }
 
   return {
