@@ -39,6 +39,31 @@ export const EXTEND_MARGIN_BLOCKS = 6480;
 export const FONT = 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif';
 export const FONT_MONO = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace';
 
+// 狼波色谱（参照 RSI 彩虹渐变）：0 = 蓝（熊底）→ 1 = 红（牛顶）。
+// 折线逐点着色、右侧色标、读数文字与牛熊夹心填充共用同一映射
+export const WAVE_COLOR_STOPS = [
+  [0.00, [38, 60, 219]],
+  [0.25, [62, 196, 233]],
+  [0.50, [72, 190, 80]],
+  [0.70, [214, 223, 56]],
+  [0.85, [246, 156, 28]],
+  [1.00, [236, 38, 38]],
+];
+
+export function waveColor(v) {
+  const x = Math.max(0, Math.min(1, v));
+  for (let i = 0; i + 1 < WAVE_COLOR_STOPS.length; i++) {
+    const [a, ca] = WAVE_COLOR_STOPS[i];
+    const [b, cb] = WAVE_COLOR_STOPS[i + 1];
+    if (x <= b) {
+      const f = (x - a) / (b - a);
+      const c = ca.map((v0, j) => Math.round(v0 + f * (cb[j] - v0)));
+      return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+    }
+  }
+  return 'rgb(236, 38, 38)';
+}
+
 // 主题配色。K 线为绿涨红跌（国际惯例）；想改红涨绿跌，交换各主题的 up/down。
 export const THEMES = {
   dark: {
@@ -60,9 +85,8 @@ export const THEMES = {
     bullLabel: '#34d399',
     bearLabel: '#fb7185',
 
-    // 牛熊夹心填充底色（主图价格线之下 + 副图指数线之上，无边框）
-    bandFillBull: 'rgba(0, 208, 132, 0.06)',
-    bandFillBear: 'rgba(255, 82, 119, 0.08)',
+    // 牛熊夹心填充：狼波色谱按指数值做水平渐变，这里只定透明度
+    bandFillAlpha: 0.12,
 
     halving: 'rgba(46, 107, 255, 0.55)',
     halvingLabel: '#7da3ff',
@@ -97,9 +121,8 @@ export const THEMES = {
     bullLabel: '#059669',
     bearLabel: '#e11d48',
 
-    // 牛熊夹心填充底色（主图价格线之下 + 副图指数线之上，无边框）
-    bandFillBull: 'rgba(0, 168, 107, 0.05)',
-    bandFillBear: 'rgba(228, 35, 91, 0.05)',
+    // 牛熊夹心填充：狼波色谱按指数值做水平渐变，这里只定透明度
+    bandFillAlpha: 0.08,
 
     halving: 'rgba(41, 98, 255, 0.50)',
     halvingLabel: '#2962ff',

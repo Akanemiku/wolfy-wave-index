@@ -3,6 +3,7 @@
 // OHLC 读数、周期状态栏、顶部标签轴）
 import {
   DAY, BLOCK_BUCKETS, HALVING_INTERVAL, WAVE_BULL_HALF, COLORS, FONT, FONT_MONO, setTheme,
+  WAVE_COLOR_STOPS, waveColor,
 } from './config.js';
 import { createChartAndSeries, applyChartTheme, setLogScale } from './chart.js';
 import {
@@ -43,29 +44,7 @@ const STYLE_KEY = 'wolfy-style';
 const TF_KEY = 'wolfy-tf';
 const ANNOT_KEY = 'wolfy-annot';
 
-// 狼波着色模式的色谱（参照 RSI 彩虹渐变）：0 = 蓝（熊底）→ 1 = 红（牛顶）
-const WAVE_COLOR_STOPS = [
-  [0.00, [38, 60, 219]],
-  [0.25, [62, 196, 233]],
-  [0.50, [72, 190, 80]],
-  [0.70, [214, 223, 56]],
-  [0.85, [246, 156, 28]],
-  [1.00, [236, 38, 38]],
-];
-
-function waveColor(v) {
-  const x = Math.max(0, Math.min(1, v));
-  for (let i = 0; i + 1 < WAVE_COLOR_STOPS.length; i++) {
-    const [a, ca] = WAVE_COLOR_STOPS[i];
-    const [b, cb] = WAVE_COLOR_STOPS[i + 1];
-    if (x <= b) {
-      const f = (x - a) / (b - a);
-      const c = ca.map((v0, j) => Math.round(v0 + f * (cb[j] - v0)));
-      return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
-    }
-  }
-  return 'rgb(236, 38, 38)';
-}
+// 狼波色谱与 waveColor 定义在 config.js（与夹心填充/色标共用同一映射）
 
 // 读数文字用的狼波色：与折线/色标同一色谱（同一数值同一颜色）；
 // 浅色主题下压暗一档——色谱中段的黄绿在白底上几乎不可读
