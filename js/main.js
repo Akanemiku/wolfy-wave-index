@@ -70,7 +70,7 @@ async function init() {
   let themeName = localStorage.getItem(THEME_KEY) || 'dark';
   setTheme(themeName);
   document.documentElement.dataset.theme = themeName;
-  setLang(localStorage.getItem(LANG_KEY) || 'zh');
+  setLang(localStorage.getItem(LANG_KEY) || 'en'); // 默认英文界面
   $('loading-text').textContent = t('loading');
 
   // 右侧色标：按同一份色谱生成渐变，保证与折线逐点颜色严格一致
@@ -662,7 +662,7 @@ async function init() {
     $('brand-sub').hidden = !sub;
     $('loading-brand').textContent = t('brand');
     $('label-height').textContent = t('axisName');
-    $('stat-wave-label').textContent = t('paneTitleName'); // 全称：狼波周期指数 / Wolfy Wave Index
+    $('stat-wave-label').textContent = t('statWave'); // 中文全称 / 英文缩写 WWI
     $('stat-wave-cell').title = t('titleWaveStat');
     tfButtons.forEach((b) => { b.textContent = t(TF_KEYS[b.dataset.tf]); });
     styleButtons.forEach((b) => { b.textContent = t(STYLE_KEYS[b.dataset.style]); });
@@ -684,8 +684,6 @@ async function init() {
     $('about-body').innerHTML = t('aboutHtml');
     $('about-close').setAttribute('aria-label', t('closeLabel'));
     scaleButtons.forEach((b) => { b.textContent = t(b.dataset.scale === 'log' ? 'log' : 'linear'); });
-    $('halving-label').textContent = t('marksHalving');
-    $('bands-label').textContent = t('marksBands');
     $('ws-top').textContent = t('scaleTop');
     $('ws-bottom').textContent = t('scaleBottom');
   }

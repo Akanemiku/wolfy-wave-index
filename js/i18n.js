@@ -11,8 +11,6 @@ export const STRINGS = {
     styleWave: '狼波着色',
     log: '对数',
     linear: '线性',
-    marksHalving: '减半日',
-    marksBands: '牛熊市',
     priceLabel: '比特币价格',
     waveLabel: '狼波指数',
     scaleTop: '牛顶',
@@ -21,6 +19,7 @@ export const STRINGS = {
     bull: '牛市',
     bear: '熊市',
     paneTitleName: '狼波周期指数',
+    statWave: '狼波周期指数',
     watermark: ['狼波周期指数', '作者：杀破狼 · @wolfyxbt'],
     axisName: '区块高度',
     legendOHLC: ['开', '高', '低', '收'],
@@ -94,11 +93,9 @@ WWI(h) = 1 − (s − 157,500) / 52,500　　s ≥ 157,500（熊市段）</div>
     tfMonth: 'M',
     styleCandles: 'Candles',
     styleLine: 'Line',
-    styleWave: 'Wave Color',
+    styleWave: 'Wave',
     log: 'Log',
     linear: 'Linear',
-    marksHalving: 'Halvings',
-    marksBands: 'Bull/Bear',
     priceLabel: 'BTC Price',
     waveLabel: 'Wave Index',
     scaleTop: 'Top',
@@ -107,6 +104,7 @@ WWI(h) = 1 − (s − 157,500) / 52,500　　s ≥ 157,500（熊市段）</div>
     bull: 'Bull',
     bear: 'Bear',
     paneTitleName: 'Wolfy Wave Index',
+    statWave: 'WWI',
     watermark: ['Wolfy Wave Index', 'Creator: WolfyXBT · @wolfyxbt'],
     axisName: 'Block Height',
     legendOHLC: ['O', 'H', 'L', 'C'],
@@ -116,7 +114,7 @@ WWI(h) = 1 − (s − 157,500) / 52,500　　s ≥ 157,500（熊市段）</div>
     ttPhase: 'Phase',
     titleLang: 'Language',
     titleTheme: 'Dark / light theme',
-    titleWaveStat: '0 = bear bottom · 1 = bull top',
+    titleWaveStat: 'Wolfy Wave Index · 0 = bear bottom · 1 = bull top',
     titleTf: 'Bucket size: D = 144 blocks · W = 1,008 · M = 4,368',
     titleStyle: 'Chart type',
     titleScale: 'Price scale',
@@ -174,7 +172,7 @@ WWI(h) = 1 − (s − 157,500) / 52,500   s ≥ 157,500  (bear)</div>
   },
 };
 
-export const I18N = { lang: 'zh' };
+export const I18N = { lang: 'en' }; // 默认英文界面
 
 export function setLang(lang) {
   I18N.lang = STRINGS[lang] ? lang : 'zh';

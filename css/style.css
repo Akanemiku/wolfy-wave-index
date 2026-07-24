@@ -368,7 +368,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
   align-items: center;
   gap: 6px;
   height: var(--ctl-h);
-  padding: 0 12px;
+  padding: 0 10px;
   background: var(--panel);
   border: 1px solid var(--border);
   color: var(--sub);
@@ -395,9 +395,8 @@ html:not([lang="en"]) .glyph-en { display: none; }
   background: var(--ctl-active);
 }
 
-.toggle-btn .icon-eye-off { display: none; }
-.toggle-btn:not(.active) .icon-eye { display: none; }
-.toggle-btn:not(.active) .icon-eye-off { display: inline; }
+/* 纯图标开关的关闭态：图标压暗（配合非激活底色） */
+.toggle-btn:not(.active) svg { opacity: 0.45; }
 
 /* ── 底部区块刻度轴（主轴：区块高度，副行：对应≈日期） ── */
 .block-axis {

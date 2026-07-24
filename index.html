@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,53 +26,50 @@
         <rect width="32" height="32" rx="5" fill="url(#brand-grad)"/>
       </svg>
       <div class="brand-text">
-        <div class="brand-name" id="brand-name">狼波周期指数</div>
-        <div class="brand-sub" id="brand-sub">WOLFY WAVE INDEX</div>
+        <div class="brand-name" id="brand-name">Wolfy Wave Index</div>
+        <div class="brand-sub" id="brand-sub" hidden></div>
       </div>
     </div>
     <div class="top-controls">
-      <div class="seg" id="tf-group" title="分桶粒度：日 = 144 区块 · 周 = 1,008 · 月 = 4,368">
-        <button data-tf="day" class="active">日</button>
-        <button data-tf="week">周</button>
-        <button data-tf="month">月</button>
+      <div class="seg" id="tf-group" title="Bucket size: D = 144 blocks · W = 1,008 · M = 4,368">
+        <button data-tf="day" class="active">D</button>
+        <button data-tf="week">W</button>
+        <button data-tf="month">M</button>
       </div>
-      <div class="seg" id="style-group" title="图表类型">
-        <button data-style="wave" class="active">狼波着色</button>
-        <button data-style="candles">K线</button>
-        <button data-style="line">折线</button>
+      <div class="seg" id="style-group" title="Chart type">
+        <button data-style="wave" class="active">Wave</button>
+        <button data-style="candles">Candles</button>
+        <button data-style="line">Line</button>
       </div>
-      <div class="seg" id="scale-group" title="价格坐标">
-        <button data-scale="log" class="active">对数</button>
-        <button data-scale="linear">线性</button>
+      <div class="seg" id="scale-group" title="Price scale">
+        <button data-scale="log" class="active">Log</button>
+        <button data-scale="linear">Linear</button>
       </div>
-      <button id="halving-toggle" class="toggle-btn active" title="显示/隐藏减半日标注">
-        <svg class="icon-eye" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        <svg class="icon-eye-off" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-        <span id="halving-label">减半日</span>
+      <!-- 标注开关（纯图标 + 悬停提示）：竖虚线 = 减半日，双色块 = 牛熊市 -->
+      <button id="halving-toggle" class="toggle-btn active" title="Show/hide halving marks">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v3.5M12 10.25v3.5M12 17.5V21"/></svg>
       </button>
-      <button id="bands-toggle" class="toggle-btn active" title="显示/隐藏牛/熊市标注">
-        <svg class="icon-eye" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        <svg class="icon-eye-off" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-        <span id="bands-label">牛熊市</span>
+      <button id="bands-toggle" class="toggle-btn active" title="Show/hide bull/bear marks">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><rect x="3.5" y="5" width="7.5" height="14" rx="1.5"/><rect x="13" y="5" width="7.5" height="14" rx="1.5" opacity="0.45"/></svg>
       </button>
     </div>
     <div class="topbar-right">
       <div class="stats">
         <div class="stat">
-          <span class="stat-label"><span id="label-price">比特币价格</span><i class="live-dot"></i></span>
+          <span class="stat-label"><span id="label-price">BTC Price</span><i class="live-dot"></i></span>
           <div class="stat-value">
             <span id="stat-price" class="price">—</span>
             <span id="stat-chg" class="chg">—</span>
           </div>
         </div>
         <div class="stat" id="stat-height-cell">
-          <span class="stat-label"><span id="label-height">区块高度</span><i class="live-dot"></i></span>
+          <span class="stat-label"><span id="label-height">Block Height</span><i class="live-dot"></i></span>
           <div class="stat-value">
             <span id="stat-height" class="price">—</span>
           </div>
         </div>
-        <div class="stat" id="stat-wave-cell" title="0 = 熊底 · 1 = 牛顶">
-          <span class="stat-label"><span id="stat-wave-label">狼波周期指数</span><i class="live-dot"></i></span>
+        <div class="stat" id="stat-wave-cell" title="Wolfy Wave Index · 0 = bear bottom · 1 = bull top">
+          <span class="stat-label"><span id="stat-wave-label">WWI</span><i class="live-dot"></i></span>
           <div class="stat-value">
             <span id="stat-wave" class="price">—</span>
           </div>
@@ -85,14 +82,14 @@
         <a class="icon-btn" href="https://github.com/wolfyxbt" target="_blank" rel="noopener noreferrer" title="GitHub · wolfyxbt">
           <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
         </a>
-        <button class="icon-btn" id="about-toggle" title="指标说明">
+        <button class="icon-btn" id="about-toggle" title="Methodology">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.4 9.1a2.7 2.7 0 1 1 3.9 2.8c-.8.35-1.3.9-1.3 1.8v.3"/><path d="M12 17.1v.01"/></svg>
         </button>
-        <button class="icon-btn" id="lang-toggle" title="语言">
+        <button class="icon-btn" id="lang-toggle" title="Language">
           <span class="glyph-zh">中</span>
           <span class="glyph-en">EN</span>
         </button>
-        <button class="icon-btn" id="theme-toggle" title="深/浅主题">
+        <button class="icon-btn" id="theme-toggle" title="Dark / light theme">
           <svg class="icon-sun" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
           <svg class="icon-moon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20.5 14.4A8.5 8.5 0 0 1 9.6 3.5a8.5 8.5 0 1 0 10.9 10.9z"/></svg>
         </button>
@@ -107,14 +104,14 @@
       <div id="legend" class="legend"><b>BTC/USD</b><b id="legend-price" class="legend-val"></b></div>
       <div id="phase-legend" class="legend phase-legend" hidden></div>
       <div id="tooltip" class="chart-tooltip" hidden></div>
-      <button id="phase-toggle" class="phase-toggle active" title="显示/隐藏狼波指数窗格">
+      <button id="phase-toggle" class="phase-toggle active" title="Show/hide Wave Index pane">
         <svg class="icon-collapse" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         <svg class="icon-expand" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"/></svg>
       </button>
     </div>
 
-    <aside class="wave-scale" id="wave-scale" title="狼波指数色标">
-      <div class="ws-label" id="ws-top">牛顶</div>
+    <aside class="wave-scale" id="wave-scale" title="Wave Index color scale">
+      <div class="ws-label" id="ws-top">Top</div>
       <div class="ws-body">
         <div class="ws-bar" id="ws-bar">
           <div class="ws-marker" id="ws-marker" hidden></div>
@@ -123,23 +120,23 @@
           <span>1.00</span><span>0.75</span><span>0.50</span><span>0.25</span><span>0.00</span>
         </div>
       </div>
-      <div class="ws-label" id="ws-bottom">熊底</div>
+      <div class="ws-label" id="ws-bottom">Bottom</div>
     </aside>
 
     <div id="notice" class="notice" hidden>
       <span id="notice-text"></span>
-      <button id="notice-close" aria-label="关闭">×</button>
+      <button id="notice-close" aria-label="Close">×</button>
     </div>
 
     <div id="loading" class="loading">
-      <div class="loading-brand" id="loading-brand">狼波周期指数</div>
+      <div class="loading-brand" id="loading-brand">Wolfy Wave Index</div>
       <div class="loading-spinner"></div>
-      <div id="loading-text">加载行情数据中…</div>
+      <div id="loading-text">Loading market data…</div>
     </div>
   </main>
 
   <div id="block-axis" class="block-axis">
-    <span id="bx-name" class="bx-name">区块高度</span>
+    <span id="bx-name" class="bx-name">Block Height</span>
     <div id="bx-now" class="bx-now" hidden></div>
     <div id="bx-cursor" class="bx-cursor" hidden></div>
   </div>
@@ -148,8 +145,8 @@
   <div id="about-overlay" class="about-overlay" hidden>
     <div class="about-modal" role="dialog" aria-modal="true" aria-labelledby="about-title">
       <div class="about-head">
-        <b id="about-title">狼波周期指数 · 指标说明</b>
-        <button class="icon-btn" id="about-close" aria-label="关闭">
+        <b id="about-title">Wolfy Wave Index · Methodology</b>
+        <button class="icon-btn" id="about-close" aria-label="Close">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
         </button>
       </div>
