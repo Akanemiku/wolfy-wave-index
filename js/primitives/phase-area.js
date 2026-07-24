@@ -106,18 +106,28 @@ export class PhaseArea extends Primitive {
     ctx.restore();
   }
 
-  // 类型标签：填充区可见范围的水平居中、贴面板底边——填充一直延伸到
-  // 底边，标签必然落在色块内部；区间滚出屏幕或太窄时不画
+  // 类型标签：填充区可见范围内靠左、贴价格折线下方（区域上缘），
+  // y 随该处价格跟动；贴近面板底边时钳制在底边之上。
+  // 区间滚出屏幕或剩余可见宽度太窄时不画
   _drawLabel(ctx, media) {
     const b0 = this._bounds(media);
     if (!b0) return;
     const lx1 = Math.max(b0.x1, 0);
     const lx2 = Math.min(b0.x2, media.width);
-    if (lx2 - lx1 < 56) return;
-    drawTag(ctx, (lx1 + lx2) / 2, media.height - 28, this._label, {
+    if (lx2 - lx1 < 64) return;
+    const lx = lx1 + 8;
+    // 标签锚点处的价格线 y：取该像素位置对应 K 线的收盘价
+    const logical = this._chart.timeScale().coordinateToLogical(lx);
+    if (logical === null) return;
+    let i = Math.max(b0.rr.first, Math.min(b0.rr.last, Math.round(logical)));
+    while (i <= b0.rr.last && b0.data[i].open === undefined) i++; // 占位桶右移
+    if (i > b0.rr.last) return;
+    const py = this.priceToY(b0.data[i].close);
+    if (py === null) return;
+    drawTag(ctx, lx, Math.min(py + 8, media.height - 26), this._label, {
       bg: COLORS.tagBg,
       color: this._labelColor,
-      anchor: 'tc',
+      anchor: 'tl',
     });
   }
 }
