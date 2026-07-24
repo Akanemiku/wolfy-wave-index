@@ -8,6 +8,7 @@ import {
 import { heightAt } from './blocks.js';
 import { t } from './i18n.js';
 import { CycleBox } from './primitives/cycle-box.js';
+import { PhaseArea } from './primitives/phase-area.js';
 import { VertLine } from './primitives/vert-line.js';
 
 export function computePivots(candles) {
@@ -63,9 +64,11 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
   );
 
   // 牛熊区间：由狼波周期指数（纯区块制）推导——牛市 = 减半 ± 78,750 区块
-  //（指数上行段），其余为熊市（下行段）；从区块 0 铺满全轴含未来推演
-  //（负高度不存在，区间起点钳制在 0）。过去/当前/未来统一同一套设计：
-  // 同色填充 + 实线边，不在「今日」处切分（今日位置由引导线表达）
+  //（指数上行段），其余为熊市（下行段）。着色为「夹心填充」：主图从价格
+  // 收盘连线向下、副图从面板顶边向下到狼波指数线，两块上下拼接成
+  // 上缘贴价格线、下缘贴指数线的连续区域，仅在有真实价格的范围内画
+  //（PhaseArea 自行裁剪）；类型标签胶囊沿用 CycleBox（铺满全轴含未来，
+  // 负高度不存在，区间起点钳制在 0）
   const bandAnchors = [];
   for (let k = 0; k <= 12; k++) {
     bandAnchors.push({ h: k * HALVING_INTERVAL - WAVE_BULL_HALF, bull: true });
@@ -76,17 +79,18 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
     const to = bandAnchors[i + 1].h;
     if (to <= 0 || from > extendTo) continue;
     const isBull = bandAnchors[i].bull;
-    const base = {
+    const fill = isBull ? COLORS.bandFillBull : COLORS.bandFillBear;
+    primitives.push(new PhaseArea({ from, to, fill, mode: 'price' }));
+    primitives.push(new CycleBox({
       from,
       to,
-      fill: isBull ? COLORS.bandFillBull : COLORS.bandFillBear,
-      borderColor: COLORS.bandBorder,
+      fill: null,
+      borderColor: null,
+      label: isBull ? t('bull') : t('bear'),
       labelColor: isBull ? COLORS.bullLabel : COLORS.bearLabel,
       fullHeight: true,
-    };
-    // 主图带标签；副图（狼波指数面板）画同位置的无标签副本，视觉贯穿两个面板
-    primitives.push(new CycleBox({ ...base, label: isBull ? t('bull') : t('bear') }));
-    phasePrimitives.push(new CycleBox(base));
+    }));
+    phasePrimitives.push(new PhaseArea({ from, to, fill, mode: 'wave' }));
   }
 
   // 减半竖线：按 210,000 区块网格从首次减半（210,000）铺到视界为止

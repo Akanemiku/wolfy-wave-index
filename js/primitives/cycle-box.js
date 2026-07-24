@@ -54,8 +54,13 @@ export class CycleBox extends Primitive {
   _draw(ctx, media) {
     const r = this._rect(media);
     if (!r) return;
-    ctx.fillStyle = this._fill;
-    ctx.fillRect(r.cx1, r.cy1, r.cx2 - r.cx1, r.cy2 - r.cy1);
+    // fill / borderColor 传 null 时跳过对应绘制：牛熊区间的填充已由
+    // PhaseArea（夹心填充）接管，CycleBox 仅承载顶部的类型标签胶囊
+    if (this._fill) {
+      ctx.fillStyle = this._fill;
+      ctx.fillRect(r.cx1, r.cy1, r.cx2 - r.cx1, r.cy2 - r.cy1);
+    }
+    if (!this._borderColor) return;
     ctx.strokeStyle = this._borderColor;
     ctx.lineWidth = 1;
     if (this._fullHeight) {

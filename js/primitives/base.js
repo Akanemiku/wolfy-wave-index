@@ -8,10 +8,16 @@ import { DAY, FONT } from '../config.js';
 // 不用 timeToCoordinate()：它对屏幕外的时间返回 null，会导致放大到
 // 矩形内部时矩形消失。
 let _times = [];
+let _data = [];
 
 export function setSeriesData(data) {
   _times = data.map((c) => c.time);
+  _data = data;
 }
+
+// 完整数据数组（真实 K 线 + whitespace），供需要逐根取值的标注
+//（如牛熊夹心填充沿收盘连线取上缘）在绘制时惰性读取
+export const seriesData = () => _data;
 
 export function timeToLogical(t) {
   const n = _times.length;
