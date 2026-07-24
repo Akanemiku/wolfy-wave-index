@@ -650,6 +650,12 @@ html:not([lang="en"]) .glyph-en { display: none; }
   font-weight: 600;
 }
 
+/* 主图价格读数：与副图指数读数同一套「名称 + 值」排版 */
+.legend .legend-val {
+  font-weight: 600;
+  margin-left: 12px;
+}
+
 /* 副图标题行：与主图系列标识完全同一套排版（字体/字号/左距/留白），
    纵向位置由 JS 跟随副图面板顶部 */
 .phase-legend .wave-text {

@@ -364,6 +364,12 @@ async function init() {
     }
   }
 
+  // 主图价格读数（BTC/USD 右侧）：跟随十字线，移开时回落为实时价
+  function updateLegendPrice(v = null) {
+    const p = v ?? livePrice ?? dailyReal.at(-1)?.close;
+    $('legend-price').textContent = p != null ? fmtPrice(p) : '';
+  }
+
   // 副图标题行（DOM，与主图 OHLC 读数同一套排版）：名称 + 实时读数。
   // 读数跟随十字线，移开时回落为当前值
   function updateWaveTitle(v = waveNow) {
@@ -462,6 +468,7 @@ async function init() {
     if (!last) return;
 
     const priceNow = livePrice ?? last.close;
+    updateLegendPrice();
     // 顶栏价格显示到美分：取整到美元会把逐笔成交的跳动全部抹平
     $('stat-price').textContent = `$${priceNow.toLocaleString('en-US', {
       minimumFractionDigits: 2,
@@ -592,6 +599,7 @@ async function init() {
       if (b && b.open !== undefined) hovered = b;
     }
     updateTooltip(param, hovered);
+    updateLegendPrice(hovered ? hovered.close : null);
     // 狼波指数读数跟随十字线（未来虚线段也有值），移开时回落到当前值
     const w = param?.time !== undefined
       ? (param.seriesData.get(phaseSolid) ?? param.seriesData.get(phaseDashed))
