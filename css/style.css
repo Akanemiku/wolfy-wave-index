@@ -100,7 +100,7 @@ body {
   gap: 20px;
   padding: 10px 20px;
   background: var(--chrome);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px solid var(--border);
   flex: none;
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
@@ -303,7 +303,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
   gap: 12px;
   padding: 8px 20px;
   background: var(--chrome);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px solid var(--border);
   flex: none;
   transition: background-color 0.2s ease, border-color 0.2s ease;
   /* 任何宽度下都不允许两组控件互相叠压：放不下就横向滚动 */
@@ -410,7 +410,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 .block-axis {
   position: relative;
   height: 40px;
-  border-top: 1px solid var(--border);
+  border-top: 2px solid var(--border);
   background: var(--bg);
   overflow: hidden;
   flex: none;
@@ -542,7 +542,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
   align-items: center;
   gap: 7px;
   padding: 10px 10px 10px 6px;
-  border-left: 1px solid var(--border);
+  border-left: 2px solid var(--border);
   user-select: none;
 }
 
@@ -818,7 +818,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
   gap: 10px;
   padding: 6px 20px;
   background: var(--chrome);
-  border-top: 1px solid var(--border);
+  border-top: 2px solid var(--border);
   font-size: 11px;
   color: var(--faint);
   flex: none;
