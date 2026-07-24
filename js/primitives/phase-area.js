@@ -106,9 +106,10 @@ export class PhaseArea extends Primitive {
     ctx.restore();
   }
 
-  // 类型标签：放在色块的视觉重心——水平取可见区间中点，垂直取
-  // 该处价格线与面板底边的中点（夹心填充最厚实的腹部）。标签明确
-  // 属于该区域、几乎不与价格线相交，且各区域观感稳定统一。
+  // 类型标签：水平取可见区间的左 1/4 处——减半恰在牛市区间正中，
+  // 放中点会骑在减半竖线上引起归属误解，1/4 处永不与之重合，
+  // 牛熊统一同一节奏；垂直取该处价格线与面板底边的中点
+  //（夹心填充最厚实的腹部），几乎不与价格线相交。
   // 区间滚出屏幕或剩余可见宽度太窄时不画
   _drawLabel(ctx, media) {
     const b0 = this._bounds(media);
@@ -116,7 +117,7 @@ export class PhaseArea extends Primitive {
     const lx1 = Math.max(b0.x1, 0);
     const lx2 = Math.min(b0.x2, media.width);
     if (lx2 - lx1 < 64) return;
-    const cx = (lx1 + lx2) / 2;
+    const cx = lx1 + (lx2 - lx1) * 0.25;
     // 区间中点处的价格线 y：取该像素位置对应 K 线的收盘价
     const logical = this._chart.timeScale().coordinateToLogical(cx);
     if (logical === null) return;
