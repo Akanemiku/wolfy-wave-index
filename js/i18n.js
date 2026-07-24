@@ -81,7 +81,6 @@ WWI(h) = 1 − (s − 157,500) / 52,500　　s ≥ 157,500（熊市段）</div>
   </ul>
 </section>`,
     closeLabel: '关闭',
-    footData: '数据来源：Bitstamp / Coinbase Exchange',
     loading: '加载行情数据中…',
     loadFailData: (msg) => `历史数据加载失败：${msg}`,
     loadFailInit: (msg) => `页面初始化失败：${msg}`,
@@ -168,7 +167,6 @@ WWI(h) = 1 − (s − 157,500) / 52,500   s ≥ 157,500  (bear)</div>
   </ul>
 </section>`,
     closeLabel: 'Close',
-    footData: 'Data: Bitstamp / Coinbase Exchange',
     loading: 'Loading market data…',
     loadFailData: (msg) => `Failed to load historical data: ${msg}`,
     loadFailInit: (msg) => `Initialization failed: ${msg}`,

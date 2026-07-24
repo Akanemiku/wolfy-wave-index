@@ -809,22 +809,6 @@ html:not([lang="en"]) .glyph-en { display: none; }
   to { transform: rotate(360deg); }
 }
 
-/* ── 页脚 ── */
-.foot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 6px 20px;
-  background: var(--chrome);
-  border-top: 2px solid var(--border);
-  font-size: 11px;
-  color: var(--faint);
-  flex: none;
-  white-space: nowrap;
-  overflow: hidden;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-}
 
 
 /* ── 指标说明弹窗 ── */

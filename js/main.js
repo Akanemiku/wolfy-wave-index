@@ -688,7 +688,6 @@ async function init() {
     $('bands-label').textContent = t('marksBands');
     $('ws-top').textContent = t('scaleTop');
     $('ws-bottom').textContent = t('scaleBottom');
-    $('foot-data').textContent = t('footData');
   }
   applyStaticLang();
 
