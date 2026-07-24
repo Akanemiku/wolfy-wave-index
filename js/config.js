@@ -85,8 +85,10 @@ export const THEMES = {
     bullLabel: '#34d399',
     bearLabel: '#fb7185',
 
-    // 牛熊夹心填充：狼波色谱按指数值做水平渐变，这里只定透明度
-    bandFillAlpha: 0.12,
+    // 牛熊夹心填充：取狼波色谱主色锚点——牛 = 色谱中点绿 #48BE50，
+    // 熊 = 牛顶红 #EC2626，与折线着色/色标同一色系
+    bandFillBull: 'rgba(72, 190, 80, 0.10)',
+    bandFillBear: 'rgba(236, 38, 38, 0.10)',
 
     halving: 'rgba(46, 107, 255, 0.55)',
     halvingLabel: '#7da3ff',
@@ -121,8 +123,10 @@ export const THEMES = {
     bullLabel: '#059669',
     bearLabel: '#e11d48',
 
-    // 牛熊夹心填充：狼波色谱按指数值做水平渐变，这里只定透明度
-    bandFillAlpha: 0.08,
+    // 牛熊夹心填充：取狼波色谱主色锚点——牛 = 色谱中点绿 #48BE50，
+    // 熊 = 牛顶红 #EC2626，与折线着色/色标同一色系
+    bandFillBull: 'rgba(72, 190, 80, 0.07)',
+    bandFillBear: 'rgba(236, 38, 38, 0.06)',
 
     halving: 'rgba(41, 98, 255, 0.50)',
     halvingLabel: '#2962ff',

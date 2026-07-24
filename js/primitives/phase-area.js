@@ -5,10 +5,7 @@
 // 两个面板上下紧贴，两块填充拼接成视觉上连续的夹心区域；
 // 副图隐藏时其填充随标注一并卸载，主图仍填充到底边（自然退化）。
 import { Primitive, seriesData, timeToLogical } from './base.js';
-import { COLORS, WAVE_COLOR_STOPS, waveColor } from '../config.js';
 import { waveIndexAt } from '../blocks.js';
-
-const rgba = (rgb, a) => rgb.replace('rgb(', 'rgba(').replace(')', `, ${a})`);
 
 // 真实价格覆盖的下标范围 [首根, 末根真实 bar]，按数据数组身份缓存
 let _cacheFor = null;
@@ -27,28 +24,12 @@ function realRange(data) {
 }
 
 export class PhaseArea extends Primitive {
-  constructor({ from, to, mode }) {
+  constructor({ from, to, fill, mode }) {
     super('bottom');
     this._from = from;
     this._to = to;
+    this._fill = fill;
     this._mode = mode; // 'price' | 'wave'
-  }
-
-  // 填充色 = 狼波色谱按指数值的水平渐变（与指数折线/着色模式逐点同色，
-  // 相邻牛熊区间在边界处颜色天然衔接）。指数在区间内严格线性，
-  // 把色谱锚点线性映射到 [x1, x2] 即可
-  _gradient(ctx, x1, x2, from, to) {
-    const v1 = waveIndexAt(from);
-    const v2 = waveIndexAt(to);
-    const a = COLORS.bandFillAlpha;
-    const g = ctx.createLinearGradient(x1, 0, x2, 0);
-    g.addColorStop(0, rgba(waveColor(v1), a));
-    for (const [p] of WAVE_COLOR_STOPS) {
-      const t = (p - v1) / (v2 - v1);
-      if (t > 0 && t < 1) g.addColorStop(t, rgba(waveColor(p), a));
-    }
-    g.addColorStop(1, rgba(waveColor(v2), a));
-    return g;
   }
 
   _draw(ctx, media) {
@@ -103,7 +84,7 @@ export class PhaseArea extends Primitive {
       ctx.lineTo(firstX, media.height);
     }
     ctx.closePath();
-    ctx.fillStyle = this._gradient(ctx, x1, x2, from, to);
+    ctx.fillStyle = this._fill;
     ctx.fill();
     ctx.restore();
   }

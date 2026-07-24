@@ -79,7 +79,8 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
     const to = bandAnchors[i + 1].h;
     if (to <= 0 || from > extendTo) continue;
     const isBull = bandAnchors[i].bull;
-    primitives.push(new PhaseArea({ from, to, mode: 'price' }));
+    const fill = isBull ? COLORS.bandFillBull : COLORS.bandFillBear;
+    primitives.push(new PhaseArea({ from, to, fill, mode: 'price' }));
     primitives.push(new CycleBox({
       from,
       to,
@@ -89,7 +90,7 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
       labelColor: isBull ? COLORS.bullLabel : COLORS.bearLabel,
       fullHeight: true,
     }));
-    phasePrimitives.push(new PhaseArea({ from, to, mode: 'wave' }));
+    phasePrimitives.push(new PhaseArea({ from, to, fill, mode: 'wave' }));
   }
 
   // 减半竖线：按 210,000 区块网格从首次减半（210,000）铺到视界为止
