@@ -32,25 +32,34 @@ const timeoutSignal = (ms) => {
 };
 
 let _anchors = []; // [ts, height] 升序
+let _liveAnchor = false; // 尾部是否为运行时追加的「现在」锚点
 
 export async function loadHeightAnchors() {
   const res = await fetch('./data/btc-heights.json', { signal: timeoutSignal(15000) });
   if (!res.ok) throw new Error(`btc-heights.json HTTP ${res.status}`);
   _anchors = (await res.json()).anchors;
+  _liveAnchor = false;
 }
 
-// 页面加载时补一个「现在」锚点，让最近两周的映射精确到当前链上高度；
-// 失败则按尾部锚点的平均出块速度外推（约 144 块/天），不阻塞页面
+// 页面加载与轮询时维护一个「现在」锚点，让最近的映射精确到当前链上
+// 高度。原地更新而非逐块追加：相邻单块锚点会把泊松噪声灌进外推斜率
 export async function fetchTipAnchor() {
   const res = await fetch('https://mempool.space/api/blocks/tip/height', { signal: timeoutSignal(8000) });
   if (!res.ok) throw new Error(`mempool.space HTTP ${res.status}`);
   const tip = Number(await res.text());
   const nowSec = Math.floor(Date.now() / 1000);
+  if (_liveAnchor) { _anchors.pop(); _liveAnchor = false; }
   if (Number.isFinite(tip) && tip > _anchors.at(-1)[1] && nowSec > _anchors.at(-1)[0]) {
     _anchors.push([nowSec, tip]);
+    _liveAnchor = true;
   }
   return tip;
 }
+
+// 未来外推的基线跨度：≥ 4,320 块（≈ 30 天）。相邻锚点间隔太短时，
+// 单块耗时的泊松噪声（一块可能 30 秒也可能 40 分钟）会被放大到未来
+// 上万块，预测日期一次刷新能跳一个月——斜率必须取足够宽的窗口
+const EXTRAP_SPAN_BLOCKS = 4320;
 
 function interp(pairs, x, xi, yi) {
   const n = pairs.length;
@@ -59,7 +68,11 @@ function interp(pairs, x, xi, yi) {
     return a[yi] + ((x - a[xi]) / (b[xi] - a[xi])) * (b[yi] - a[yi]);
   }
   if (x >= pairs[n - 1][xi]) {
-    const [a, b] = [pairs[n - 2], pairs[n - 1]];
+    const b = pairs[n - 1];
+    // 从尾部向前找高度跨度足够的基线锚点（pairs = [ts, height]）
+    let ai = n - 2;
+    while (ai > 0 && b[1] - pairs[ai][1] < EXTRAP_SPAN_BLOCKS) ai--;
+    const a = pairs[ai];
     return b[yi] + ((x - b[xi]) / (b[xi] - a[xi])) * (b[yi] - a[yi]);
   }
   let lo = 0;
