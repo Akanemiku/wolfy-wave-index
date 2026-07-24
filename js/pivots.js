@@ -10,11 +10,11 @@ import { t } from './i18n.js';
 import { PhaseArea } from './primitives/phase-area.js';
 import { VertLine } from './primitives/vert-line.js';
 
-// DD/MM/YYYY（与 main.js 全站日期格式一致），减半标签的日期行用
-const fmtDMY = (ts) => {
+// YYYY/MM/DD（与 main.js 全站日期格式一致），减半标签的日期行用
+const fmtYMD = (ts) => {
   const d = new Date(ts * 1000);
   const p = (n) => String(n).padStart(2, '0');
-  return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}/${d.getUTCFullYear()}`;
+  return `${d.getUTCFullYear()}/${p(d.getUTCMonth() + 1)}/${p(d.getUTCDate())}`;
 };
 
 export function computePivots(candles) {
@@ -81,7 +81,7 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
     halvingPrims.push(new VertLine({
       time: hgt, color: COLORS.halving,
       // 「第 n 次减半」+ 日期（高度→日期插值，过去为真实链上时间）
-      label: t('halvingTag', i + 1, fmtDMY(timeAtHeight(hgt))),
+      label: t('halvingTag', i + 1, fmtYMD(timeAtHeight(hgt))),
       labelColor: COLORS.halvingLabel,
     }));
     phaseHalvingPrims.push(new VertLine({ time: hgt, color: COLORS.halving }));

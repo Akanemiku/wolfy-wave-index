@@ -20,16 +20,16 @@ import { setSeriesData, timeToLogical, logicalToX } from './primitives/base.js';
 
 const $ = (id) => document.getElementById(id);
 const fmtDate = (t) => new Date(t * 1000).toISOString().slice(0, 10);
-// 全站统一的日期显示格式：DD/MM/YYYY
-const fmtDMY = (t) => {
+// 全站统一的日期显示格式：YYYY/MM/DD
+const fmtYMD = (t) => {
   const d = new Date(t * 1000);
   const p = (n) => String(n).padStart(2, '0');
-  return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}/${d.getUTCFullYear()}`;
+  return `${d.getUTCFullYear()}/${p(d.getUTCMonth() + 1)}/${p(d.getUTCDate())}`;
 };
-// 粗刻度用的月份格式：MM/YYYY
-const fmtMY = (t) => {
+// 粗刻度用的月份格式：YYYY/MM
+const fmtYM = (t) => {
   const d = new Date(t * 1000);
-  return `${String(d.getUTCMonth() + 1).padStart(2, '0')}/${d.getUTCFullYear()}`;
+  return `${d.getUTCFullYear()}/${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
 };
 const fmtPrice = (p) => (p >= 100 ? Math.round(p).toLocaleString('en-US') : p.toFixed(2));
 const fmtInt = (n) => Math.round(n).toLocaleString('en-US');
@@ -180,7 +180,7 @@ async function init() {
     const width = paneWidth();
     const res = computeAxisTicks();
     if (!res) return;
-    const fmtTickDate = res.step >= 20000 ? fmtMY : fmtDMY; // 粗刻度只标到月
+    const fmtTickDate = res.step >= 20000 ? fmtYM : fmtYMD; // 粗刻度只标到月
     const pl = paneLeft();
     for (const el of [...blockAxis.querySelectorAll('.bx-label, .bx-date, .bx-tick')]) el.remove();
     for (const h of res.ticks) {
@@ -221,7 +221,7 @@ async function init() {
     nowLine.hidden = false;
     // 与十字线浮标同格式（高度 ≈ 日期）；不用 title——
     // pointer-events:none 的元素 tooltip 永远弹不出来
-    bxNow.textContent = `${fmtInt(h)} ≈ ${fmtDMY(timeAtHeight(h))}`;
+    bxNow.textContent = `${fmtInt(h)} ≈ ${fmtYMD(timeAtHeight(h))}`;
     bxNow.hidden = false;
     // 贴近左右边缘时钳制在可视范围内，不被拦腰裁掉
     const bw = bxNow.offsetWidth;
@@ -240,7 +240,7 @@ async function init() {
       bxCursor.hidden = true;
       return;
     }
-    bxCursor.textContent = `${fmtInt(h)} ≈ ${fmtDMY(timeAtHeight(h))}`;
+    bxCursor.textContent = `${fmtInt(h)} ≈ ${fmtYMD(timeAtHeight(h))}`;
     bxCursor.hidden = false;
     // 贴近左右边缘时钳制在可视范围内，不被拦腰裁掉
     const cw = bxCursor.offsetWidth;
@@ -585,7 +585,7 @@ async function init() {
       isBull ? t('bull') : t('bear'),
     );
     tooltip.innerHTML =
-      `<div class="tt-head"><b>${t('ttBlock', fmtInt(h))}</b> ≈ ${fmtDMY(timeAtHeight(h))}</div>${rows}`;
+      `<div class="tt-head"><b>${t('ttBlock', fmtInt(h))}</b> ≈ ${fmtYMD(timeAtHeight(h))}</div>${rows}`;
     tooltip.hidden = false;
     placeTooltip();
   }
@@ -788,7 +788,7 @@ async function init() {
   } else {
     if (liveRes.status === 'rejected') console.warn('Coinbase 备用源也失败：', liveRes.reason);
     render(null); // 至少套用 tipHeight
-    showNotice(t('noticeStale', fmtDMY(sinceTs)));
+    showNotice(t('noticeStale', fmtYMD(sinceTs)));
   }
 
   // ── 实时数据流 ──
