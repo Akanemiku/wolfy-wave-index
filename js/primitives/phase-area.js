@@ -1,7 +1,7 @@
 // 牛熊「夹心」填充：画上缘贴价格线、下缘贴狼波指数线之间的区域。
 // mode 'price'（主图）：有价格的范围从收盘连线向下填充到面板底边，
-//   线上方不画；无价格的时段（更早历史 / 未来推演）没有上缘，
-//   直接满高到顶——价格实时右进，折线逐步「吃掉」满高色块；
+//   线上方不画；未来推演区没有上缘，直接满高到顶——价格实时右进，
+//   折线逐步「吃掉」满高色块；首根 K 线之前的过去不着色；
 // mode 'wave'（副图）：从面板顶边向下填充到狼波指数线（未来虚线段
 //   同一函数），线下方不画。
 // 两个面板上下紧贴，两块填充拼接成视觉上连续的夹心区域；
@@ -42,22 +42,25 @@ export class PhaseArea extends Primitive {
     }
   }
 
-  // 区间的屏幕边界（不裁剪到价格范围——无价格时段照样着色）；
-  // 不可见时返回 null
+  // 区间的屏幕边界。左端裁到首根真实 K 线（更早的过去不着色），
+  // 右端不裁（未来推演区满高着色）；不可见时返回 null
   _bounds(media) {
     const data = seriesData();
     const rr = data.length ? realRange(data) : null;
     if (!rr) return null;
-    const x1 = this.timeToX(this._from);
+    const from = Math.max(this._from, data[rr.first].time);
+    if (this._to <= from) return null;
+    const x1 = this.timeToX(from);
     const x2 = this.timeToX(this._to);
     if (x1 === null || x2 === null || x2 < 0 || x1 > media.width) return null;
-    return { data, rr, x1, x2 };
+    return { data, rr, from, x1, x2 };
   }
 
   _draw(ctx, media) {
     const b0 = this._bounds(media);
     if (!b0) return;
     const { data, rr, x1, x2 } = b0;
+    const from0 = b0.from;
     ctx.save();
     ctx.beginPath();
     // 区间边界不与 K 线桶对齐（78,750 不是桶宽的整数倍）：内容按整根
@@ -69,7 +72,7 @@ export class PhaseArea extends Primitive {
     if (this._mode === 'wave') {
       // 下缘 = 指数线（未来虚线段是同一纯函数），区间内严格线性，
       // 只需两个端点
-      const y1 = this.priceToY(waveIndexAt(this._from));
+      const y1 = this.priceToY(waveIndexAt(from0));
       const y2 = this.priceToY(waveIndexAt(this._to));
       if (y1 === null || y2 === null) { ctx.restore(); return; }
       ctx.beginPath();
@@ -80,20 +83,15 @@ export class PhaseArea extends Primitive {
       ctx.closePath();
       ctx.fill();
     } else {
-      const pStart = data[rr.first].time;
       const pEnd = data[rr.last].time;
-      // 无价格子段（更早历史 / 未来推演）：没有价格上缘，满高填充
-      if (this._from < pStart) {
-        const xe = this.timeToX(Math.min(this._to, pStart));
-        if (xe !== null) ctx.fillRect(x1, 0, xe - x1, media.height);
-      }
+      // 未来推演子段：没有价格上缘，满高填充
       if (this._to > pEnd) {
-        const xs = this.timeToX(Math.max(this._from, pEnd));
+        const xs = this.timeToX(Math.max(from0, pEnd));
         if (xs !== null) ctx.fillRect(xs, 0, x2 - xs, media.height);
       }
       // 有价格子段：沿真实收盘连线取上缘（bars 的下标即逻辑坐标，
       // 直接查像素）；深度放大时按可见范围截断，不为屏外区段落笔
-      const from = Math.max(this._from, pStart);
+      const from = from0;
       const to = Math.min(this._to, pEnd);
       if (to <= from) { ctx.restore(); return; }
       const ts = this._chart.timeScale();
