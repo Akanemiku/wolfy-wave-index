@@ -22,9 +22,10 @@ function themeOptions() {
       },
     },
     grid: {
-      // 只保留极淡的横向网格：纵向网格与减半日/今日竖线视觉冲突
+      // 不画网格：纵向与减半日/今日竖线视觉冲突，横向（价格刻度线）按
+      // 用户要求移除——价格定位交给十字线与现价引导线
       vertLines: { visible: false },
-      horzLines: { color: COLORS.grid },
+      horzLines: { visible: false },
     },
     crosshair: {
       vertLine: { color: COLORS.crosshairLine, labelBackgroundColor: COLORS.crosshairLabelBg },

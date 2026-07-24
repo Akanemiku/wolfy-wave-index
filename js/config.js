@@ -69,7 +69,6 @@ export const THEMES = {
   dark: {
     chartBg: '#0e1117',
     chartText: '#8b93a1',
-    grid: 'rgba(139, 147, 161, 0.13)',
     scaleBorder: '#323c4d',
     // 面板分隔条 hover 高亮：可拖拽调高的唯一视觉暗示
     paneSepHover: 'rgba(46, 107, 255, 0.28)',
@@ -108,7 +107,6 @@ export const THEMES = {
   light: {
     chartBg: '#ffffff',
     chartText: '#767d8a',
-    grid: 'rgba(70, 80, 96, 0.12)',
     scaleBorder: '#c6cedb',
     // 面板分隔条 hover 高亮：可拖拽调高的唯一视觉暗示
     paneSepHover: 'rgba(41, 98, 255, 0.22)',
