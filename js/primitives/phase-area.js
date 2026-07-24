@@ -1,11 +1,12 @@
-// 牛熊「夹心」填充：只画上缘贴价格线、下缘贴狼波指数线之间的区域，
-// 且仅在有真实价格数据的范围内（首根 → 末根真实 K 线）。
-// mode 'price'（主图）：从价格收盘连线向下填充到面板底边，线上方不画；
-// mode 'wave'（副图）：从面板顶边向下填充到狼波指数线，线下方不画。
+// 牛熊「夹心」填充：画上缘贴价格线、下缘贴狼波指数线之间的区域。
+// mode 'price'（主图）：有价格的范围从收盘连线向下填充到面板底边，
+//   线上方不画；无价格的时段（更早历史 / 未来推演）没有上缘，
+//   直接满高到顶——价格实时右进，折线逐步「吃掉」满高色块；
+// mode 'wave'（副图）：从面板顶边向下填充到狼波指数线（未来虚线段
+//   同一函数），线下方不画。
 // 两个面板上下紧贴，两块填充拼接成视觉上连续的夹心区域；
 // 副图隐藏时其填充随标注一并卸载，主图仍填充到底边（自然退化）。
-// 牛市/熊市类型标签画在填充区域内部（贴底居中）；无填充处（未来
-// 推演区）自然没有标签。
+// 牛市/熊市类型标签画在填充区域内部（贴底）。
 import { Primitive, seriesData, timeToLogical, drawTag } from './base.js';
 import { COLORS } from '../config.js';
 import { waveIndexAt } from '../blocks.js';
@@ -41,50 +42,66 @@ export class PhaseArea extends Primitive {
     }
   }
 
-  // 区间 ∩ 真实价格覆盖范围的屏幕边界；不可见时返回 null
+  // 区间的屏幕边界（不裁剪到价格范围——无价格时段照样着色）；
+  // 不可见时返回 null
   _bounds(media) {
     const data = seriesData();
     const rr = data.length ? realRange(data) : null;
     if (!rr) return null;
-    // 区间裁到真实价格覆盖范围，区间外（未来推演/无价格的早期）不画
-    const from = Math.max(this._from, data[rr.first].time);
-    const to = Math.min(this._to, data[rr.last].time);
-    if (to <= from) return null;
-    const x1 = this.timeToX(from);
-    const x2 = this.timeToX(to);
+    const x1 = this.timeToX(this._from);
+    const x2 = this.timeToX(this._to);
     if (x1 === null || x2 === null || x2 < 0 || x1 > media.width) return null;
-    return { data, rr, from, to, x1, x2 };
+    return { data, rr, x1, x2 };
   }
 
   _draw(ctx, media) {
     const b0 = this._bounds(media);
     if (!b0) return;
-    const { data, rr, from, to, x1, x2 } = b0;
+    const { data, rr, x1, x2 } = b0;
     ctx.save();
     ctx.beginPath();
-    // 区间边界不与 K 线桶对齐（78,750 不是桶宽的整数倍）：多边形按整根
-    // K 线取点、向两侧各多取一根，再用矩形裁剪在精确边界处切齐
+    // 区间边界不与 K 线桶对齐（78,750 不是桶宽的整数倍）：内容按整根
+    // K 线取点，再用矩形裁剪在精确边界处切齐
     const cl = Math.max(x1, 0);
     ctx.rect(cl, 0, Math.min(x2, media.width) - cl, media.height);
     ctx.clip();
-    ctx.beginPath();
+    ctx.fillStyle = this._fill;
     if (this._mode === 'wave') {
-      // 指数在单个牛/熊区间内严格线性，下缘只需两个端点
-      const y1 = this.priceToY(waveIndexAt(from));
-      const y2 = this.priceToY(waveIndexAt(to));
+      // 下缘 = 指数线（未来虚线段是同一纯函数），区间内严格线性，
+      // 只需两个端点
+      const y1 = this.priceToY(waveIndexAt(this._from));
+      const y2 = this.priceToY(waveIndexAt(this._to));
       if (y1 === null || y2 === null) { ctx.restore(); return; }
+      ctx.beginPath();
       ctx.moveTo(x1, y1);
       ctx.lineTo(x2, y2);
       ctx.lineTo(x2, 0);
       ctx.lineTo(x1, 0);
+      ctx.closePath();
+      ctx.fill();
     } else {
-      // 沿真实收盘连线取上缘（bars 的下标即逻辑坐标，直接查像素）；
-      // 深度放大时按可见范围截断，不为屏外区段落笔
+      const pStart = data[rr.first].time;
+      const pEnd = data[rr.last].time;
+      // 无价格子段（更早历史 / 未来推演）：没有价格上缘，满高填充
+      if (this._from < pStart) {
+        const xe = this.timeToX(Math.min(this._to, pStart));
+        if (xe !== null) ctx.fillRect(x1, 0, xe - x1, media.height);
+      }
+      if (this._to > pEnd) {
+        const xs = this.timeToX(Math.max(this._from, pEnd));
+        if (xs !== null) ctx.fillRect(xs, 0, x2 - xs, media.height);
+      }
+      // 有价格子段：沿真实收盘连线取上缘（bars 的下标即逻辑坐标，
+      // 直接查像素）；深度放大时按可见范围截断，不为屏外区段落笔
+      const from = Math.max(this._from, pStart);
+      const to = Math.min(this._to, pEnd);
+      if (to <= from) { ctx.restore(); return; }
       const ts = this._chart.timeScale();
       const vr = ts.getVisibleLogicalRange();
       if (!vr) { ctx.restore(); return; }
       const iA = Math.max(rr.first, Math.floor(Math.max(timeToLogical(from), vr.from)) - 1);
       const iB = Math.min(rr.last, Math.ceil(Math.min(timeToLogical(to), vr.to)) + 1);
+      ctx.beginPath();
       let firstX = null;
       let lastX = null;
       for (let i = iA; i <= iB; i++) {
@@ -99,10 +116,9 @@ export class PhaseArea extends Primitive {
       if (firstX === null) { ctx.restore(); return; }
       ctx.lineTo(lastX, media.height);
       ctx.lineTo(firstX, media.height);
+      ctx.closePath();
+      ctx.fill();
     }
-    ctx.closePath();
-    ctx.fillStyle = this._fill;
-    ctx.fill();
     ctx.restore();
   }
 
