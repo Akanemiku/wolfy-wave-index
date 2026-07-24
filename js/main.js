@@ -314,8 +314,18 @@ async function init() {
     try {
       watermark?.detach();
       const [big, small] = t('watermark');
-      // 标题行大号无衬线（界面文字），作者行小号等宽
-      //（@handle 是标识符，走数据字体）、行距拉开；两行同一透明度
+      // 标题行大号无衬线（界面文字），作者行等宽字体
+      //（@handle 是标识符，走数据字体）；两行同一透明度。
+      // 作者行字号按实测文本宽度缩放，与标题行渲染宽度对齐
+      let authorSize = 17;
+      if (small) {
+        const mctx = document.createElement('canvas').getContext('2d');
+        mctx.font = `bold 58px ${FONT}`;
+        const tw = mctx.measureText(big).width;
+        mctx.font = `17px ${FONT_MONO}`;
+        const aw = mctx.measureText(small).width;
+        if (tw > 0 && aw > 0) authorSize = Math.round(17 * (tw / aw));
+      }
       watermark = LWC.createTextWatermark(chart.panes()[0], {
         horzAlign: 'center',
         vertAlign: 'center',
@@ -330,9 +340,9 @@ async function init() {
           ...(small ? [{
             text: small,
             color: COLORS.watermark,
-            fontSize: 17,
+            fontSize: authorSize,
             fontFamily: FONT_MONO,
-            lineHeight: 46,
+            lineHeight: Math.max(46, Math.round(authorSize * 1.4)),
           }] : []),
         ],
       });
