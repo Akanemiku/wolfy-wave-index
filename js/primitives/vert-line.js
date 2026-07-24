@@ -1,10 +1,8 @@
 // 全高竖线：减半日（蓝）、今日分隔（灰虚线）。
-// 线画在 'normal' 层（网格之上）；可选标签用图内胶囊（与牛熊市标签同款）
-// 钉在竖线顶端、OHLC 读数行之下，画在 'top' 层保持可读。
-import { Primitive, drawTag } from './base.js';
-import { COLORS } from '../config.js';
-
-const TAG_TOP = 32; // 标签纵向位置（px）：贴住面板顶部、避开 OHLC 读数行
+// 线画在 'normal' 层；可选标签为沿线竖排的小字（事件线的经典标注法）：
+// 贴着线右侧从面板顶部向下书写，几乎不占横向空间、不与顶部读数行冲突。
+import { Primitive } from './base.js';
+import { FONT } from '../config.js';
 
 export class VertLine extends Primitive {
   constructor({ time, color, width = 1.5, dashed = false, label, labelColor }) {
@@ -43,11 +41,16 @@ export class VertLine extends Primitive {
   _drawLabel(ctx, media) {
     const x = this._x(media);
     if (x === null) return;
-    drawTag(ctx, x, TAG_TOP, this._label, {
-      bg: COLORS.tagBg,
-      color: this._labelColor,
-      anchor: 'tc',
-      maxX: media.width,
-    });
+    ctx.save();
+    ctx.font = `600 10.5px ${FONT}`;
+    ctx.fillStyle = this._labelColor;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    // 旋转 90°：文字沿线向下书写，字形中线落在线右侧 8px 处；
+    // 起点避开左上角的系列读数行（BTC/USD）
+    ctx.translate(x + 8, 36);
+    ctx.rotate(Math.PI / 2);
+    ctx.fillText(this._label, 0, 0);
+    ctx.restore();
   }
 }
