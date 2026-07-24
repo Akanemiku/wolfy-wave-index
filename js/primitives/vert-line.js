@@ -47,6 +47,7 @@ export class VertLine extends Primitive {
       bg: COLORS.tagBg,
       color: this._labelColor,
       anchor: 'tc',
+      maxX: media.width,
     });
   }
 }

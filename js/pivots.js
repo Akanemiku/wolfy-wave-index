@@ -5,11 +5,17 @@ import {
   PIVOT_WINDOWS, HALVING_INTERVAL, WAVE_BULL_HALF,
   EXTEND_MARGIN_BLOCKS, COLORS,
 } from './config.js';
-import { heightAt } from './blocks.js';
+import { heightAt, timeAtHeight } from './blocks.js';
 import { t } from './i18n.js';
-import { CycleBox } from './primitives/cycle-box.js';
 import { PhaseArea } from './primitives/phase-area.js';
 import { VertLine } from './primitives/vert-line.js';
+
+// DD/MM/YYYY（与 main.js 全站日期格式一致），减半标签的日期行用
+const fmtDMY = (ts) => {
+  const d = new Date(ts * 1000);
+  const p = (n) => String(n).padStart(2, '0');
+  return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}/${d.getUTCFullYear()}`;
+};
 
 export function computePivots(candles) {
   const pivots = [];
@@ -67,8 +73,8 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
   //（指数上行段），其余为熊市（下行段）。着色为「夹心填充」：主图从价格
   // 收盘连线向下、副图从面板顶边向下到狼波指数线，两块上下拼接成
   // 上缘贴价格线、下缘贴指数线的连续区域，仅在有真实价格的范围内画
-  //（PhaseArea 自行裁剪）；类型标签胶囊沿用 CycleBox（铺满全轴含未来，
-  // 负高度不存在，区间起点钳制在 0）
+  //（PhaseArea 自行裁剪，负高度不存在，区间起点钳制在 0）；
+  // 牛市/熊市标签画在填充区内部，无填充的未来推演区自然无标签
   const bandAnchors = [];
   for (let k = 0; k <= 12; k++) {
     bandAnchors.push({ h: k * HALVING_INTERVAL - WAVE_BULL_HALF, bull: true });
@@ -80,15 +86,13 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
     if (to <= 0 || from > extendTo) continue;
     const isBull = bandAnchors[i].bull;
     const fill = isBull ? COLORS.bandFillBull : COLORS.bandFillBear;
-    primitives.push(new PhaseArea({ from, to, fill, mode: 'price' }));
-    primitives.push(new CycleBox({
+    primitives.push(new PhaseArea({
       from,
       to,
-      fill: null,
-      borderColor: null,
+      fill,
+      mode: 'price',
       label: isBull ? t('bull') : t('bear'),
       labelColor: isBull ? COLORS.bullLabel : COLORS.bearLabel,
-      fullHeight: true,
     }));
     phasePrimitives.push(new PhaseArea({ from, to, fill, mode: 'wave' }));
   }
@@ -101,7 +105,9 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
     if (hgt > extendTo) break;
     primitives.push(new VertLine({
       time: hgt, color: COLORS.halving,
-      label: t('halving'), labelColor: COLORS.halvingLabel,
+      // 「第 n 次减半」+ 日期行（高度→日期插值，过去为真实链上时间）
+      label: t('halvingTag', i + 1, fmtDMY(timeAtHeight(hgt))),
+      labelColor: COLORS.halvingLabel,
     }));
     phasePrimitives.push(new VertLine({ time: hgt, color: COLORS.halving }));
   }

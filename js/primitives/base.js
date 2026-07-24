@@ -54,20 +54,22 @@ export function logicalToX(chart, logical) {
   return x0 + frac * (x1 - x0);
 }
 
-// 坐标钳制：远超屏幕的坐标收拢到视口 ±100px，避免画出巨型矩形
-export const clamp = (v, max) => Math.max(-100, Math.min(max + 100, v));
-
-// 统一的标签胶囊：全站所有浮动文字（牛市/熊市、减半日/今日、时长）共用一种
-// 视觉语言——主题底色 + 细彩边 + 单色文字。anchor: 'tl' 左上 /
+// 统一的标签胶囊：全站所有浮动文字（牛市/熊市、减半、时长）共用一种
+// 视觉语言——主题底色 + 细彩边 + 单色文字。text 可传字符串数组画多行
+//（如减半标签的「第 n 次减半 / 日期」两行）。anchor: 'tl' 左上 /
 // 'tc' 顶部居中 / 'center' 完全居中（相对传入的 x,y）
-export function drawTag(ctx, x, y, text, { bg, color, anchor = 'tl' }) {
+export function drawTag(ctx, x, y, text, { bg, color, anchor = 'tl', maxX }) {
+  const lines = Array.isArray(text) ? text : [text];
   ctx.font = `600 11px ${FONT}`;
-  const w = Math.ceil(ctx.measureText(text).width) + 16;
-  const h = 20;
+  const w = Math.ceil(Math.max(...lines.map((s) => ctx.measureText(s).width))) + 16;
+  const lineH = 15;
+  const h = lines.length * lineH + 5; // 单行 20，与旧版一致
   let bx = x;
   let by = y;
   if (anchor === 'tc') { bx = x - w / 2; }
   else if (anchor === 'center') { bx = x - w / 2; by = y - h / 2; }
+  // 传入视口宽度时把胶囊钳制在可视范围内（贴边的减半线标签不被裁掉）
+  if (maxX !== undefined) bx = Math.max(4, Math.min(maxX - w - 4, bx));
   ctx.beginPath();
   // 与页面控件同体系的微圆角；旧浏览器无 roundRect 时退化为直角
   if (ctx.roundRect) ctx.roundRect(bx, by, w, h, 4);
@@ -83,7 +85,9 @@ export function drawTag(ctx, x, y, text, { bg, color, anchor = 'tl' }) {
   ctx.fillStyle = color;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(text, bx + w / 2, by + h / 2 + 0.5);
+  lines.forEach((s, i) => {
+    ctx.fillText(s, bx + w / 2, by + 2.5 + lineH * (i + 0.5) + 0.5);
+  });
 }
 
 export class Primitive {

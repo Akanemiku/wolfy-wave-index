@@ -4,7 +4,10 @@
 // mode 'wave'（副图）：从面板顶边向下填充到狼波指数线，线下方不画。
 // 两个面板上下紧贴，两块填充拼接成视觉上连续的夹心区域；
 // 副图隐藏时其填充随标注一并卸载，主图仍填充到底边（自然退化）。
-import { Primitive, seriesData, timeToLogical } from './base.js';
+// 牛市/熊市类型标签画在填充区域内部（贴底居中）；无填充处（未来
+// 推演区）自然没有标签。
+import { Primitive, seriesData, timeToLogical, drawTag } from './base.js';
+import { COLORS } from '../config.js';
 import { waveIndexAt } from '../blocks.js';
 
 // 真实价格覆盖的下标范围 [首根, 末根真实 bar]，按数据数组身份缓存
@@ -24,25 +27,39 @@ function realRange(data) {
 }
 
 export class PhaseArea extends Primitive {
-  constructor({ from, to, fill, mode }) {
+  constructor({ from, to, fill, mode, label, labelColor }) {
     super('bottom');
     this._from = from;
     this._to = to;
     this._fill = fill;
     this._mode = mode; // 'price' | 'wave'
+    this._label = label;
+    this._labelColor = labelColor;
+    if (label) {
+      // 标签与填充同层（'bottom'）：价格折线永远在标签之上，不被遮挡
+      this._views.push(this._makeView('bottom', (ctx, media) => this._drawLabel(ctx, media)));
+    }
   }
 
-  _draw(ctx, media) {
+  // 区间 ∩ 真实价格覆盖范围的屏幕边界；不可见时返回 null
+  _bounds(media) {
     const data = seriesData();
     const rr = data.length ? realRange(data) : null;
-    if (!rr) return;
+    if (!rr) return null;
     // 区间裁到真实价格覆盖范围，区间外（未来推演/无价格的早期）不画
     const from = Math.max(this._from, data[rr.first].time);
     const to = Math.min(this._to, data[rr.last].time);
-    if (to <= from) return;
+    if (to <= from) return null;
     const x1 = this.timeToX(from);
     const x2 = this.timeToX(to);
-    if (x1 === null || x2 === null || x2 < 0 || x1 > media.width) return;
+    if (x1 === null || x2 === null || x2 < 0 || x1 > media.width) return null;
+    return { data, rr, from, to, x1, x2 };
+  }
+
+  _draw(ctx, media) {
+    const b0 = this._bounds(media);
+    if (!b0) return;
+    const { data, rr, from, to, x1, x2 } = b0;
     ctx.save();
     ctx.beginPath();
     // 区间边界不与 K 线桶对齐（78,750 不是桶宽的整数倍）：多边形按整根
@@ -87,5 +104,20 @@ export class PhaseArea extends Primitive {
     ctx.fillStyle = this._fill;
     ctx.fill();
     ctx.restore();
+  }
+
+  // 类型标签：填充区可见范围的水平居中、贴面板底边——填充一直延伸到
+  // 底边，标签必然落在色块内部；区间滚出屏幕或太窄时不画
+  _drawLabel(ctx, media) {
+    const b0 = this._bounds(media);
+    if (!b0) return;
+    const lx1 = Math.max(b0.x1, 0);
+    const lx2 = Math.min(b0.x2, media.width);
+    if (lx2 - lx1 < 56) return;
+    drawTag(ctx, (lx1 + lx2) / 2, media.height - 28, this._label, {
+      bg: COLORS.tagBg,
+      color: this._labelColor,
+      anchor: 'tc',
+    });
   }
 }
