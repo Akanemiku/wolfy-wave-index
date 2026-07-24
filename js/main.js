@@ -42,7 +42,10 @@ const LANG_KEY = 'wolfy-lang';
 const SCALE_KEY = 'wolfy-scale';
 const STYLE_KEY = 'wolfy-style';
 const TF_KEY = 'wolfy-tf';
-const ANNOT_KEY = 'wolfy-annot';
+// 标注显隐拆成两个独立开关：减半日 / 牛熊市（旧的 wolfy-annot 总开关
+// 作为两者缺省值的兜底，老用户的选择不丢失）
+const ANNOT_HALVING_KEY = 'wolfy-annot-halving';
+const ANNOT_BANDS_KEY = 'wolfy-annot-bands';
 
 // 狼波色谱与 waveColor 定义在 config.js（与夹心填充/色标共用同一映射）
 
@@ -77,12 +80,24 @@ async function init() {
 
   // ── 状态 ──
   let attached = [];       // 当前挂载的标注 primitive（主图）
-  let built = [];          // 最近一次构建的标注 primitive（主图）
   let attachedPhase = [];  // 当前挂载的副图标注（贯穿的色带与减半线）
-  let builtPhase = [];     // 最近一次构建的副图标注
+  // 最近一次构建的标注，按类别分组（减半日与牛熊市独立显隐）
+  let built = { bands: [], halvings: [] };
+  let builtPhase = { bands: [], halvings: [] };
+  // 当前开关状态下应挂载的集合；减半线在前 = 先挂 = 画在最底层
+  const currentMainPrims = () => [
+    ...(halvingOn ? built.halvings : []),
+    ...(bandsOn ? built.bands : []),
+  ];
+  const currentPhasePrims = () => [
+    ...(halvingOn ? builtPhase.halvings : []),
+    ...(bandsOn ? builtPhase.bands : []),
+  ];
   // 默认初始状态：标注开启、对数坐标、狼波着色、144 区块（日）；
   // 用户改过则从 localStorage 恢复（存的值非法时回落默认）
-  let annotOn = localStorage.getItem(ANNOT_KEY) !== '0';
+  const legacyAnnot = localStorage.getItem('wolfy-annot');
+  let halvingOn = (localStorage.getItem(ANNOT_HALVING_KEY) ?? legacyAnnot) !== '0';
+  let bandsOn = (localStorage.getItem(ANNOT_BANDS_KEY) ?? legacyAnnot) !== '0';
   let phaseOn = true;      // 狼波指数副图窗格显示中
   let logOn = localStorage.getItem(SCALE_KEY) !== 'linear';
   const savedStyle = localStorage.getItem(STYLE_KEY);
@@ -287,10 +302,8 @@ async function init() {
         panes[0].setStretchFactor(4);
         panes[1].setStretchFactor(1);
       } catch (e) { console.warn('副图高度设置失败（不影响功能）：', e); }
-      if (annotOn) {
-        for (const p of builtPhase) phaseSolid.attachPrimitive(p);
-        attachedPhase = builtPhase;
-      }
+      attachedPhase = currentPhasePrims();
+      for (const p of attachedPhase) phaseSolid.attachPrimitive(p);
     } else {
       for (const p of attachedPhase) phaseSolid.detachPrimitive(p);
       attachedPhase = [];
@@ -300,7 +313,6 @@ async function init() {
       phaseDashed.moveToPane(0);
     }
     phaseBtn.classList.toggle('active', on);
-    $('phase-label').textContent = t(on ? 'phaseHide' : 'phaseShow');
     phaseLegend.hidden = !on; // 同步隐藏，不等下面的重定位回调
     requestAnimationFrame(() => {
       observePaneCanvases(); // 面板画布重建后重新观察
@@ -412,12 +424,12 @@ async function init() {
     const host = styleHost();
     for (const p of attached) attachedHost.detachPrimitive(p);
     attachedHost = host;
-    built = ann.primitives;
-    attached = annotOn ? ann.primitives : [];
+    built = { bands: ann.bandPrims, halvings: ann.halvingPrims };
+    attached = currentMainPrims();
     for (const p of attached) attachedHost.attachPrimitive(p);
     for (const p of attachedPhase) phaseSolid.detachPrimitive(p);
-    builtPhase = ann.phasePrimitives;
-    attachedPhase = annotOn && phaseOn ? ann.phasePrimitives : [];
+    builtPhase = { bands: ann.phaseBandPrims, halvings: ann.phaseHalvingPrims };
+    attachedPhase = phaseOn ? currentPhasePrims() : [];
     for (const p of attachedPhase) phaseSolid.attachPrimitive(p);
     idxCache = null;
     if (fit) {
@@ -618,7 +630,8 @@ async function init() {
   tfButtons.forEach((b) => b.classList.toggle('active', b.dataset.tf === timeframe));
   styleButtons.forEach((b) => b.classList.toggle('active', b.dataset.style === chartStyle));
   scaleButtons.forEach((b) => b.classList.toggle('active', (b.dataset.scale === 'log') === logOn));
-  $('annot-toggle').classList.toggle('active', annotOn);
+  $('halving-toggle').classList.toggle('active', halvingOn);
+  $('bands-toggle').classList.toggle('active', bandsOn);
   styleButtons.forEach((btn) => btn.addEventListener('click', () => {
     if (btn.dataset.style === chartStyle) return;
     chartStyle = btn.dataset.style;
@@ -653,7 +666,8 @@ async function init() {
     $('tf-group').title = t('titleTf');
     $('style-group').title = t('titleStyle');
     $('scale-group').title = t('titleScale');
-    $('annot-toggle').title = t('titleAnnot');
+    $('halving-toggle').title = t('titleAnnotHalving');
+    $('bands-toggle').title = t('titleAnnotBands');
     $('phase-toggle').title = t('titlePhase');
     $('wave-scale').title = t('titleWaveScale');
     $('notice-close').setAttribute('aria-label', t('closeLabel'));
@@ -662,8 +676,8 @@ async function init() {
     $('about-body').innerHTML = t('aboutHtml');
     $('about-close').setAttribute('aria-label', t('closeLabel'));
     scaleButtons.forEach((b) => { b.textContent = t(b.dataset.scale === 'log' ? 'log' : 'linear'); });
-    $('annot-label').textContent = t('marks');
-    $('phase-label').textContent = t(phaseOn ? 'phaseHide' : 'phaseShow');
+    $('halving-label').textContent = t('marksHalving');
+    $('bands-label').textContent = t('marksBands');
     $('ws-top').textContent = t('scaleTop');
     $('ws-bottom').textContent = t('scaleBottom');
     $('foot-data').textContent = t('footData');
@@ -698,23 +712,28 @@ async function init() {
     localStorage.setItem(SCALE_KEY, logOn ? 'log' : 'linear');
   }));
 
-  $('annot-toggle').addEventListener('click', () => {
-    annotOn = !annotOn;
-    if (annotOn) {
-      for (const p of built) attachedHost.attachPrimitive(p);
-      attached = built;
-      if (phaseOn) {
-        for (const p of builtPhase) phaseSolid.attachPrimitive(p);
-        attachedPhase = builtPhase;
-      }
-    } else {
-      for (const p of attached) attachedHost.detachPrimitive(p);
-      attached = [];
-      for (const p of attachedPhase) phaseSolid.detachPrimitive(p);
-      attachedPhase = [];
-    }
-    $('annot-toggle').classList.toggle('active', annotOn);
-    localStorage.setItem(ANNOT_KEY, annotOn ? '1' : '0');
+  // 两个标注开关共用一套「全卸再按开关重挂」流程
+  function applyAnnotations() {
+    for (const p of attached) attachedHost.detachPrimitive(p);
+    attached = currentMainPrims();
+    for (const p of attached) attachedHost.attachPrimitive(p);
+    for (const p of attachedPhase) phaseSolid.detachPrimitive(p);
+    attachedPhase = phaseOn ? currentPhasePrims() : [];
+    for (const p of attachedPhase) phaseSolid.attachPrimitive(p);
+  }
+
+  $('halving-toggle').addEventListener('click', () => {
+    halvingOn = !halvingOn;
+    applyAnnotations();
+    $('halving-toggle').classList.toggle('active', halvingOn);
+    localStorage.setItem(ANNOT_HALVING_KEY, halvingOn ? '1' : '0');
+  });
+
+  $('bands-toggle').addEventListener('click', () => {
+    bandsOn = !bandsOn;
+    applyAnnotations();
+    $('bands-toggle').classList.toggle('active', bandsOn);
+    localStorage.setItem(ANNOT_BANDS_KEY, bandsOn ? '1' : '0');
   });
 
   $('theme-toggle').addEventListener('click', () => {

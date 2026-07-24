@@ -40,12 +40,14 @@ export function computePivots(candles) {
   return pivots;
 }
 
-// 由枢轴推出全部标注 primitive。
-// todayH：当前链上高度；horizon：未来视界高度（横轴至少延伸到此）。
-// 返回 { primitives, phasePrimitives, extendTo, meta }。
+// 由枢轴推出全部标注 primitive，按类别分组返回（牛熊区着色与减半线
+// 各有独立的显隐开关）。todayH：当前链上高度；horizon：未来视界高度。
+// 返回 { bandPrims, halvingPrims, phaseBandPrims, phaseHalvingPrims, extendTo, meta }。
 export function buildAnnotations(pivots, todayH, horizon = null) {
-  const primitives = [];
-  const phasePrimitives = []; // 挂在副图（狼波指数面板）上的标注
+  const bandPrims = [];         // 主图：牛熊夹心填充 + 类型标签
+  const halvingPrims = [];      // 主图：减半竖线 + 竖排标签
+  const phaseBandPrims = [];    // 副图对应两类
+  const phaseHalvingPrims = [];
 
   // 枢轴坐标：区块高度
   const pts = pivots.map((p) => ({ ...p, pos: heightAt(p.time) }));
@@ -76,13 +78,13 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
   for (let i = 0; i < 10; i++) {
     const hgt = (i + 1) * HALVING_INTERVAL;
     if (hgt > extendTo) break;
-    primitives.push(new VertLine({
+    halvingPrims.push(new VertLine({
       time: hgt, color: COLORS.halving,
       // 「第 n 次减半」+ 日期（高度→日期插值，过去为真实链上时间）
       label: t('halvingTag', i + 1, fmtDMY(timeAtHeight(hgt))),
       labelColor: COLORS.halvingLabel,
     }));
-    phasePrimitives.push(new VertLine({ time: hgt, color: COLORS.halving }));
+    phaseHalvingPrims.push(new VertLine({ time: hgt, color: COLORS.halving }));
   }
 
   // 牛熊区间：由狼波周期指数（纯区块制）推导——牛市 = 减半 ± 78,750 区块
@@ -102,7 +104,7 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
     if (to <= 0 || from > extendTo) continue;
     const isBull = bandAnchors[i].bull;
     const fill = isBull ? COLORS.bandFillBull : COLORS.bandFillBear;
-    primitives.push(new PhaseArea({
+    bandPrims.push(new PhaseArea({
       from,
       to,
       fill,
@@ -110,12 +112,14 @@ export function buildAnnotations(pivots, todayH, horizon = null) {
       label: isBull ? t('bull') : t('bear'),
       labelColor: isBull ? COLORS.bullLabel : COLORS.bearLabel,
     }));
-    phasePrimitives.push(new PhaseArea({ from, to, fill, mode: 'wave' }));
+    phaseBandPrims.push(new PhaseArea({ from, to, fill, mode: 'wave' }));
   }
 
   return {
-    primitives,
-    phasePrimitives,
+    bandPrims,
+    halvingPrims,
+    phaseBandPrims,
+    phaseHalvingPrims,
     extendTo,
     meta: { topPos: lastTop.pos, todayPos, predictedEnd },
   };

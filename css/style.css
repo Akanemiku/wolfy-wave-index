@@ -97,8 +97,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  padding: 10px 20px;
+  gap: 12px;
+  padding: 10px 16px;
   background: var(--chrome);
   border-bottom: 2px solid var(--border);
   flex: none;
@@ -193,7 +193,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 .stats {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
@@ -215,7 +215,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
 
 .stat + .stat {
   border-left: 1px solid var(--border);
-  padding-left: 14px;
+  padding-left: 10px;
 }
 
 .stat-label {
@@ -295,33 +295,25 @@ html:not([lang="en"]) .glyph-en { display: none; }
 /* 狼波指数读数的颜色由 JS 按 waveColor(值) 动态设置——
    与折线/色标同一色谱，同一数值同一颜色 */
 
-/* ── 工具栏（分段控件） ── */
-.toolbar {
+/* ── 顶栏中部：图表控件带（粒度/类型/坐标/标注，单顶栏布局） ──
+   与品牌之间用细分隔线建立分区；放不下时自身横向滚动，不挤压两侧 */
+.top-controls {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 20px;
-  background: var(--chrome);
-  border-bottom: 2px solid var(--border);
-  flex: none;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-  /* 任何宽度下都不允许两组控件互相叠压：放不下就横向滚动 */
+  gap: 6px;
+  min-width: 0;
+  border-left: 1px solid var(--border);
+  padding-left: 12px;
   overflow-x: auto;
   scrollbar-width: none;
 }
 
-.toolbar::-webkit-scrollbar {
+.top-controls::-webkit-scrollbar {
   display: none;
 }
 
-.toolbar-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  /* 不允许分组收缩到比内容窄：否则控件溢出组框互相叠压，
-     工具栏也因“未溢出”而永远触发不了横向滚动兜底 */
-  flex: none;
+.top-controls > * {
+  flex: none; /* 控件不许被压窄：放不下走横向滚动 */
 }
 
 .seg {
@@ -350,7 +342,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
   font-size: 12px;
   font-weight: 500;
   font-family: inherit;
-  padding: 0 12px;
+  padding: 0 9px;
   cursor: pointer;
   white-space: nowrap;
   transition: color 0.12s ease, background-color 0.12s ease;
@@ -915,7 +907,6 @@ html:not([lang="en"]) .glyph-en { display: none; }
 
   .price { font-size: 18px; }
 
-  .toolbar { padding: 6px 12px; }
   .seg button { padding: 0 9px; }
   .toggle-btn { padding: 0 9px; }
   .wave-scale { display: none; }
