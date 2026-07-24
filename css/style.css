@@ -145,7 +145,7 @@ body {
 .top-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex: none;
 }
 
@@ -163,10 +163,11 @@ html:not([lang="en"]) .glyph-en { display: none; }
 
 .icon-btn {
   border-radius: var(--r-m);
+  text-decoration: none; /* 链接形态（X / GitHub）与按钮同款 */
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
+  width: 28px;
   height: var(--ctl-h);
   padding: 0;
   background: var(--panel);
@@ -901,6 +902,11 @@ html:not([lang="en"]) .glyph-en { display: none; }
   background: var(--ctl-track);
   border: 1px solid var(--border);
   border-radius: var(--r-m);
+}
+
+/* 中等宽度：副标题是品牌区最宽元素，收起为单顶栏腾出空间 */
+@media (max-width: 1440px) {
+  .brand-sub { display: none; }
 }
 
 /* ── 移动端 ── */
