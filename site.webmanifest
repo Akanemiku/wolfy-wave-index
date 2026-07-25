@@ -1,0 +1,14 @@
+{
+  "name": "Wolfy Wave Index · 狼波周期指数",
+  "short_name": "Wolfy Wave",
+  "description": "Bitcoin four-year-cycle chart with block height as its only x-axis.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0e1117",
+  "theme_color": "#0e1117",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
