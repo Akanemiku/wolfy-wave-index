@@ -59,6 +59,26 @@
   display: none !important;
 }
 
+/* 按下即反馈（Apple §Response）：pointer-down 瞬时确认，不等 click。
+   只动 transform（合成器友好），松开由同一过渡弹回 */
+.seg button,
+.icon-btn,
+.toggle-btn,
+.phase-toggle,
+.notice button {
+  transition-property: color, background-color, border-color, transform;
+  transition-duration: 0.12s;
+  transition-timing-function: ease-out;
+}
+
+.seg button:active,
+.icon-btn:active,
+.toggle-btn:active,
+.phase-toggle:active,
+.notice button:active {
+  transform: scale(0.96);
+}
+
 /* 焦点环：2px 中性灰（数据终端语言：无彩色焦点态） */
 :focus-visible {
   outline: 2px solid var(--border);
@@ -733,6 +753,7 @@ html:not([lang="en"]) .glyph-en { display: none; }
   top: 38px; /* 避开左上角 OHLC 读数行，窄窗口下不互相覆盖 */
   left: 50%;
   transform: translateX(-50%);
+  animation: notice-in 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
   z-index: 20;
   display: flex;
   align-items: center;
@@ -810,7 +831,14 @@ html:not([lang="en"]) .glyph-en { display: none; }
 
 
 
+@keyframes notice-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+}
+
 /* ── 指标说明弹窗 ── */
+/* 到场/离场沿同一路径（空间一致性）：面板以触发源（右上角 ? 按钮）
+   为变换原点生长/收回，遮罩同步淡入淡出；.closing 播放反向动画，
+   动画结束后 JS 才真正 hidden */
 .about-overlay {
   position: fixed;
   inset: 0;
@@ -820,6 +848,31 @@ html:not([lang="en"]) .glyph-en { display: none; }
   justify-content: center;
   padding: 24px;
   background: rgb(0 0 0 / 0.55);
+  animation: about-fade-in 0.16s ease-out;
+}
+
+.about-overlay.closing {
+  animation: about-fade-out 0.14s ease-in forwards;
+}
+
+.about-overlay .about-modal {
+  transform-origin: top right;
+  animation: about-modal-in 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.about-overlay.closing .about-modal {
+  animation: about-modal-out 0.14s cubic-bezier(0.7, 0.1, 0.8, 0.4) forwards;
+}
+
+@keyframes about-fade-in { from { opacity: 0; } }
+@keyframes about-fade-out { to { opacity: 0; } }
+
+@keyframes about-modal-in {
+  from { opacity: 0; transform: scale(0.96) translateY(-10px); }
+}
+
+@keyframes about-modal-out {
+  to { opacity: 0; transform: scale(0.97) translateY(-6px); }
 }
 
 .about-modal {
@@ -885,6 +938,31 @@ html:not([lang="en"]) .glyph-en { display: none; }
   background: var(--ctl-track);
   border: 1px solid var(--border);
   border-radius: var(--r-m);
+}
+
+/* 无障碍：偏好减弱动效时，动画降级为不含位移的短淡入淡出，
+   常驻脉动指示灯改为常亮，按压不再位移（§Reduced Motion） */
+@media (prefers-reduced-motion: reduce) {
+  .live-dot { animation: none; }
+
+  .seg button:active,
+  .icon-btn:active,
+  .toggle-btn:active,
+  .phase-toggle:active,
+  .notice button:active {
+    transform: none;
+  }
+
+  .about-overlay .about-modal,
+  .about-overlay.closing .about-modal {
+    animation-duration: 0.12s;
+    animation-name: about-fade-in;
+    transform: none;
+  }
+
+  .about-overlay.closing .about-modal { animation-name: about-fade-out; }
+
+  .notice { animation: none; }
 }
 
 /* 中等宽度：副标题是品牌区最宽元素，收起为单顶栏腾出空间 */

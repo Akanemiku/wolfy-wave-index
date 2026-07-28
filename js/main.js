@@ -690,14 +690,32 @@ async function init() {
   applyStaticLang();
 
   // ── 指标说明弹窗：按钮打开；点遮罩 / 关闭按钮 / Esc 关闭 ──
+  // 离场沿到场路径反向播放（.closing 动画），播完才真正 hidden；
+  // 退场途中再次打开会打断退场、立即回到打开态（动画可打断）
   const aboutOverlay = $('about-overlay');
-  $('about-toggle').addEventListener('click', () => { aboutOverlay.hidden = false; });
-  $('about-close').addEventListener('click', () => { aboutOverlay.hidden = true; });
+  function openAbout() {
+    aboutOverlay.classList.remove('closing');
+    aboutOverlay.hidden = false;
+  }
+  function closeAbout() {
+    if (aboutOverlay.hidden || aboutOverlay.classList.contains('closing')) return;
+    aboutOverlay.classList.add('closing');
+    const done = () => {
+      if (aboutOverlay.classList.contains('closing')) {
+        aboutOverlay.hidden = true;
+        aboutOverlay.classList.remove('closing');
+      }
+    };
+    aboutOverlay.addEventListener('animationend', done, { once: true });
+    setTimeout(done, 300); // 动画事件缺失时的兜底
+  }
+  $('about-toggle').addEventListener('click', openAbout);
+  $('about-close').addEventListener('click', closeAbout);
   aboutOverlay.addEventListener('click', (e) => {
-    if (e.target === aboutOverlay) aboutOverlay.hidden = true;
+    if (e.target === aboutOverlay) closeAbout();
   });
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !aboutOverlay.hidden) aboutOverlay.hidden = true;
+    if (e.key === 'Escape' && !aboutOverlay.hidden) closeAbout();
   });
 
   $('lang-toggle').addEventListener('click', () => {
