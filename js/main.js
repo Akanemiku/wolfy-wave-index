@@ -485,7 +485,8 @@ async function init() {
       el.className = `chg ${chg >= 0 ? 'up' : 'down'}`;
     }
     // 标签页标题即行情条（TradingView 式）：窄标签从右截断，优先级
-    // 从左到右排——WWI 最高、价格次之、站名殿后（随 250ms 节流刷新）
+    // 从左到右排——实时跳动的价格最高、慢变的 WWI 次之、站名殿后
+    //（随 250ms 节流刷新）
     if (waveNow !== null) {
       const priceTxt = priceNow.toLocaleString('en-US', {
         minimumFractionDigits: 2,
@@ -494,7 +495,7 @@ async function init() {
       const chgTxt = prev
         ? ` ${priceNow >= prev.close ? '▲' : '▼'} ${fmtPct((priceNow - prev.close) / prev.close)}`
         : '';
-      document.title = `WWI ${waveNow.toFixed(3)} · BTC ${priceTxt}${chgTxt} · ${t('brand')}`;
+      document.title = `BTC ${priceTxt}${chgTxt} · WWI ${waveNow.toFixed(3)} · ${t('brand')}`;
     }
     // 顶栏狼波周期指数读数（颜色 = 该值的狼波色）+ 变化闪烁
     const waveEl = $('stat-wave');
